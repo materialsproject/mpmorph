@@ -131,7 +131,8 @@ class RDF(object):
     # calculated to allow the user to select the desired one
 
 
-    def __init__(self, xdatcar, cutoff = 5.0, bin_size = 0.025, step_freq = 2, smooth = 1, title="Radial distribution functions\n(T = 1400 K)"):
+    def __init__(self, xdatcar, cutoff = 5.0, bin_size = 0.025, step_freq = 2,
+                 smooth = 1, title="Radial distribution functions\n(T = 1400 K)"):
         '''
         :param xdatcar:
         :param cutoff:
@@ -163,11 +164,14 @@ class RDF(object):
         :return:
         '''
         self.RDFs = {}
+        self.totalRDFs = {}
 
         ss = self.xdatcar.structures[0].symbol_set
         self.pairs = itertools.combinations_with_replacement(ss,2)
         for pair in self.pairs:
             self.RDFs[pair]=np.zeros(self.n_bins)
+#        for pair in itertools.product(ss,repeat=2):
+            self.totalRDFs[pair]=np.zeros(self.n_bins)
 
         counter = 0
         for frame in itertools.count(0, self.step_freq):
@@ -190,8 +194,10 @@ class RDF(object):
                     key = (atom1_specie,atom2_specie)
                     if key in self.RDFs:
                         self.RDFs[key][bin_index] += 1
-        self.totalRDFs = deepcopy(self.RDFs)
+                    if key in self.totalRDFs:
+                        self.totalRDFs[key][bin_index] += 1
         self.get_pair_order = []
+
         for i in self.RDFs.keys():
             self.get_pair_order.append('-'.join(list(i)))
             density_of_atom2 = self.n_species[i[1]]/self.xdatcar.structures[0].volume
@@ -202,8 +208,9 @@ class RDF(object):
                 # Divide by number of atom1 to obtain the average of atom2 at r+dr per atom type 1
                 # Divide by 4pi r^2 dr to convert to density
                 # Divide by counter to get average in time
-                self.totalRDFs[i][j] = self.totalRDFs[i][j]/self.n_species[i[0]]/counter
                 self.RDFs[i][j]=self.RDFs[i][j]/self.n_species[i[0]]/4/np.pi/r/r/self.bin_size/density_of_atom2/counter
+        for i in self.totalRDFs.keys():
+            self.totalRDFs[i] = self.totalRDFs[i]/float(self.n_species[i[0]])/counter
 
         if self.smooth:
             self.RDFs= get_smooth_RDF(self.RDFs,passes=self.smooth)
