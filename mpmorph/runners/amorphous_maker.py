@@ -46,7 +46,7 @@ class AmorphousMaker(object):
         """
         Returns: A constrained-random packed Structure object
         """
-        self._el_dict = self.call_packmol
+        self._el_dict = self.call_packmol()
         self._structure = self.get_structure(self._el_dict, self.box)
         return self._structure
 
