@@ -3,6 +3,7 @@ from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.core.structure import Structure
 from collections import OrderedDict
 from pymatgen.io.vasp.sets import MITMDVaspInputSet
+import numpy as np
 import os
 
 
@@ -27,12 +28,15 @@ class AmorphousMaker(object):
         self._el_dict = None
         self.packmol_path = packmol_path
 
+    def __repr__(self):
+        return "AmorphousMaker: generates constrained-random packed initial structure for MD."
+
     @property
     def box(self):
         """
         Returns: box vectors scaled with box_scale
         """
-        return self._lattice*self.box_scale
+        return (np.array(self._lattice)*self.box_scale).tolist()
 
     @property
     def random_packed_structure(self):
@@ -56,7 +60,7 @@ class AmorphousMaker(object):
         pm_h = self.box_scale-self.tol/2
 
         with open("packmol.input", "w") as f:
-            f.write("tolerance "+ str(tol) +"\nfiletype xyz\noutput mixture.xyz\n")
+            f.write("tolerance "+ str(self.tol) +"\nfiletype xyz\noutput mixture.xyz\n")
             for el in self.el_num_dict:
                 f.write("structure " + el + ".xyz\n" + "  number " + str(self.el_num_dict[el])
                           + "\n  inside box" + 3*(" " + str(pm_l)) + 3*(" " + str(pm_h))
@@ -112,6 +116,10 @@ class AmorphousMaker(object):
                 species.append(el)
                 coords.append(atom)
         return Structure(lattice, species, coords, coords_are_cartesian=True)
+
+    def get_poscar(self):
+        return Poscar(self.random_packed_structure)
+
 
     @staticmethod
     def xyzdict_to_poscar(el_dict, lattice, filepath ="POSCAR"):
