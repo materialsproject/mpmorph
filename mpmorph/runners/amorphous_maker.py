@@ -8,7 +8,7 @@ import os
 
 
 class AmorphousMaker(object):
-    def __init__(self, el_num_dict, box_scale, tol = 2.0, packmol_path="packmol"):
+    def __init__(self, el_num_dict, box_scale, tol = 2.0, packmol_path="packmol", clean=True):
         """
         Class for generating initial constrained-random packed structures for the
         simulation of amorphous or liquid structures. This is a wrapper for "packmol".
@@ -27,6 +27,7 @@ class AmorphousMaker(object):
         self._structure = None
         self._el_dict = None
         self.packmol_path = packmol_path
+        self.clean = clean
 
     def __repr__(self):
         return "AmorphousMaker: generates constrained-random packed initial structure for MD."
@@ -43,7 +44,7 @@ class AmorphousMaker(object):
         """
         Returns:
         """
-        self._el_dict = self.call_packmol(clean=True)
+        self._el_dict = self.call_packmol(clean=self.clean)
         self._structure = self.get_structure(self._el_dict, self.box)
         return self._structure
 
