@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 
 import glob
-from pymatgen.analysis.mddiff import md_data
 from pymatgen.analysis.mddiff.correct_volume import CorrectVolume
 from pymatgen.io.vasp.sets import MITMDVaspInputSet
 from pymatgen.io import vasp
@@ -14,6 +13,7 @@ old_pres_dirs = glob.glob(scratch + "/diff/runs/*/1800/")
 new_temp = 1800
 old_temp = 1800
 initial_offset = 0.5 # skips this fraction of data points
+
 
 
 vaspmd = MITMDVaspInputSet(old_temp, new_temp, 2000, time_step=2, 
