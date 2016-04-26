@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 
 import glob
-from pymatgen.analysis.mddiff import md_data
 from pymatgen.analysis.mddiff.correct_volume import CorrectVolume
 from pymatgen.io.vasp.sets import MITMDVaspInputSet
 from pymatgen.io import vasp
