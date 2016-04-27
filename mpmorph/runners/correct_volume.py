@@ -3,20 +3,26 @@ from pymatgen.io.vasp import Poscar
 
 class RescaleVolume(object):
     """
-    TODO : be able to get from Poscar, so that predictor corrector
-    parameters can be returned correctly.
-
-    Class for adjusting the volume of an input simulation box
-    to zero pressure.
-    Args:
-        - Structure
-        - initial pressure
-        - initial temperature
-
+    Class for adjusting the volume of an input simulation box based on conditions.
     """
+
     def __init__(self, structure, initial_pressure=0.0, initial_temperature=1000.0,
                          target_pressure=0.0, target_temperature=1000.0,
                          alpha=10e-5, beta=10e-7, poscar=None):
+        """
+        Args:
+            structure:
+            initial_pressure: in bars
+            initial_temperature: in Kelvins
+            target_pressure: in bars
+            target_temperature: n Kelvins
+            alpha:
+            beta:
+            poscar:
+
+        Returns:
+
+        """
         self.structure = structure
         self.initial_pressure = initial_pressure  # in bars
         self.initial_temperature = initial_temperature  # in K
@@ -35,10 +41,12 @@ class RescaleVolume(object):
 
     def by_thermo(self, scale='pressure'):
         """
-        Scales the volume of structure using thermodynamic functions
+        Scales the volume of structure using thermodynamic functions, which basically give linear
+        Equations of State. For more advanced EOS, one should use the by_EOS method.
         Args:
             scale (str): thermodynamic function used to scale; 'temperature' or 'pressure'.
         Returns:
+            rescaled structure
 
         """
         if scale == 'pressure':
@@ -54,7 +62,7 @@ class RescaleVolume(object):
 
         return self.structure
 
-    def by_eos(self, p_v, eos='polynomial'):
+    def by_EOS(self, p_v, eos='polynomial'):
         """
         Args:
             p_v (numpy array): an array of pressure-volume pairs; e.g. p_v = [[p1,v1],[p2,v2],...]
@@ -64,15 +72,19 @@ class RescaleVolume(object):
         Returns:
 
         """
+        v1 = self.structure.volume
         if eos=='polynomial':
-            v1 = self.structure.volume
             v2_v1 = poly_rescale(p_v, target_pressure=self.target_pressure)/v1
             self.rescale_structure_volume(v2_v1)
             self.initial_pressure = self.target_pressure
-        elif eos=='bm':
-
-            raise ValueError("BM EOS is not implemented yet")
-
+        elif eos=='Murnaghan':
+            raise ValueError("not implemented yet")
+        elif eos=='BirchMurnaghan':
+            v2_v1 = fit_BirchMurnaghanPV_EOS(p_v, target_pressure=self.target_pressure)/v1
+            self.rescale_structure_volume(v2_v1)
+            self.initial_pressure = self.target_pressure
+        else:
+            raise ValueError("Unknown EOS. Volume not rescaled.")
         return self.structure
 
 
@@ -103,47 +115,70 @@ def poly_rescale(p_v, target_pressure=0.0):
         eqs = np.poly1d(np.polyfit(p_v[:,0], p_v[:,1],1))
     else:
         eqs = np.poly1d(np.polyfit(p_v[:,0], p_v[:,1],2))
-    #Return volume at zero pressure:
     return eqs(target_pressure)
 
-def BirchMurnaghanEOS(p_v, target_pressure=0.0):
 
-
-
-    return eqs(target_pressure)
-
-def energy_bm(V,E0,B0,V0,B0p):
+def BirchMurnaghanPV_EOS(V,params):
     """
     Args:
         V: volume
-        E0: equilibrium energy
-        B0: bulk modulus
-        V0: equilibrium volume
-        B0p: pressure derivative of B0
-
-    Returns:
-        Energy of Birch-Murnaghan EOS at V with given parameters E0, B0, V0 and B0p
-
-    """
-    n = (V/V0)**(1./3)
-    return E0 + 9.*B0*V0/16*(n**2-1)**2 *(6.+B0p*(n**2-1)-4*n**2)
-
-def pressure_bm(V,E0,B0,V0,B0p):
-    """
-    Args:
-        V: volume
-        E0: equilibrium energy
-        B0: bulk modulus
-        V0: equilibrium volume
-        B0p: pressure derivative of B0
-
+        params: tuple of B0,V0,B0p
     Returns:
         Pressure of Birch-Murnaghan EOS at V with given parameters E0, B0, V0 and B0p
+    """
+    V0, B0, B0p = params[0], params[1], params[2]
+    n = (V0/V)**(1./3) # not this definition is different from the Energy EOS
+    p = 3./2*B0*(n**7-n**5)*(1.+3./4*(B0p-4)*(n**2-1))
+    return p
+
+def fit_BirchMurnaghanPV_EOS(p_v):
+    # Borrows somewhat from pymatgen/io/abinitio/EOS
+    # Initial guesses for the parameters
+    from scipy.optimize import leastsq
+    eqs = np.polyfit(p_v[:,1], p_v[:,0], 2)
+    V0 = np.mean(p_v[:,1]) # still use mean to ensure we are at reasonable volumes
+    B0 = -1*(2*eqs[0]*V0**2+eqs[1]*V0)
+    B0p = -1*(2*eqs[0]*V0**2+eqs[1])
+    initial_params = (V0,B0,B0p)
+    print initial_params
+    Error=lambda params,x,y: BirchMurnaghanPV_EOS(x,params) - y
+    found_params, check = leastsq(Error,initial_params,args=(p_v[:,1],p_v[:,0]))
+    print check
+    if check not in [1,2,3,4]:
+        raise ValueError("fitting not converged")
+    else:
+        return found_params
+
+def BirchMurnaghan_rescale(p_v, target_pressure=0):
+    """
+    Calls fit_BirchMurnaghanPV_EOS to find params of EOS and returns V corresponding to target_pressure
+    Args:
+        p_v:
+        target_pressure:
+
+    Returns:
 
     """
-    n = (V/V0)**(1./3)
-    return
-
+    params = fit_BirchMurnaghanPV_EOS(p_v)
+    if target_pressure==0:
+        return params[0]
+    else:
+        # TODO: find volume corresponding to this target_pressure
+        pass
 
 if __name__ == '__main__':
-    p_v = np.array([[-0.1,100.0],[0.5,90],[2.0,70]])
+    import matplotlib.pyplot as plt
+    p_v = np.array([[-0.1,100.0],[0.5,90],[3.0,70]])
+    p = p_v[:,0]
+    v = p_v[:,1]
+    params= fit_BirchMurnaghanPV_EOS(p_v)
+    print params
+    xx = np.linspace(v.min(),v.max(),50)
+    yy = BirchMurnaghanPV_EOS(xx,params)
+    plt.plot(xx,yy,'r-',v,p,'bo')
+    plt.show()
+    print BirchMurnaghan_rescale(p_v)
+
+
+
+
