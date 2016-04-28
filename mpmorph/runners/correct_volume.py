@@ -80,13 +80,12 @@ class RescaleVolume(object):
         elif eos=='Murnaghan':
             raise ValueError("not implemented yet")
         elif eos=='BirchMurnaghan':
-            v2_v1 = fit_BirchMurnaghanPV_EOS(p_v, target_pressure=self.target_pressure)/v1
+            v2_v1 = BirchMurnaghan_rescale(p_v, target_pressure=self.target_pressure)/v1
             self.rescale_structure_volume(v2_v1)
             self.initial_pressure = self.target_pressure
         else:
             raise ValueError("Unknown EOS. Volume not rescaled.")
         return self.structure
-
 
 
     @classmethod
@@ -127,9 +126,10 @@ def BirchMurnaghanPV_EOS(V,params):
         Pressure of Birch-Murnaghan EOS at V with given parameters E0, B0, V0 and B0p
     """
     V0, B0, B0p = params[0], params[1], params[2]
-    n = (V0/V)**(1./3) # not this definition is different from the Energy EOS
-    p = 3./2*B0*(n**7-n**5)*(1.+3./4*(B0p-4)*(n**2-1))
+    n = (V0/V)**(1./3) # Note this definition is different from the Energy EOS
+    p = 3.0/2.0*B0*(n**7-n**5)*(1.+3./4*(B0p-4)*(n**2-1.0))
     return p
+
 
 def fit_BirchMurnaghanPV_EOS(p_v):
     # Borrows somewhat from pymatgen/io/abinitio/EOS
@@ -138,7 +138,7 @@ def fit_BirchMurnaghanPV_EOS(p_v):
     eqs = np.polyfit(p_v[:,1], p_v[:,0], 2)
     V0 = np.mean(p_v[:,1]) # still use mean to ensure we are at reasonable volumes
     B0 = -1*(2*eqs[0]*V0**2+eqs[1]*V0)
-    B0p = -1*(2*eqs[0]*V0**2+eqs[1])
+    B0p = 4.0 #-1*(2*eqs[0]*V0**2+eqs[1])
     initial_params = (V0,B0,B0p)
     print initial_params
     Error=lambda params,x,y: BirchMurnaghanPV_EOS(x,params) - y
@@ -147,7 +147,9 @@ def fit_BirchMurnaghanPV_EOS(p_v):
     if check not in [1,2,3,4]:
         raise ValueError("fitting not converged")
     else:
+        print found_params
         return found_params
+
 
 def BirchMurnaghan_rescale(p_v, target_pressure=0):
     """
@@ -166,18 +168,6 @@ def BirchMurnaghan_rescale(p_v, target_pressure=0):
         # TODO: find volume corresponding to this target_pressure
         pass
 
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    p_v = np.array([[-0.1,100.0],[0.5,90],[3.0,70]])
-    p = p_v[:,0]
-    v = p_v[:,1]
-    params= fit_BirchMurnaghanPV_EOS(p_v)
-    print params
-    xx = np.linspace(v.min(),v.max(),50)
-    yy = BirchMurnaghanPV_EOS(xx,params)
-    plt.plot(xx,yy,'r-',v,p,'bo')
-    plt.show()
-    print BirchMurnaghan_rescale(p_v)
 
 
 
