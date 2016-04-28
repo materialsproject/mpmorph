@@ -75,9 +75,10 @@ class RescaleVolume(object):
             p_v (numpy array): an array of pressure-volume pairs; e.g. p_v = [[p1,v1],[p2,v2],...]
             eos (str): type of equation of state to fit to. Currently only polynomial is supported.
                 - 'polynomial': if p_v has two elements, fits line, otherwise; quadratic polynomial
-                - 'bm': Birch-Murnaghan EOS. Not implemented yet.
+                - 'Murnaghan': Murnaghan EOS. Not implemented yet.
+                - 'BirchMurnaghan': Birch-Murnaghan EOS.
         Returns:
-
+            self.structure
         """
         v1 = self.structure.volume
         if eos=='polynomial':
