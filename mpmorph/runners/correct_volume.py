@@ -1,6 +1,7 @@
 import numpy as np
 from pymatgen.io.vasp import Poscar
 
+
 class RescaleVolume(object):
     """
     Class for adjusting the volume of an input simulation box based on conditions.
@@ -32,12 +33,18 @@ class RescaleVolume(object):
         self.beta = beta  # /bar
         self.poscar = poscar
 
-    def rescale_structure_volume(self, v2_v1):
+    def rescale_structure_volume(self, v2_v1, tol=0.3):
         """
         Scales the volume of a structure by the given factor v2_v1.
+        Args:
+            v2_v1: ratio of final volume to initial volume
+            tol: tolerance for largest allowed volume change (fractional)
         Returns the same structure with the new volume.
         """
-        return self.structure.scale_lattice(self.structure.volume * v2_v1)
+        if np.fabs(1-v2_v1)>tol:
+            raise "Attempted volume change too large!"
+        else:
+            return self.structure.scale_lattice(self.structure.volume * v2_v1)
 
     def by_thermo(self, scale='pressure'):
         """
@@ -138,16 +145,13 @@ def fit_BirchMurnaghanPV_EOS(p_v):
     eqs = np.polyfit(p_v[:,1], p_v[:,0], 2)
     V0 = np.mean(p_v[:,1]) # still use mean to ensure we are at reasonable volumes
     B0 = -1*(2*eqs[0]*V0**2+eqs[1]*V0)
-    B0p = 4.0 #-1*(2*eqs[0]*V0**2+eqs[1])
+    B0p = 4.0
     initial_params = (V0,B0,B0p)
-    print initial_params
     Error=lambda params,x,y: BirchMurnaghanPV_EOS(x,params) - y
     found_params, check = leastsq(Error,initial_params,args=(p_v[:,1],p_v[:,0]))
-    print check
     if check not in [1,2,3,4]:
         raise ValueError("fitting not converged")
     else:
-        print found_params
         return found_params
 
 
@@ -163,7 +167,7 @@ def BirchMurnaghan_rescale(p_v, target_pressure=0):
     """
     params = fit_BirchMurnaghanPV_EOS(p_v)
     if target_pressure==0:
-        return params[0]
+        return params[0] #This is V0
     else:
         # TODO: find volume corresponding to this target_pressure
         pass
