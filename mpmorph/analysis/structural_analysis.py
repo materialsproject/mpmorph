@@ -10,7 +10,7 @@ def compute_mean_coord(structures, freq = 100):
     Calculate average coordination numbers
     With voronoi polyhedra construction
     args:
-        - structures: list of pymatgen structures
+        - structures: list of Structures
         - freq: sampling frequency of coord number [every freq steps]
     returns:
         - a dictionary of elements and corresponding mean coord numbers
@@ -32,11 +32,11 @@ def compute_mean_coord(structures, freq = 100):
         cn_dict[el] = cn_dict[el]/el_dict[el]/count
     return cn_dict
 
+
 class VoronoiAnalysis(object):
 
     def __init__(self):
         self.vor_ensemble = None
-        pass
 
     @staticmethod
     def voronoi_analysis(structure, n=0, cutoff=5.0, qhull_options="Qbb Qc Qz"):
@@ -78,11 +78,17 @@ class VoronoiAnalysis(object):
                         pass
         return vor_index
 
-
-
-    def from_structures(self, structures, cutoff=4.0, step_freq=10):
+    def from_structures(self, structures, cutoff=4.0, step_freq=10, qhull_options="Qbb Qc Qz"):
         """
         A constructor to perform Voronoi analysis on a list of pymatgen structrue objects
+
+        Args:
+            structures (list): list of Structures
+            cutoff (float: cutoff distance around an atom to search for neighbors
+            step_freq (int): perform analysis every step_freq steps
+            qhull_options (str): options to pass to qhull
+        Returns:
+            A list of [voronoi_tesellation, count]
         """
         print "This might take a while..."
         voro_dict = {}
@@ -94,7 +100,8 @@ class VoronoiAnalysis(object):
 
             v = []
             for n in range(len(structure)):
-                v.append(str(self.voronoi_analysis(structure,n=n,cutoff=cutoff, qhull_options="Qbb Qc Qz").view()))
+                v.append(str(self.voronoi_analysis(structure,n=n,cutoff=cutoff,
+                                                   qhull_options=qhull_options).view()))
             for voro in v:
                 if voro in voro_dict:
                     voro_dict[voro]+=1
@@ -119,8 +126,8 @@ class VoronoiAnalysis(object):
         plt.grid(True)
         return plt
 
-class RDF(object):
-    # RDF
+class RadialDistributionFunction(object):
+    # RadialDistributionFunction
     # bin_size = 0.1 Angstrom, default
     # cutoff = 10 Angstrom, default
     # step_freq = 2, default
@@ -129,7 +136,6 @@ class RDF(object):
     # For Cr-O system, Cr-Cr, O-O, Cr-O, and O-Cr
     # Last two RDFs are similar, and they are both
     # calculated to allow the user to select the desired one
-
 
     def __init__(self, xdatcar, cutoff = 5.0, bin_size = 0.025, step_freq = 2,
                  smooth = 1, title="Radial distribution functions\n(T = 1400 K)"):
