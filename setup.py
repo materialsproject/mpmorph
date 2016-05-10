@@ -8,5 +8,5 @@ setup(
     license='MIT',
     author='Muratahan Aykol',
     author_email='maykol@lbl.gov',
-    description=''
+    description='', requires=['pymatgen', 'pymatgen']
 )

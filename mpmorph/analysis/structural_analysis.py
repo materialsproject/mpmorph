@@ -1,12 +1,167 @@
 from pymatgen.analysis import structure_analyzer
+from pymatgen.util.coord_utils import get_angle
 from scipy.spatial import Voronoi
 from copy import deepcopy
 import matplotlib.pyplot as plt
 import numpy as np
 import itertools
 
+
+class BondAngleDistribution(object):
+
+    def __init__(self, structures, cutoffs, step_freq=1):
+        self.bond_angle_distribution = None
+        self.structures = structures
+        self.step_freq=step_freq
+        self.unique_triplets = self.get_unique_triplets(structures[0])
+        self.n_frames = len(structures)
+        if isinstance(cutoffs,dict):
+            self.cutoffs = cutoffs
+            self._cutoff_type = 'dict'
+        elif isinstance(cutoffs,float):
+            self.cutoffs = cutoffs
+            self._cutoff_type = 'constant'
+        else:
+            raise ValueError("Cutoffs must be specified as dict of pairs or globally as a single flaot.")
+
+    @staticmethod
+    def get_angle(structure, i, j, k):
+        """
+        Returns **Minimum Image** angle specified by three sites.
+
+        Args:
+            structure: Structure
+            i (int): Index of first site.
+            j (int): Index of second site.
+            k (int): Index of third site.
+
+        Returns:
+            (float) Angle in degrees.
+        """
+        lat_vec = np.array([structure.lattice.a, structure.lattice.b, structure.lattice.c])
+
+        v1 = structure[i].coords - structure[j].coords
+        v2 = structure[k].coords - structure[j].coords
+
+        for v in range(3):
+            if np.fabs(v1[v])>lat_vec[v]/2.0:
+                v1[v] -= np.sign(v1[v])*lat_vec[v]
+            if np.fabs(v2[v])>lat_vec[v]/2.0:
+                v2[v] -= np.sign(v2[v])*lat_vec[v]
+        return get_angle(v1, v2, units="degrees")
+
+    @staticmethod
+    def get_unique_triplets(s):
+        central_atoms = s.symbol_set
+        import itertools
+        possible_end_members = []
+        for i in itertools.combinations_with_replacement(central_atoms, 2):
+            possible_end_members.append(i)
+        unique_triplets = []
+        for i in central_atoms:
+            for j in possible_end_members:
+                triplet = (j[0],i,j[1])
+                unique_triplets.append(triplet)
+        return unique_triplets
+
+    def _check_skip_triplet(self,s_index,i,n1,n2):
+        """
+        Helper method to find if a triplet should be skipped
+        Args:
+            s_index: index of structure in self.structures
+            i: index of the central site
+            n1: index of the first neighbor site
+            n2: index of the second neighbor site
+        Returns:
+            True if pair distance is longer than specified in self.cutoffs
+        """
+        ns = [n1,n2]
+        s = self.structures[s_index]
+        skip_triplet = False
+        for j in ns:
+            pair = (s[i].species_string, s[j].species_string)
+            if pair not in self.cutoffs:
+                pair = pair[::-1]
+            if s.get_distance(i,j)>self.cutoffs[pair]:
+                skip_triplet = True
+                break
+        return skip_triplet
+
+    def get_bond_angle_distribution(self):
+        bond_angle_dict = {}
+        for triplet in self.unique_triplets:
+            bond_angle_dict[triplet] = np.zeros(180+1)
+
+        for s_index in itertools.count(0, self.step_freq):
+            if s_index >= self.n_frames:
+                break
+            s = self.structures[s_index]
+
+            # Narrow down the search space around a given atom for neighbors
+            if self._cutoff_type == 'dict':
+                neighbor_search_cutoff=max(self.cutoffs.values())
+            else:
+                neighbor_search_cutoff=self.cutoffs
+            neighbors = s.get_all_neighbors(neighbor_search_cutoff, include_index=True)
+
+            for i in range(len(s)):
+                el_origin = s[i].species_string
+
+                # get all pair combinations of neoghbor sites of i:
+                for p in itertools.combinations(neighbors[i],2):
+
+                    # check if pairs are within the defined cutoffs
+                    if self._cutoff_type == 'dict':
+                        if self._check_skip_triplet(s_index,i,p[0][2],p[1][2]):
+                            continue
+                    else:
+                        pass
+
+                    angle = self.get_angle(s,p[0][2],i,p[1][2])
+
+                    # round to nearest integer
+                    angle = int(np.rint([angle])[0])
+                    el1 = p[0][0].species_string
+                    el2 = p[1][0].species_string
+                    if (el1,el_origin,el2) in bond_angle_dict:
+                        bond_angle_dict[ (el1,el_origin,el2) ][angle] += 1
+                    elif (el2,el_origin,el1) in bond_angle_dict:
+                        bond_angle_dict[ (el2,el_origin,el1) ][angle] += 1
+                    else:
+                        print (el1,el_origin,el2)
+                        raise KeyError("Problem finding the triplet!!!")
+
+
+        for triplet in bond_angle_dict:
+            total =  np.sum(bond_angle_dict[triplet])
+            if total != 0.0:
+                bond_angle_dict[triplet]/=total
+        self.bond_angle_distribution = bond_angle_dict
+
+    def plot_bond_angle_distribution(self):
+        import matplotlib.pyplot as plt
+        if not self.bond_angle_distribution:
+            self.get_bond_angle_distribution()
+        plt.figure()
+        triplets = self.bond_angle_distribution.keys()
+        legend = []
+        for trip in triplets:
+            legend.append('-'.join(trip))
+        for triplet in triplets:
+            plt.plot(range(180+1), self.bond_angle_distribution[triplet])
+
+        plt.xlabel("Angle (degrees)")
+        plt.ylabel("Frequency (fractional)")
+        plt.legend(legend,loc=0)
+        plt.show()
+
+
+
 def compute_mean_coord(structures, freq = 100):
     '''
+    NOTE: This function will be removed as it has been migrated
+    to pymatgen.
+
     Calculate average coordination numbers
     With voronoi polyhedra construction
     args:
@@ -34,6 +189,10 @@ def compute_mean_coord(structures, freq = 100):
 
 
 class VoronoiAnalysis(object):
+
+    """
+    NOTE: This class has also been migrated to pymatgen so will be removed!
+    """
 
     def __init__(self):
         self.vor_ensemble = None
