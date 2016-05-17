@@ -7,14 +7,120 @@ import numpy as np
 import itertools
 
 
+
+
+# TODO: Add a connectivity module that finds common number of O for Al centered polyhedra
+
+def polyhedra_connectivity(structures, pair, cutoff, step_freq=1, given=None):
+    """
+    Args:
+        structures:
+        pair:
+        cutoff:
+        step_freq:
+        given: Given polyhedra are of this
+
+    Returns:
+
+    """
+    n_frames = len(structures)
+    center_atom = pair[0]
+    shell_atom = pair[1]
+
+    connectivity = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7:0, 8:0}
+    connectivity_template = deepcopy(connectivity)
+    connectivity_sub_categories={}
+
+
+    for s_index in itertools.count(0, step_freq):
+        if s_index >= n_frames:
+            break
+        structure = structures[s_index]
+
+        polyhedra_list=[]
+
+        for i in range(len(structure)):
+            current_poly=[]
+            if str(structure[i].specie) == center_atom:
+                for j in range(len(structure)):
+                    if str(structure[j].specie) == shell_atom:
+                        d = structure.get_distance(i,j)
+                        if d < cutoff:
+                            current_poly.append(j)
+            polyhedra_list.append(set(current_poly))
+
+
+        for polypair in itertools.combinations(polyhedra_list,2):
+
+            polyhedra_pair_type = (len(polypair[0]), len(polypair[1]))
+
+            shared_vertices = len(polypair[0].intersection(polypair[1]))
+
+            if shared_vertices in connectivity:
+                connectivity[shared_vertices]+=1
+
+            if shared_vertices:
+                if polyhedra_pair_type in connectivity_sub_categories:
+                    if shared_vertices in connectivity_sub_categories[polyhedra_pair_type]:
+                        connectivity_sub_categories[polyhedra_pair_type][shared_vertices] +=1
+                elif polyhedra_pair_type[::-1] in connectivity_sub_categories:
+                    if shared_vertices in connectivity_sub_categories[polyhedra_pair_type[::-1]]:
+                        connectivity_sub_categories[polyhedra_pair_type[::-1]][shared_vertices] +=1
+                else:
+                    connectivity_sub_categories[polyhedra_pair_type]=deepcopy(connectivity_template)
+                    if shared_vertices in connectivity_sub_categories[polyhedra_pair_type]:
+                        connectivity_sub_categories[polyhedra_pair_type][shared_vertices] =1
+    return connectivity, connectivity_sub_categories
+
+
+def coordination_number_distribution(structures, pair, cutoff, step_freq=1):
+    """
+    Calculates coordination number distributio
+    Args:
+        structures:
+        pair:
+        cutoff:
+        step_freq:
+
+    Returns:
+
+    """
+
+    cn_dist=[]
+    n_frames = len(structures)
+    for s_index in itertools.count(0, step_freq):
+        if s_index >= n_frames:
+            break
+        structure = structures[s_index]
+        for i in range(len(structure)):
+            if str(structure[i].specie) == pair[0]:
+                cn = 0
+                for j in range(len(structure)):
+                    if str(structure[j].specie) == pair[1]:
+                        d = structure.get_distance(i,j)
+                        if d < cutoff:
+                            cn+=1
+                cn_dist.append(cn)
+    return cn_dist
+
+
 class BondAngleDistribution(object):
+    """
+    Bond Angle Distribution
+    Args:
+        structures (list): list of structures
+        cutoffs (dict): a dictionary of cutoffs where keys are tuples of pairs ('A','B')
+        step_freq: calculate every this many steps
+    Attributes:
+        bond_angle_distribution (dict)
+    """
 
     def __init__(self, structures, cutoffs, step_freq=1):
+
         self.bond_angle_distribution = None
         self.structures = structures
         self.step_freq=step_freq
         self.unique_triplets = self.get_unique_triplets(structures[0])
-        self.n_frames = len(structures)
         if isinstance(cutoffs,dict):
             self.cutoffs = cutoffs
             self._cutoff_type = 'dict'
@@ -24,13 +130,16 @@ class BondAngleDistribution(object):
         else:
             raise ValueError("Cutoffs must be specified as dict of pairs or globally as a single flaot.")
 
-    @staticmethod
-    def get_angle(structure, i, j, k):
+    @property
+    def n_frames(self):
+        return len(self.structures)
+
+    def get_angle(self, s_index, i, j, k):
         """
         Returns **Minimum Image** angle specified by three sites.
 
         Args:
-            structure: Structure
+            s_index: Structure index in structures list
             i (int): Index of first site.
             j (int): Index of second site.
             k (int): Index of third site.
@@ -38,6 +147,7 @@ class BondAngleDistribution(object):
         Returns:
             (float) Angle in degrees.
         """
+        structure = self.structures[s_index]
         lat_vec = np.array([structure.lattice.a, structure.lattice.b, structure.lattice.c])
 
         v1 = structure[i].coords - structure[j].coords
@@ -117,7 +227,7 @@ class BondAngleDistribution(object):
                     else:
                         pass
 
-                    angle = self.get_angle(s,p[0][2],i,p[1][2])
+                    angle = self.get_angle(s_index,p[0][2],i,p[1][2])
 
                     # round to nearest integer
                     angle = int(np.rint([angle])[0])
@@ -130,10 +240,8 @@ class BondAngleDistribution(object):
                     else:
                         print (el1,el_origin,el2)
                         raise KeyError("Problem finding the triplet!!!")
-
-
         for triplet in bond_angle_dict:
-            total =  np.sum(bond_angle_dict[triplet])
+            total = np.sum(bond_angle_dict[triplet])
             if total != 0.0:
                 bond_angle_dict[triplet]/=total
         self.bond_angle_distribution = bond_angle_dict
@@ -156,12 +264,10 @@ class BondAngleDistribution(object):
         plt.show()
 
 
-
-def compute_mean_coord(structures, freq = 100):
+def compute_mean_coord(structures, freq=100):
     '''
     NOTE: This function will be removed as it has been migrated
     to pymatgen.
-
     Calculate average coordination numbers
     With voronoi polyhedra construction
     args:
@@ -277,13 +383,14 @@ class VoronoiAnalysis(object):
         tot = np.sum(val)
         val = [float(j)/tot for j in val]
         pos = np.arange(len(val))+.5    # the bar centers on the y axis
-        plt.figure()
-        plt.barh(pos,val, align='center', alpha=0.5)
+        plt.figure(figsize=(4,4))
+        plt.barh(pos, val, align='center', alpha=0.5)
         plt.yticks(pos, labels)
-        plt.xlabel('Count')
+        plt.xlabel('Fraction')
         plt.title('Voronoi Spectra')
         plt.grid(True)
         return plt
+
 
 class RadialDistributionFunction(object):
     """
