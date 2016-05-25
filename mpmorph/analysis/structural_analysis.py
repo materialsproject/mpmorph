@@ -7,10 +7,6 @@ import numpy as np
 import itertools
 
 
-
-
-# TODO: Add a connectivity module that finds common number of O for Al centered polyhedra
-
 def polyhedra_connectivity(structures, pair, cutoff, step_freq=1, given=None):
     """
     Args:
