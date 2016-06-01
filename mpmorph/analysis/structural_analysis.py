@@ -485,6 +485,7 @@ class RadialDistributionFunction(object):
             r = j*self.bin_size
             x.append(r)
         rdfs = self.RDFs
+        plt.figure()
         for rdf in rdfs:
             plt.plot(x,rdfs[rdf])
 
