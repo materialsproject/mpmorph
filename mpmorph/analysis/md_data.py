@@ -1,12 +1,17 @@
 import numpy as np
 import re
+import os
 
-def get_MD_data(outcar_path, search_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL'], search_data_column = [3, 4, 4, 4] ):
+def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
     '''
     Extracts the pressure, kinetic energy and total energy data from
     VASP MD OUTCAR.
 
     Args:
+          outcar_path:
+          search_keys:
+          search_keys:
+          search_data_column:
         - outcar_path = path to OUTCAR to be parsed
     Returns:
         - A nested list of MD steps where each search key value is
@@ -16,6 +21,10 @@ def get_MD_data(outcar_path, search_keys = ['external', 'kinetic energy EKIN', '
     # search_keys = ['external', 'kinetic energy EKIN', 'ETOTAL']
     # index of stripped column of data in that line, starts from 0
     # search_data_column = [3, 4, 4]
+    if search_data_column is None:
+        search_data_column = [3, 4, 4, 4]
+    if search_keys is None:
+        search_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
     outcar = open(outcar_path)
     print "OUTCAR opened"
     data_list = []
@@ -68,3 +77,17 @@ def plot_md_data(data_list):
         matplotlib plt object
 
     '''
+
+def parse_pressure(path, averaging_fraction=0.5):
+    os.system("grep external " + path + "/OUTCAR o| awk '{print $4}' > "+path +"/pres")
+    os.system("grep volume/ion " + path + "/OUTCAR | awk '{print $5}' > "+path +"/vol")
+    if os.path.isfile(path+"/OUTCAR"):
+        with open(path+"/pres") as f:
+            p = [float(line.rstrip()) for line in f]
+        with open(path+"/vol") as f:
+            vol = [float(line.rstrip()) for line in f][0]
+        pressure = np.array(p)
+        avg_pres = np.mean( pressure[int(averaging_fraction*(len(pressure)-1)):] )
+    else:
+        raise ValueError("No OUTCAR found.")
+    return avg_pres, vol, pressure
