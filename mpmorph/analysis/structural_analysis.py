@@ -7,7 +7,7 @@ import numpy as np
 import itertools
 
 
-def polyhedra_connectivity(structures, pair, cutoff, step_freq=1, given=None):
+def polyhedra_connectivity(structures, pair, cutoff, step_freq=1):
     """
     Args:
         structures:
