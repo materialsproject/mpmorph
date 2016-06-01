@@ -71,7 +71,7 @@ def polyhedra_connectivity(structures, pair, cutoff, step_freq=1):
 
 def coordination_number_distribution(structures, pair, cutoff, step_freq=1):
     """
-    Calculates coordination number distributio
+    Calculates coordination number distribution
     Args:
         structures:
         pair:
@@ -258,6 +258,7 @@ class BondAngleDistribution(object):
         plt.ylabel("Frequency (fractional)")
         plt.legend(legend,loc=0)
         plt.show()
+        return plt
 
 
 def compute_mean_coord(structures, freq=100):
