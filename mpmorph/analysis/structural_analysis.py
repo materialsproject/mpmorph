@@ -257,7 +257,6 @@ class BondAngleDistribution(object):
         plt.xlabel("Angle (degrees)")
         plt.ylabel("Frequency (fractional)")
         plt.legend(legend,loc=0)
-        plt.show()
         return plt
 
 
