@@ -93,7 +93,10 @@ class Activation:
             self.dt_dict[el] = np.array([ [1/T, np.log(D)] for T,D in self.dt_dict[el] ] )
             d_fit = np.polyfit(self.dt_dict[el][:,0],self.dt_dict[el][:,1],1,cov=cov)
             print "d_ft", d_fit
-            d_RT = d_fit[0][0]/298.0+d_fit[0][1]
+            if cov:
+                d_RT = d_fit[0][0]/298.0+d_fit[0][1]
+            else:
+                d_RT = d_fit[0]/298.0+d_fit[1]
             print "-Q/k ln(D0) ln[D(RT)] D(RT)[cm2/s]"
             print d_fit[0], d_RT, np.exp(d_RT)
             print d_fit
