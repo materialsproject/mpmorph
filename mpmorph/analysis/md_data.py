@@ -79,7 +79,7 @@ def plot_md_data(data_list):
     '''
 
 def parse_pressure(path, averaging_fraction=0.5):
-    os.system("grep external " + path + "/OUTCAR o| awk '{print $4}' > "+path +"/pres")
+    os.system("grep external " + path + "/OUTCAR | awk '{print $4}' > "+path +"/pres")
     os.system("grep volume/ion " + path + "/OUTCAR | awk '{print $5}' > "+path +"/vol")
     if os.path.isfile(path+"/OUTCAR"):
         with open(path+"/pres") as f:
