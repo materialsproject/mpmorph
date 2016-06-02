@@ -72,7 +72,6 @@ class DiffusionCoeffs:
         plt.legend(legend_str, bbox_to_anchor=(1.03, 1.0), loc=2, borderaxespad=0.1,fontsize=14)
         plt.title(formula+" T = " + str(temp) + " K",fontsize=14)
         plt.tick_params(labelsize=13)
-        plt.show()
         return plt
 
 class Activation:
@@ -89,10 +88,10 @@ class Activation:
         self.d_rt = {}
         self.cov = {}
 
-    def compute_activation(self):
+    def compute_activation(self, cov=False):
         for el in self.dt_dict:
             self.dt_dict[el] = np.array([ [1/T, np.log(D)] for T,D in self.dt_dict[el] ] )
-            d_fit = np.polyfit(self.dt_dict[el][:,0],self.dt_dict[el][:,1],1,cov=True)
+            d_fit = np.polyfit(self.dt_dict[el][:,0],self.dt_dict[el][:,1],1,cov=cov)
             print "d_ft", d_fit
             d_RT = d_fit[0][0]/298.0+d_fit[0][1]
             print "-Q/k ln(D0) ln[D(RT)] D(RT)[cm2/s]"
