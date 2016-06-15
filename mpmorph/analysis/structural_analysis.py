@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import itertools
 
-__author__ = 'Muratahan Aykol <maykol@lbl.gov>'
 
 def polyhedra_connectivity(structures, pair, cutoff, step_freq=1):
     """
