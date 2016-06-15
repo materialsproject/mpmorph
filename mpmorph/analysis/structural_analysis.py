@@ -1,5 +1,6 @@
 from pymatgen.analysis import structure_analyzer
 from pymatgen.util.coord_utils import get_angle
+from pymatgen.io.vasp.outputs import Xdatcar
 from scipy.spatial import Voronoi
 from copy import deepcopy
 import matplotlib.pyplot as plt
@@ -518,3 +519,19 @@ def get_smooth_rdfs(RDFs, passes=1):
             RDFs[rdf] = smooth_RDF
         passes-=1
         return get_smooth_rdfs(RDFs, passes=passes)
+
+
+def get_sample_structures(xdatcar, n=10, steps_skip_first=1000):
+    """
+    Helper method to extract n unique structures from an MD output
+    Args:
+        xdatcar: (Xdatcar)
+    Returns:
+        A list of Structure objects
+    """
+    input_structures = Xdatcar(xdatcar).structures
+    output_structures = []
+    t = len(input_structures)-steps_skip_first
+    for i in range(n):
+        output_structures.append(input_structures[::-1][i*t//n])
+    return(output_structures)
