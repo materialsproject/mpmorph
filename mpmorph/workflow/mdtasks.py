@@ -5,6 +5,7 @@ from mpmorph.analysis.md_data import parse_pressure
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
+import numpy as np
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 
 __author__ = 'Muratahan Aykol <maykol@lbl.gov>'
@@ -65,7 +66,7 @@ class SpawnMDFWTask(FireTaskBase):
         if spawn_count > max_rescales:
             # TODO: Log max rescale reached info.
             return FWAction(defuse_workflow=True)
-        elif p > pressure_threshold:
+        elif np.fabs(p) > pressure_threshold:
             t = []
             t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True,
                                      additional_files=["CHGCAR"]))
