@@ -53,7 +53,7 @@ class SpawnMDFWTask(FireTaskBase):
     """
     Decides if a new MD calculation should be spawned or if density is found. If so, spawns a new calculation.
     """
-    required_params = ["pressure_threshold", "max_rescales", "vasp_cmd", "wall_time", "db_file", "prev_spec"]
+    required_params = ["pressure_threshold", "max_rescales", "vasp_cmd", "wall_time", "db_file"]
     def run_task(self, fw_spec):
         vasp_cmd = self["vasp_cmd"]
         wall_time = self["wall_time"]
