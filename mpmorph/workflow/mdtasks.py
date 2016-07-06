@@ -53,7 +53,7 @@ class SpawnMDFWTask(FireTaskBase):
     """
     Decides if a new MD calculation should be spawned or if density is found. If so, spawns a new calculation.
     """
-    required_params = ["pressure_threshold", "max_rescales", "vasp_cmd", "wall_time", "db_file"]
+    required_params = ["pressure_threshold", "max_rescales", "vasp_cmd", "wall_time", "db_file", "prev_spec"]
     def run_task(self, fw_spec):
         vasp_cmd = self["vasp_cmd"]
         wall_time = self["wall_time"]
@@ -74,9 +74,6 @@ class SpawnMDFWTask(FireTaskBase):
             t.append(RescaleVolumeTask(initial_pressure=p, initial_temperature=1))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                       handler_group="md", wall_time=wall_time))
-            t.append(GetPressureTask(outcar_path="./OUTCAR"))
-            t.append(PassCalcLocs(name=name))
-
             # Will implement the database insertion later!
             # t.append(VaspToDbTask(db_file=db_file,
             #                       additional_fields={"task_label": "density_adjustment"}))
@@ -84,6 +81,8 @@ class SpawnMDFWTask(FireTaskBase):
             t.append(SpawnMDFWTask(pressure_threshold=pressure_threshold,
                                   max_rescales=max_rescales,
                                   wall_time=wall_time, vasp_cmd=vasp_cmd, db_file=db_file))
+            t.append(GetPressureTask(outcar_path="./OUTCAR"))
+            t.append(PassCalcLocs(name=name))
 
             new_fw = Firework(t, name=name)
             return FWAction(stored_data={'pressure': p}, additions=[new_fw], mod_spec=[{'_push':{'spawn_count':spawn_count+1}}])
