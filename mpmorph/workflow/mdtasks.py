@@ -62,6 +62,7 @@ class SpawnMDFWTask(FireTaskBase):
         pressure_threshold = self["pressure_threshold"]
         p = fw_spec["avg_pres"][-1]
         spawn_count = fw_spec.get("spawn_count",[0])[-1]
+        name = ("spawn_"+str(spawn_count))
 
         if spawn_count > max_rescales:
             # TODO: Log max rescale reached info.
@@ -74,7 +75,7 @@ class SpawnMDFWTask(FireTaskBase):
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                       handler_group="md", wall_time=wall_time))
             t.append(GetPressureTask(outcar_path="./OUTCAR"))
-            t.append(PassCalcLocs(name="density_adjustment"))
+            t.append(PassCalcLocs(name=name))
 
             # Will implement the database insertion later!
             # t.append(VaspToDbTask(db_file=db_file,
@@ -84,7 +85,7 @@ class SpawnMDFWTask(FireTaskBase):
                                   max_rescales=max_rescales,
                                   wall_time=wall_time, vasp_cmd=vasp_cmd, db_file=db_file))
 
-            new_fw = Firework(t, name=("spawn_"+str(spawn_count)) )
+            new_fw = Firework(t, name=name)
             return FWAction(stored_data={'pressure': p}, additions=[new_fw], mod_spec=[{'_push':{'spawn_count':spawn_count+1}}])
 
         else:
