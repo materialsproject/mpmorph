@@ -19,6 +19,5 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
     fw2 = Firework([CopyVaspOutputs(calc_loc=True), GetPressureTask(outcar_path='./'), PassCalcLocs(name=name)] , parents=[fw1])
     fw3 = Firework([SpawnMDFWTask(pressure_threshold=pressure_threshold,
                                   max_rescales=max_rescales,
-                                  wall_time=wall_time, vasp_cmd=vasp_cmd, db_file=db_file)] , parents=[fw2])
+                                  wall_time=wall_time, vasp_cmd=vasp_cmd, db_file=db_file)], parents=[fw2])
     return Workflow([fw1, fw2, fw3])
-

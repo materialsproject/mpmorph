@@ -57,12 +57,15 @@ class SpawnMDFWTask(FireTaskBase):
         vasp_cmd = self["vasp_cmd"]
         wall_time = self["wall_time"]
         db_file = self["db_file"]
-        parents = fw_spec["parents"]
         max_rescales = self["max_rescales"]
         pressure_threshold = self["pressure_threshold"]
         p = fw_spec["avg_pres"][-1]
+        spawn_count = fw_spec.get("spawn_count",[0])[-1]
 
-        if p > pressure_threshold:
+        if spawn_count > max_rescales:
+            # TODO: Log max rescale reached info.
+            return FWAction(defuse_workflow=True)
+        elif p > pressure_threshold:
             t = []
             t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True,
                                      additional_files=["CHGCAR"]))
@@ -80,8 +83,8 @@ class SpawnMDFWTask(FireTaskBase):
                                   max_rescales=max_rescales,
                                   wall_time=wall_time, vasp_cmd=vasp_cmd, db_file=db_file))
 
-            new_fw = Firework(t, parents=parents.extend(t))
-            return FWAction(stored_data={'pressure': p}, additions=[new_fw])
+            new_fw = Firework(t, fw_id=("spawn_"+str(spawn_count)) )
+            return FWAction(stored_data={'pressure': p}, additions=[new_fw], mod_spec=[{'_push':{'spawn_count':spawn_count+1}}])
 
         else:
             return FWAction(stored_data={'pressure': p, 'density_calculated': True})
@@ -117,6 +120,10 @@ class RescaleVolumeTask(FireTaskBase):
         # Pass the rescaled volume to Poscar
         return FWAction(stored_data=corr_vol.structure.as_dict())
 
+
+@explicit_serialize
+class CopyCalsToHome(FireTaskBase):
+    pass
 
 @explicit_serialize
 class VaspMdToDbTask(FireTaskBase):
