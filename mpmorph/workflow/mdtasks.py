@@ -84,7 +84,7 @@ class SpawnMDFWTask(FireTaskBase):
                                   max_rescales=max_rescales,
                                   wall_time=wall_time, vasp_cmd=vasp_cmd, db_file=db_file))
 
-            new_fw = Firework(t, fw_id=("spawn_"+str(spawn_count)) )
+            new_fw = Firework(t, name=("spawn_"+str(spawn_count)) )
             return FWAction(stored_data={'pressure': p}, additions=[new_fw], mod_spec=[{'_push':{'spawn_count':spawn_count+1}}])
 
         else:
