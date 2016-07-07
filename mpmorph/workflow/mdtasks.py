@@ -11,6 +11,12 @@ import os
 
 __author__ = 'Muratahan Aykol <maykol@lbl.gov>'
 
+#TODO: 1. Store files in a meaningful way in a specified folder
+#TODO: 2. Explicitly copy the final structure somewhere
+#TODO: 3. Add option to lead to a production run of specified length after density is found
+#TODO: 4. Switch to MPRelax Parameters in MD
+#TODO: 5. Database insertion?
+#TODO: 6. Parser tasks
 
 @explicit_serialize
 class AmorphousMakerTask(FireTaskBase):
@@ -73,27 +79,24 @@ class SpawnMDFWTask(FireTaskBase):
             return FWAction(defuse_workflow=True)
 
         name = ("spawn_"+str(spawn_count))
-        prev_dir = fw_spec.get("prev_dir",None)
+
         current_dir = os.getcwd()
 
-        if prev_dir:
-            p = parse_pressure(prev_dir, self.get("averaging_fraction", 0.5))[0]
-        else:
-            p = parse_pressure("./", self.get("averaging_fraction", 0.5))[0]
+        p = parse_pressure("./", self.get("averaging_fraction", 0.5))[0]
 
         if np.fabs(p) > pressure_threshold:
             t = []
             # Copy the VASP outputs from previos run. Very first run get its from the initial MDWF which
             # uses PassCalcLocs. For the rest we just specify the previous dir.
-            if prev_dir:
-                t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
-            else:
+            if spawn_count==0:
                 t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=False))
+            else:
+                t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
 
             t.append(RescaleVolumeTask(initial_pressure=p*1000.0, initial_temperature=1))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                       handler_group="md", wall_time=wall_time, gzip_output=False))
-            # Will implement the database insertion later!
+            # Will implement the database insertion
             # t.append(VaspToDbTask(db_file=db_file,
             #                       additional_fields={"task_label": "density_adjustment"}))
             t.append(SpawnMDFWTask(pressure_threshold=pressure_threshold,
@@ -102,7 +105,7 @@ class SpawnMDFWTask(FireTaskBase):
                                    vasp_cmd=vasp_cmd,
                                    db_file=db_file,
                                    spawn_count=spawn_count+1))
-            new_fw = Firework(t, spec={'prev_dir': current_dir}, name=name)
+            new_fw = Firework(t, name=name)
             return FWAction(stored_data={'pressure': p}, additions=[new_fw])
 
         else:
