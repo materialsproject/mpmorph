@@ -5,7 +5,7 @@ from matmethods.common.firetasks.glue_tasks import PassCalcLocs
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 
 
-def get_wf_density(structure, temperature, pressure_threshold=5000.0, max_rescales=6, nsteps=2000, wall_time=19200,
+def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=6, nsteps=2000, wall_time=19200,
                        vasp_input_set=None, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", optional_MDWF_params=None):
 
     optional_MDWF_params = optional_MDWF_params or {}
