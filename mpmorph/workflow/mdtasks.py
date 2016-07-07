@@ -86,7 +86,7 @@ class SpawnMDFWTask(FireTaskBase):
             # Copy the VASP outputs from previos run. Very first run get its from the initial MDWF which
             # uses PassCalcLocs. For the rest we just specify the previous dir.
             if prev_dir:
-                t.append(CopyVaspOutputs(calc_dir=prev_dir, contcar_to_poscar=True))
+                t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
             else:
                 t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=False))
 
