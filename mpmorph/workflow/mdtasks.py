@@ -77,9 +77,9 @@ class SpawnMDFWTask(FireTaskBase):
         current_dir = os.getcwd()
 
         if prev_dir:
-            p = parse_pressure(self["prev_dir"], self.get("averaging_fraction", 0.5))
+            p = parse_pressure(self["prev_dir"], self.get("averaging_fraction", 0.5))[0]
         else:
-            p = parse_pressure("./", self.get("averaging_fraction", 0.5))
+            p = parse_pressure("./", self.get("averaging_fraction", 0.5))[0]
 
         if np.fabs(p) > pressure_threshold:
             t = []
