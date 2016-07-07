@@ -59,7 +59,7 @@ class SpawnMDFWTask(FireTaskBase):
     Decides if a new MD calculation should be spawned or if density is found. If so, spawns a new calculation.
     """
     required_params = ["pressure_threshold", "max_rescales", "vasp_cmd", "wall_time", "db_file", "spawn_count"]
-    optional_params = ["prev_dir", "averaging_fraction"]
+    optional_params = ["averaging_fraction"]
 
     def run_task(self, fw_spec):
         vasp_cmd = self["vasp_cmd"]
@@ -73,7 +73,7 @@ class SpawnMDFWTask(FireTaskBase):
             return FWAction(defuse_workflow=True)
 
         name = ("spawn_"+str(spawn_count))
-        prev_dir = self.get("prev_dir",None)
+        prev_dir = fw_spec.get("prev_dir",None)
         current_dir = os.getcwd()
 
         if prev_dir:
@@ -88,7 +88,7 @@ class SpawnMDFWTask(FireTaskBase):
             if prev_dir:
                 t.append(CopyVaspOutputs(calc_dir=prev_dir, contcar_to_poscar=True))
             else:
-                t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+                t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
 
             t.append(RescaleVolumeTask(initial_pressure=p*1000.0, initial_temperature=1))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
@@ -101,9 +101,8 @@ class SpawnMDFWTask(FireTaskBase):
                                    wall_time=wall_time,
                                    vasp_cmd=vasp_cmd,
                                    db_file=db_file,
-                                   prev_dir=current_dir,
                                    spawn_count=spawn_count+1))
-            new_fw = Firework(t, name=name)
+            new_fw = Firework(t, spec={'prev_dir': current_dir}, name=name)
             return FWAction(stored_data={'pressure': p}, additions=[new_fw])
 
         else:
