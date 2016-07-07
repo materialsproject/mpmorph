@@ -7,6 +7,7 @@ from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
 import numpy as np
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
+import os
 
 __author__ = 'Muratahan Aykol <maykol@lbl.gov>'
 
@@ -45,7 +46,11 @@ class GetPressureTask(FireTaskBase):
 
     def run_task(self, fw_spec):
         p = parse_pressure(self["outcar_path"], self.get("averaging_fraction", 0.5))
-        return FWAction(mod_spec=[{'_push': {'avg_pres': p[0]*1000} }])
+        if fw_spec['avg_pres']:
+            fw_spec['avg_pres'].append(p[0]*1000)
+        else:
+            fw_spec['avg_pres'] = [p[0]*1000]
+        return FWAction()
 
 
 @explicit_serialize
@@ -53,39 +58,53 @@ class SpawnMDFWTask(FireTaskBase):
     """
     Decides if a new MD calculation should be spawned or if density is found. If so, spawns a new calculation.
     """
-    required_params = ["pressure_threshold", "max_rescales", "vasp_cmd", "wall_time", "db_file"]
+    required_params = ["pressure_threshold", "max_rescales", "vasp_cmd", "wall_time", "db_file", "spawn_count"]
+    optional_params = ["prev_dir", "averaging_fraction"]
+
     def run_task(self, fw_spec):
         vasp_cmd = self["vasp_cmd"]
         wall_time = self["wall_time"]
         db_file = self["db_file"]
         max_rescales = self["max_rescales"]
         pressure_threshold = self["pressure_threshold"]
-        p = fw_spec["avg_pres"][-1]
-        spawn_count = fw_spec.get("spawn_count",[0])[-1]
-        name = ("spawn_"+str(spawn_count))
-
+        spawn_count = self["spawn_count"]
         if spawn_count > max_rescales:
             # TODO: Log max rescale reached info.
             return FWAction(defuse_workflow=True)
-        elif np.fabs(p) > pressure_threshold:
+
+        name = ("spawn_"+str(spawn_count))
+        prev_dir = self.get(["prev_dir"],None)
+        current_dir = os.getcwd()
+
+        if prev_dir:
+            p = parse_pressure(self["prev_dir"], self.get("averaging_fraction", 0.5))
+        else:
+            p = parse_pressure("./", self.get("averaging_fraction", 0.5))
+
+        if np.fabs(p) > pressure_threshold:
             t = []
-            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True,
-                                     additional_files=["CHGCAR"]))
-            t.append(RescaleVolumeTask(initial_pressure=p, initial_temperature=1))
+            # Copy the VASP outputs from previos run. Very first run get its from the initial MDWF which
+            # uses PassCalcLocs. For the rest we just specify the previous dir.
+            if prev_dir:
+                t.append(CopyVaspOutputs(calc_dir=prev_dir, contcar_to_poscar=True))
+            else:
+                t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+
+            t.append(RescaleVolumeTask(initial_pressure=p*1000.0, initial_temperature=1))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                       handler_group="md", wall_time=wall_time))
             # Will implement the database insertion later!
             # t.append(VaspToDbTask(db_file=db_file,
             #                       additional_fields={"task_label": "density_adjustment"}))
-
             t.append(SpawnMDFWTask(pressure_threshold=pressure_threshold,
-                                  max_rescales=max_rescales,
-                                  wall_time=wall_time, vasp_cmd=vasp_cmd, db_file=db_file))
-            t.append(GetPressureTask(outcar_path="./OUTCAR"))
-            t.append(PassCalcLocs(name=name))
-
+                                   max_rescales=max_rescales,
+                                   wall_time=wall_time,
+                                   vasp_cmd=vasp_cmd,
+                                   db_file=db_file,
+                                   prev_dir=current_dir,
+                                   spawn_count=spawn_count+1))
             new_fw = Firework(t, name=name)
-            return FWAction(stored_data={'pressure': p}, additions=[new_fw], mod_spec=[{'_push':{'spawn_count':spawn_count+1}}])
+            return FWAction(stored_data={'pressure': p}, additions=[new_fw])
 
         else:
             return FWAction(stored_data={'pressure': p, 'density_calculated': True})
