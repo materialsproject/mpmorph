@@ -88,7 +88,7 @@ class SpawnMDFWTask(FireTaskBase):
             if prev_dir:
                 t.append(CopyVaspOutputs(calc_dir=prev_dir, contcar_to_poscar=True))
             else:
-                t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
+                t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=False))
 
             t.append(RescaleVolumeTask(initial_pressure=p*1000.0, initial_temperature=1))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
