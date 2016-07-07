@@ -73,7 +73,7 @@ class SpawnMDFWTask(FireTaskBase):
             return FWAction(defuse_workflow=True)
 
         name = ("spawn_"+str(spawn_count))
-        prev_dir = self.get(["prev_dir"],None)
+        prev_dir = self.get("prev_dir",None)
         current_dir = os.getcwd()
 
         if prev_dir:
