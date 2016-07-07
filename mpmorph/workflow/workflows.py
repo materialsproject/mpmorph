@@ -16,7 +16,8 @@ def get_wf_density(structure, temperature, pressure_threshold=5000.0, max_rescal
                name=name, vasp_input_set=vasp_input_set, db_file=db_file,
                vasp_cmd=vasp_cmd, wall_time=wall_time, override_default_vasp_params=override_default_vasp_params,
                **optional_MDWF_params)
-    t = [SpawnMDFWTask(pressure_threshold=pressure_threshold, max_rescales=max_rescales,
+    t = [CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True),
+         SpawnMDFWTask(pressure_threshold=pressure_threshold, max_rescales=max_rescales,
                        wall_time=wall_time, vasp_cmd=vasp_cmd, db_file=db_file, spawn_count=0)]
 
     fw2 = Firework(t, parents=[fw1], name="initial_spawn")
