@@ -92,7 +92,7 @@ class SpawnMDFWTask(FireTaskBase):
 
             t.append(RescaleVolumeTask(initial_pressure=p*1000.0, initial_temperature=1))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
-                                      handler_group="md", wall_time=wall_time))
+                                      handler_group="md", wall_time=wall_time, gzip_output=False))
             # Will implement the database insertion later!
             # t.append(VaspToDbTask(db_file=db_file,
             #                       additional_fields={"task_label": "density_adjustment"}))
