@@ -39,7 +39,7 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
          t.append(CopyCalsHome(calc_home=calc_home, run_name="run0"))
     t.append(SpawnMDFWTask(pressure_threshold=pressure_threshold, max_rescales=max_rescales,
                        wall_time=wall_time, vasp_cmd=vasp_cmd, db_file=db_file,
-                       copy_cals=copy_calcs, calc_home=calc_home,
+                       copy_calcs=copy_calcs, calc_home=calc_home,
                        spawn_count=0))
 
     fw2 = Firework(t, parents=[fw1], name=name+"_initial_spawn")
