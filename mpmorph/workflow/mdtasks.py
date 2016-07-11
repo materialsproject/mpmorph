@@ -160,7 +160,7 @@ class CopyCalsHome(FireTaskBase):
     optional_params = ["files"]
 
     def run_task(self, fw_spec):
-        default_list = ["INCAR", "POSCAR", "CONTCAR", "OUTCAR", "POTCAR", "vasprun.xml", "XDATCAR"]
+        default_list = ["INCAR", "POSCAR", "CONTCAR", "OUTCAR", "POTCAR", "vasprun.xml", "XDATCAR", "OSZICAR"]
         files = self.get("files", default_list)
         calc_home = self["calc_home"]
         run_name = self["run_name"]

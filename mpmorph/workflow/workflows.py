@@ -33,7 +33,7 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
                name=name+"run0", vasp_input_set=vasp_input_set, db_file=db_file,
                vasp_cmd=vasp_cmd, wall_time=wall_time, override_default_vasp_params=override_default_vasp_params,
                **optional_MDWF_params)
-    t = [CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files =["XDATCAR"])]
+    t = [CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files =["XDATCAR", "OSZICAR"])]
 
     if copy_calcs:
          t.append(CopyCalsHome(calc_home=calc_home, run_name="run0"))
