@@ -105,7 +105,7 @@ class SpawnMDFWTask(FireTaskBase):
             # t.append(VaspToDbTask(db_file=db_file,
             #                       additional_fields={"task_label": "density_adjustment"}))
             if copy_calcs:
-                t.append(CopyCalsHome(calc_home=calc_home, name=name))
+                t.append(CopyCalsHome(calc_home=calc_home, run_name=name))
             t.append(SpawnMDFWTask(pressure_threshold=pressure_threshold,
                                    max_rescales=max_rescales,
                                    wall_time=wall_time,
