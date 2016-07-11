@@ -12,12 +12,11 @@ import os
 
 __author__ = 'Muratahan Aykol <maykol@lbl.gov>'
 
-#TODO: 1. Store files in a meaningful way in a specified folder
-#TODO: 2. Explicitly copy the final structure somewhere
-#TODO: 3. Add option to lead to a production run of specified length after density is found
-#TODO: 4. Switch to MPRelax Parameters in MD
-#TODO: 5. Database insertion?
-#TODO: 6. Parser tasks
+#TODO: 1. Explicitly copy the final structure somewhere
+#TODO: 2. Add option to lead to a production run of specified length after density is found
+#TODO: 3. Switch to MPRelax Parameters in MD
+#TODO: 4. Database insertion?
+#TODO: 5. Parser tasks
 
 @explicit_serialize
 class AmorphousMakerTask(FireTaskBase):
