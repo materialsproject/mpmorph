@@ -5,6 +5,7 @@ from mpmorph.analysis.md_data import parse_pressure
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
 from matmethods.common.firetasks.glue_tasks import PassCalcLocs
+import shutil
 import numpy as np
 from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
 import os
@@ -64,7 +65,8 @@ class SpawnMDFWTask(FireTaskBase):
     """
     Decides if a new MD calculation should be spawned or if density is found. If so, spawns a new calculation.
     """
-    required_params = ["pressure_threshold", "max_rescales", "vasp_cmd", "wall_time", "db_file", "spawn_count"]
+    required_params = ["pressure_threshold", "max_rescales", "vasp_cmd", "wall_time",
+                       "db_file", "spawn_count", "copy_calcs", "calc_home"]
     optional_params = ["averaging_fraction"]
 
     def run_task(self, fw_spec):
@@ -74,15 +76,18 @@ class SpawnMDFWTask(FireTaskBase):
         max_rescales = self["max_rescales"]
         pressure_threshold = self["pressure_threshold"]
         spawn_count = self["spawn_count"]
+        calc_home = self["calc_home"]
+        copy_calcs = self["copy_calcs"]
+
         if spawn_count > max_rescales:
             # TODO: Log max rescale reached info.
             return FWAction(defuse_workflow=True)
 
-        name = ("spawn_"+str(spawn_count))
+        name = ("spawnrun"+str(spawn_count))
 
         current_dir = os.getcwd()
-
-        p = parse_pressure("./", self.get("averaging_fraction", 0.5))[0]
+        averaging_fraction = self.get("averaging_fraction", 0.5)
+        p = parse_pressure("./", averaging_fraction)[0]
 
         if np.fabs(p) > pressure_threshold:
             t = []
@@ -99,12 +104,17 @@ class SpawnMDFWTask(FireTaskBase):
             # Will implement the database insertion
             # t.append(VaspToDbTask(db_file=db_file,
             #                       additional_fields={"task_label": "density_adjustment"}))
+            if copy_calcs:
+                t.append(CopyCalsHome(calc_home=calc_home, name=name))
             t.append(SpawnMDFWTask(pressure_threshold=pressure_threshold,
                                    max_rescales=max_rescales,
                                    wall_time=wall_time,
                                    vasp_cmd=vasp_cmd,
                                    db_file=db_file,
-                                   spawn_count=spawn_count+1))
+                                   spawn_count=spawn_count+1,
+                                   copy_calcs=copy_calcs,
+                                   calc_home=calc_home,
+                                   averaging_fraction=averaging_fraction))
             new_fw = Firework(t, name=name)
             return FWAction(stored_data={'pressure': p}, additions=[new_fw])
 
@@ -143,9 +153,27 @@ class RescaleVolumeTask(FireTaskBase):
         return FWAction(stored_data=corr_vol.structure.as_dict())
 
 
+
 @explicit_serialize
-class CopyCalsToHome(FireTaskBase):
-    pass
+class CopyCalsHome(FireTaskBase):
+    required_params = ["calc_home","run_name"]
+    optional_params = ["files"]
+
+    def run_task(self, fw_spec):
+        default_list = ["INCAR", "POSCAR", "CONTCAR", "OUTCAR", "POTCAR", "vasprun.xml", "XDATCAR"]
+        files = self.get("files", default_list)
+        calc_home = self["calc_home"]
+        run_name = self["run_name"]
+        target_dir = os.path.join(calc_home, run_name)
+        if not os.path.exists(target_dir):
+            os.mkdir(target_dir)
+        for f in files:
+            try:
+                shutil.copy2(f,target_dir)
+            except:
+                pass
+        return FWAction()
+
 
 @explicit_serialize
 class VaspMdToDbTask(FireTaskBase):
