@@ -38,6 +38,7 @@ class AmorphousMaker(object):
         self.xyz_paths = xyz_paths
         if self.xyz_paths:
             assert len(self.xyz_paths)==len(self.el_num_dict.keys())
+            self.clean = False
 
     def __repr__(self):
         return "AmorphousMaker: generates constrained-random packed initial structure for MD using packmol."
@@ -173,6 +174,6 @@ if __name__ == '__main__':
     composition = {'H2O': 20}
     a = 8.9
     xyz_paths = ['H2O.xyz']
-    amf=AmorphousMaker(composition,a,xyz_paths=xyz_paths)
+    amf=AmorphousMaker(composition,a,xyz_paths=xyz_paths, packmol_path="~/packmol/packmol/packmol")
     p = amf.get_poscar()
     p.write_file("poscar_h2o")
