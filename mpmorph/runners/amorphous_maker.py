@@ -4,23 +4,28 @@ from pymatgen.core.structure import Structure
 from collections import OrderedDict
 import numpy as np
 import os
+import shutil
 
 
 class AmorphousMaker(object):
-    def __init__(self, el_num_dict, box_scale, tol=2.0, packmol_path="packmol", clean=True):
+    def __init__(self, el_num_dict, box_scale, tol=2.0, packmol_path="packmol", clean=True, xyz_paths=None):
         """
         Class for generating initial constrained-random packed structures for the
         simulation of amorphous or liquid structures. This is a wrapper for "packmol" package.
         Only works for cubic boxes for now.
         Args:
-            el_num_dict (dict): dictionary of number of atoms of each species.
+            el_num_dict (dict): dictionary of number of atoms of each species. If
+                number of molecules is specified, an xyz file with the same name needs to be provided as xyz_paths.
                 e.g. {"V":22, "Li":10, "O":75, "B":10}
+                e.g. {"H2O": 20}
             box_scale (float): all lattice vectors are multiplied with this scalar value.
                 e.g. edge length of a cubic simulation box
             tol (float): tolerance factor for how close the atoms can get (angstroms).
                 e.g. tol = 2.0 angstroms
             packmol_path (str): path to the packmol executable
             clean (bool): whether the intermedite files generated are deleted.
+            xyz_paths (list): list of paths (str) to xyz files correpsonding to molecules, if given so in el_num_dict.
+                file names must match the molecule formula.
         """
         self.el_num_dict = el_num_dict
         self.box_scale = box_scale
@@ -30,6 +35,9 @@ class AmorphousMaker(object):
         self._el_dict = None
         self.packmol_path = packmol_path
         self.clean = clean
+        self.xyz_paths = xyz_paths
+        if self.xyz_paths:
+            assert len(self.xyz_paths)==len(self.el_num_dict.keys())
 
     def __repr__(self):
         return "AmorphousMaker: generates constrained-random packed initial structure for MD using packmol."
@@ -68,9 +76,17 @@ class AmorphousMaker(object):
                 f.write("structure " + el + ".xyz\n" + "  number " + str(self.el_num_dict[el])
                           + "\n  inside box" + 3*(" " + str(pm_l)) + 3*(" " + str(pm_h))
                           + "\nend structure\n\n")
-        for el in self.el_num_dict.keys():
-           with open(el+".xyz", "w") as f:
-               f.write("1\ncomment\n" + el + " 0.0 0.0 0.0\n")
+
+            if self.xyz_paths:
+                for path in self.xyz_paths:
+                    try:
+                        shutil.copy2(path,'./')
+                    except:
+                        pass
+            else:
+                for el in self.el_num_dict.keys():
+                    with open(el+".xyz", "w") as f:
+                       f.write("1\ncomment\n" + el + " 0.0 0.0 0.0\n")
         try:
             os.system(self.packmol_path + " < packmol.input")
         except:
@@ -152,3 +168,11 @@ class AmorphousMaker(object):
             for key in el_dict.keys():
                 for atom in el_dict[key]:
                     f.write( " ".join( [ str(i) for i in atom ]) + "\n")
+
+if __name__ == '__main__':
+    composition = {'H2O': 20}
+    a = 8.9
+    xyz_paths = ['H2O.xyz']
+    amf=AmorphousMaker(composition,a,xyz_paths=xyz_paths)
+    p = amf.get_poscar()
+    p.write_file("poscar_h2o")
