@@ -169,11 +169,3 @@ class AmorphousMaker(object):
             for key in el_dict.keys():
                 for atom in el_dict[key]:
                     f.write( " ".join( [ str(i) for i in atom ]) + "\n")
-
-if __name__ == '__main__':
-    composition = {'H2O': 20}
-    a = 8.9
-    xyz_paths = ['H2O.xyz']
-    amf=AmorphousMaker(composition,a,xyz_paths=xyz_paths, packmol_path="~/packmol/packmol/packmol")
-    p = amf.get_poscar()
-    p.write_file("poscar_h2o")
