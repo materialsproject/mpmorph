@@ -1,7 +1,8 @@
 from fireworks import Workflow, Firework
-from matmethods.vasp.fireworks.core import MDFW
+from matmethods.vasp.fireworks.core import MDFW, OptimizeFW, StaticFW
 from mpmorph.workflow.mdtasks import SpawnMDFWTask, CopyCalsHome
 from mpmorph.runners.amorphous_maker import AmorphousMaker
+from mpmorph.analysis.structural_analysis import get_sample_structures
 from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from pymatgen.core.structure import Structure
 import os
@@ -47,3 +48,16 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
 
     fw2 = Firework(t, parents=[fw1], name=name+"_initial_spawn")
     return Workflow([fw1, fw2], name=name+"_WF")
+
+
+def get_wf_structure_sampler(xdatcar, n=10, steps_skip_first=1000, vasp_cmd=">>vasp_cmd<<",
+                             db_file=">>db_file<<", name="structure_sampler"):
+    structures = get_sample_structures(xdatcar=xdatcar, n=n, steps_skip_first=steps_skip_first)
+    wfs = []
+    for s in structures:
+        fw1=OptimizeFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[])
+        fw2=StaticFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[fw1])
+        wfs.append(Workflow([fw1,fw2], name=name+str(s.composition.reduced_formula)) )
+    return wfs
+
+
