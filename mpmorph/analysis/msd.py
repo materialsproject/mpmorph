@@ -34,6 +34,7 @@ def MSD(xyz_file_folder,L=None):
 
     for i in range(N):
         msd.append(np.float64('0.0'))
+
         msd_lattice.append([0.0, 0.0, 0.0 ])
 
     file.readline()

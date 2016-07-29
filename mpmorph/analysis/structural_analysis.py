@@ -3,7 +3,6 @@ from pymatgen.util.coord_utils import get_angle
 from pymatgen.io.vasp.outputs import Xdatcar
 from scipy.spatial import Voronoi
 from copy import deepcopy
-import matplotlib.pyplot as plt
 import numpy as np
 import itertools
 
@@ -374,6 +373,7 @@ class VoronoiAnalysis(object):
 
     @property
     def plot_vor_analysis(self):
+        import matplotlib.pyplot as plt
         t = zip(*self.vor_ensemble)
         labels = t[0]
         val = list(t[1])
