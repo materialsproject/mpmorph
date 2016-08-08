@@ -525,7 +525,7 @@ def get_sample_structures(xdatcar, n=10, steps_skip_first=1000):
     """
     Helper method to extract n unique structures from an MD output
     Args:
-        xdatcar: (Xdatcar)
+        xdatcar: (str) path
     Returns:
         A list of Structure objects
     """
