@@ -12,7 +12,6 @@ import os
 
 __author__ = 'Muratahan Aykol <maykol@lbl.gov>'
 
-#TODO: 1. Explicitly copy the final structure somewhere
 #TODO: 2. Add option to lead to a production run of specified length after density is found
 #TODO: 3. Switch to MPRelax Parameters in MD
 #TODO: 4. Database insertion?

@@ -32,7 +32,7 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
 
     override_default_vasp_params = override_default_vasp_params or {}
     override_default_vasp_params['user_incar_settings'] = override_default_vasp_params.get('user_incar_settings') or {}
-    override_default_vasp_params['user_incar_settings'].update({"ISIF": 1})
+    override_default_vasp_params['user_incar_settings'].update({"ISIF": 1, "LWAVE": False})
 
     fw1 = MDFW(structure=structure, start_temp=temperature, end_temp=temperature, nsteps=nsteps,
                name=name+"run0", vasp_input_set=vasp_input_set, db_file=db_file,
