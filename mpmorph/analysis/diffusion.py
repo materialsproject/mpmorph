@@ -20,7 +20,7 @@ class Diffusion(object):
 
     Args:
         structures: (list) list of Structures
-        corr_t: (float) correlation time
+        corr_t: (float) correlation time. Each time origin will be this many steps apart.
         block_l: (int)  defines length of a block in terms of corr_t. (block_t = block_l * corr_t)
         t_step: (float) time-step in MD simulation. Defaults to 2.0 fs.
         l_lim: (int) this many time-steps are skipped in MSD while fitting D. I.e. approximate length of
@@ -168,11 +168,10 @@ class Activation(object):
         return fig
 
     @classmethod
-    def from_run_paths(cls, p, el, corr_t, block_l, skip_first):
+    def from_run_paths(cls, p, T, el, corr_t, block_l, skip_first):
         D_t = []
-        for t in p:
-            xdatcar = Xdatcar(t)
+        for t in range(len(p)):
+            xdatcar = Xdatcar(p[t])
             d = Diffusion(xdatcar.structures, corr_t=corr_t, block_l=block_l, skip_first=skip_first)
-            T = t.split("/")[1].split("_")[2]
-            D_t.append([T, d.getD(el)])
+            D_t.append([T[t], d.getD(el)])
         return cls(D_t)
