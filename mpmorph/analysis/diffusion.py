@@ -152,18 +152,20 @@ class Activation(object):
         self.Q_std = self.output.sd_beta[0]
         return self.Q, self.Q_std
 
-    def plot(self, title=None):
+    def plot(self, title=None, annotate=True, el=''):
         #fig = plt.figure()
         plt.errorbar(self.x * 1000, self.y, yerr=self.yerr.T, fmt='o')
         line = np.polyval([-self.Q, self.intercept], self.x)
-        plt.plot(self.x * 1000, line, 'k-')
-        plt.ylabel("ln(D cm$^2$/s)", fontsize=15)
-        plt.xlabel("1000/T K$^{-1}$", fontsize=15)
         tx = str(int(np.rint(self.Q)))
         if self.Q_std:
             tx += "$\pm${}".format(str(int(np.rint(self.Q_std))))
-        plt.annotate("Q: " + tx + " K", xy=(0.98, 0.95), xycoords='axes fraction', fontsize=14,
-                     horizontalalignment='right', verticalalignment='top')
+        plt.plot(self.x * 1000, line, '-', label="Q[{}]: ".format(el) + tx + " K")
+        plt.ylabel("ln(D cm$^2$/s)", fontsize=15)
+        plt.xlabel("1000/T K$^{-1}$", fontsize=15)
+
+        if annotate:
+            plt.annotate("Q: " + tx + " K", xy=(0.98, 0.95), xycoords='axes fraction', fontsize=14,
+                         horizontalalignment='right', verticalalignment='top')
         if title:
             plt.title = title
         #return fig
