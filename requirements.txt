@@ -1,4 +1,0 @@
-matmethods
-fireworks
-scipy
-matplotlib
