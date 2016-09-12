@@ -153,7 +153,7 @@ class Activation(object):
         return self.Q, self.Q_std
 
     def plot(self, title=None):
-        fig = plt.figure()
+        #fig = plt.figure()
         plt.errorbar(self.x * 1000, self.y, yerr=self.yerr.T, fmt='o')
         line = np.polyval([-self.Q, self.intercept], self.x)
         plt.plot(self.x * 1000, line, 'k-')
@@ -166,7 +166,7 @@ class Activation(object):
                      horizontalalignment='right', verticalalignment='top')
         if title:
             plt.title = title
-        return fig
+        #return fig
 
     @classmethod
     def from_run_paths(cls, p, T, el, corr_t, block_l, t_step=2.0, l_lim=50, skip_first=0):
