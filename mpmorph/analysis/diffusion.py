@@ -154,13 +154,14 @@ class Activation(object):
 
     def plot(self, title=None, annotate=True, el='', **kwargs):
         #fig = plt.figure()
-        plt.errorbar(self.x * 1000, self.y, yerr=self.yerr.T, **kwargs)
+
         line = np.polyval([-self.Q, self.intercept], self.x)
         tx = str(int(np.rint(self.Q)))
         if self.Q_std:
             tx += "$\pm${}".format(str(int(np.rint(self.Q_std))))
         c = kwargs.get('color','')
-        plt.plot(self.x * 1000, line, c+'-', label="Q[{}]: ".format(el) + tx + " K")
+        plt.plot(self.x * 1000, line, c+'-', )
+        plt.errorbar(self.x * 1000, self.y, yerr=self.yerr.T, label="Q[{}]: ".format(el) + tx + " K", **kwargs)
         plt.ylabel("ln(D cm$^2$/s)", fontsize=15)
         plt.xlabel("1000/T K$^{-1}$", fontsize=15)
 
