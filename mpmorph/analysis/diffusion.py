@@ -159,7 +159,8 @@ class Activation(object):
         tx = str(int(np.rint(self.Q)))
         if self.Q_std:
             tx += "$\pm${}".format(str(int(np.rint(self.Q_std))))
-        plt.plot(self.x * 1000, line, '-', label="Q[{}]: ".format(el) + tx + " K")
+        c = kwargs.get('c','')
+        plt.plot(self.x * 1000, line, c+'-', label="Q[{}]: ".format(el) + tx + " K")
         plt.ylabel("ln(D cm$^2$/s)", fontsize=15)
         plt.xlabel("1000/T K$^{-1}$", fontsize=15)
 
