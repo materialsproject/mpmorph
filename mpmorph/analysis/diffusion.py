@@ -135,7 +135,7 @@ class Activation(object):
         self.Q *= -1
         return self.Q
 
-    def QDR(self):
+    def ODR(self):
         if not self.Q:
             self.LS()
         import scipy.odr
