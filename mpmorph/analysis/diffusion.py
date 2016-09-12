@@ -168,10 +168,11 @@ class Activation(object):
         return fig
 
     @classmethod
-    def from_run_paths(cls, p, T, el, corr_t, block_l, skip_first):
+    def from_run_paths(cls, p, T, el, corr_t, block_l, t_step=2.0, l_lim=50, skip_first=0):
         D_t = []
         for t in range(len(p)):
             xdatcar = Xdatcar(p[t])
-            d = Diffusion(xdatcar.structures, corr_t=corr_t, block_l=block_l, skip_first=skip_first)
+            d = Diffusion(xdatcar.structures, corr_t=corr_t, block_l=block_l,
+                          t_step=t_step, l_lim=l_lim, skip_first=skip_first)
             D_t.append([T[t], d.getD(el)])
         return cls(D_t)
