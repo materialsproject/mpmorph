@@ -152,9 +152,9 @@ class Activation(object):
         self.Q_std = self.output.sd_beta[0]
         return self.Q, self.Q_std
 
-    def plot(self, title=None, annotate=True, el=''):
+    def plot(self, title=None, annotate=True, el='', **kwargs):
         #fig = plt.figure()
-        plt.errorbar(self.x * 1000, self.y, yerr=self.yerr.T, fmt='o')
+        plt.errorbar(self.x * 1000, self.y, yerr=self.yerr.T, **kwargs)
         line = np.polyval([-self.Q, self.intercept], self.x)
         tx = str(int(np.rint(self.Q)))
         if self.Q_std:
