@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from pymatgen.io.vasp import Xdatcar
 
+
 class Diffusion(object):
     """
     Robust calculation of diffusion coefficients with different statistical analysis techniques:
