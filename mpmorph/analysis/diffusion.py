@@ -93,8 +93,8 @@ class Diffusion(object):
         D = np.array(D) * self.scaling_factor
         self.D_blocks = D
 
-        alpha = 1.0 - self.ci
-        tn = stats.t.ppf(alpha/2.0, len(self.D_blocks) - 1) / np.sqrt(len(self.D_blocks))
+        alpha = 1.0-self.ci
+        tn = stats.t.ppf(1.0-alpha/2.0, len(self.D_blocks) - 1) / np.sqrt(len(self.D_blocks))
 
         if tn == "nan":
             tn = 1
