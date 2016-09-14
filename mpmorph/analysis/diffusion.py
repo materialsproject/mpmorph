@@ -21,7 +21,8 @@ class Diffusion(object):
 
     Args:
         structures: (list) list of Structures
-        corr_t: (float) correlation time. Each time origin will be this many steps apart.
+        corr_t: (float) correlation time (in terms of # of steps).
+            Each time origin will be this many steps apart.
         block_l: (int)  defines length of a block in terms of corr_t. (block_t = block_l * corr_t)
         t_step: (float) time-step in MD simulation. Defaults to 2.0 fs.
         l_lim: (int) this many time-steps are skipped in MSD while fitting D. I.e. approximate length of
@@ -93,7 +94,8 @@ class Diffusion(object):
         self.D_blocks = D
 
         alpha = 1.0 - self.ci
-        tn = stats.t.ppf(alpha/2.0, len(self.D_i) - 1) / np.sqrt(len(self.D_i))
+        tn = stats.t.ppf(alpha/2.0, len(self.D_bocks) - 1) / np.sqrt(len(self.D_blocks))
+
         if tn == "nan":
             tn = 1
         self.D_i = np.mean(D, axis=1)
