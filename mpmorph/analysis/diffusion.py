@@ -94,7 +94,7 @@ class Diffusion(object):
         self.D_blocks = D
 
         alpha = 1.0 - self.ci
-        tn = stats.t.ppf(alpha/2.0, len(self.D_bocks) - 1) / np.sqrt(len(self.D_blocks))
+        tn = stats.t.ppf(alpha/2.0, len(self.D_blocks) - 1) / np.sqrt(len(self.D_blocks))
 
         if tn == "nan":
             tn = 1
