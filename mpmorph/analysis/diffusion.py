@@ -27,9 +27,10 @@ class Diffusion(object):
         l_lim: (int) this many time-steps are skipped in MSD while fitting D. I.e. approximate length of
             ballistic and cage regions. Defaults to 50.
         skip_first: (int) this many initial time-steps are skipped. Defaults to 0.
+        ci: (float) confidence interval desired estimating the mean D of population.
     """
 
-    def __init__(self, structures, corr_t, block_l, t_step=2.0, l_lim=50, skip_first=0):
+    def __init__(self, structures, corr_t, block_l, t_step=2.0, l_lim=50, skip_first=0, ci=0.95):
         self.structures = structures
         self.abc = self.structures[0].lattice.abc
         self.natoms = len(self.structures[0])
@@ -38,7 +39,8 @@ class Diffusion(object):
         self.corr_t = corr_t
         self.l_lim = l_lim
         self.t_step = t_step
-        self.block_l = block_l  #
+        self.block_l = block_l
+        self.ci = ci
         self.msds = None
         self.scaling_factor = 0.1 / self.t_step  # conv. to cm2/s
 
@@ -89,10 +91,15 @@ class Diffusion(object):
                 D[j].append(slope / 2.0)
         D = np.array(D) * self.scaling_factor
         self.D_blocks = D
+
+        alpha = 1.0 - self.ci
+        tn = stats.t.ppf(alpha/2.0, len(self.D_i) - 1) / np.sqrt(len(self.D_i))
+        if tn == "nan":
+            tn = 1
         self.D_i = np.mean(D, axis=1)
-        self.D_i_std = np.std(D, axis=1)
+        self.D_i_std = np.std(D, axis=1)*tn
         self.D_avg = np.sum(self.D_i) / 3.0
-        self.D_avg_std = np.std(np.sum(D, axis=0) / 3.0)
+        self.D_avg_std = np.std(np.sum(D, axis=0) / 3.0)*tn
         return self.D_dict
 
     @property
@@ -150,6 +157,7 @@ class Activation(object):
         self.output = Odr.run()
         self.Q, self.intercept = -self.output.beta[0], self.output.beta[1]
         self.Q_std = self.output.sd_beta[0]
+        self.intercept_std = self.output.sd_beta[1]
         return self.Q, self.Q_std
 
     def plot(self, title=None, annotate=True, el='', **kwargs):
