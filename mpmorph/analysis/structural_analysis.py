@@ -515,7 +515,7 @@ def get_smooth_rdfs(RDFs, passes=1):
             smooth_RDF = deepcopy(RDFs[rdf])
             for j in range(2,len(RDFs[rdf])-2):
                 smooth_RDF[j] = (-3*RDFs[rdf][j-2]+12*RDFs[rdf][j-1]
-                                 +17*RDFs[rdf][j]+12*RDFs[rdf][j-1]-3*RDFs[rdf][j-2])/35.0
+                                 +17*RDFs[rdf][j]+12*RDFs[rdf][j+1]-3*RDFs[rdf][j+2])/35.0
             RDFs[rdf] = smooth_RDF
         passes-=1
         return get_smooth_rdfs(RDFs, passes=passes)
