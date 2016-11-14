@@ -259,6 +259,37 @@ class BondAngleDistribution(object):
         plt.legend(legend,loc=0)
         return plt
 
+    def get_binary_angle_dist_plot(self, title):
+        import matplotlib.pyplot as plt
+        fig = plt.figure(figsize=(12, 6))
+        c = 0
+        maxes = []
+        for triplet in self.bond_angle_distribution:
+            p = self.bond_angle_distribution[triplet]
+            c += 1
+            ax = fig.add_subplot(2, 3, c)
+            ax.plot(range(len(p)), p)
+            maxes.append(max(p))
+            ax.annotate('-'.join(triplet), (0.75, 0.88), xycoords='axes fraction', size=16)
+            ax.set_yticklabels([])
+            ax.xaxis.set_ticks(np.arange(0, 181, 30))
+            plt.gca().set_ylim([0, 0.1])
+            if c in [1, 2, 3]:
+                ax.set_xticklabels([])
+            else:
+                plt.xlabel('Angle (degrees)', fontsize=16)
+            ax.grid(True)
+            if c in [1, 4]:
+                plt.ylabel('Intensity (a.u.)', fontsize=16)
+            ax.tick_params(axis='both', which='major', labelsize=16)
+            if c == 2:
+                if title:
+                    plt.title(title)
+        for ax in fig.axes:
+            ax.set_ylim(0.0, max(maxes))
+        fig.subplots_adjust(top=0.75)
+        fig.tight_layout()
+        return fig
 
 def compute_mean_coord(structures, freq=100):
     '''
