@@ -259,7 +259,7 @@ class BondAngleDistribution(object):
         plt.legend(legend,loc=0)
         return plt
 
-    def get_binary_angle_dist_plot(self, title):
+    def get_binary_angle_dist_plot(self, title=None):
         import matplotlib.pyplot as plt
         fig = plt.figure(figsize=(12, 6))
         c = 0
@@ -278,7 +278,6 @@ class BondAngleDistribution(object):
                 ax.set_xticklabels([])
             else:
                 plt.xlabel('Angle (degrees)', fontsize=16)
-            ax.grid(True)
             if c in [1, 4]:
                 plt.ylabel('Intensity (a.u.)', fontsize=16)
             ax.tick_params(axis='both', which='major', labelsize=16)
