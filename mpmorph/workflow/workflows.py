@@ -1,9 +1,9 @@
 from fireworks import Workflow, Firework
-from matmethods.vasp.fireworks.core import MDFW, OptimizeFW, StaticFW
+from atomate.vasp.fireworks.core import MDFW, OptimizeFW, StaticFW
 from mpmorph.workflow.mdtasks import SpawnMDFWTask, CopyCalsHome
 from mpmorph.runners.amorphous_maker import AmorphousMaker
 from mpmorph.analysis.structural_analysis import get_sample_structures
-from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
+from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from pymatgen.core.structure import Structure
 import os
 
@@ -69,4 +69,3 @@ def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<
         fw2=StaticFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[fw1])
         wfs.append(Workflow([fw1,fw2], name=name+str(s.composition.reduced_formula)) )
     return wfs
-
