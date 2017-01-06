@@ -2,12 +2,12 @@ from fireworks import explicit_serialize, FireTaskBase, FWAction, Firework
 from mpmorph.runners.amorphous_maker import AmorphousMaker
 from mpmorph.runners.rescale_volume import RescaleVolume
 from mpmorph.analysis.md_data import parse_pressure
-from matmethods.vasp.firetasks.glue_tasks import CopyVaspOutputs
-from matmethods.vasp.firetasks.run_calc import RunVaspCustodian
-from matmethods.common.firetasks.glue_tasks import PassCalcLocs
+from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
+from atomate.vasp.firetasks.run_calc import RunVaspCustodian
+from atomate.common.firetasks.glue_tasks import PassCalcLocs
 import shutil
 import numpy as np
-from matmethods.vasp.firetasks.parse_outputs import VaspToDbTask
+from atomate.vasp.firetasks.parse_outputs import VaspToDbTask
 import os
 
 __author__ = 'Muratahan Aykol <maykol@lbl.gov>'
