@@ -1,10 +1,11 @@
+import numpy as np
+import itertools
+from multiprocessing import Pool
+from scipy.spatial import Voronoi
+from copy import deepcopy
 from pymatgen.analysis import structure_analyzer
 from pymatgen.util.coord_utils import get_angle
 from pymatgen.io.vasp.outputs import Xdatcar
-from scipy.spatial import Voronoi
-from copy import deepcopy
-import numpy as np
-import itertools
 
 
 def polyhedra_connectivity(structures, pair, cutoff, step_freq=1):
@@ -290,6 +291,7 @@ class BondAngleDistribution(object):
         fig.tight_layout()
         return fig
 
+
 def compute_mean_coord(structures, freq=100):
     '''
     NOTE: This function will be removed as it has been migrated
@@ -423,6 +425,8 @@ class RadialDistributionFunction(object):
     """
     Class to calculate partial radial distribution functions (RDFs) of sites.
     Typically used to analyze the pair correlations in liquids or amorphous structures.
+    Supports multiprocessing: see get_radial_distribution_function method
+
     Args:
         structures (list): a list of Structure objects.
         cutoff (float): maximum distance to search for pairs. (defauly = 5.0)
@@ -437,6 +441,7 @@ class RadialDistributionFunction(object):
         A dictionary of partial radial distribution functions with pairs as keys and RDFs as values.
         RDFs themselves are arrays of length cutoff/bin_size.
     """
+
     def __init__(self, structures, cutoff=5.0, bin_size=0.1, step_freq=2, smooth=1,
                  title="Radial distribution functions"):
         self.structures = structures
@@ -451,81 +456,132 @@ class RadialDistributionFunction(object):
         self.title = title
         self.RDFs = {}
         ss = self.structures[0].symbol_set
-        self.pairs = [p for p in itertools.combinations_with_replacement(ss,2)]
+        self.pairs = [p for p in itertools.combinations_with_replacement(ss, 2)]
+        self.counter = 1
 
     @property
     def n_bins(self):
-        _bins = int( np.ceil(self.cutoff/self.bin_size) )
-        if _bins <2:
+        _bins = int(np.ceil(self.cutoff / self.bin_size))
+        if _bins < 2:
             raise ValueError("More bins required!")
         return _bins
 
-    def get_radial_distribution_functions(self):
+    def get_radial_distribution_functions(self, nproc=1):
         """
-        Returns: A dictionary of partial radial distribution functions
-        with pairs as keys and RDFs as values.
-        Each RDF arrays of length cutoff/bin_size.
+        Args:
+            nproc: (int) number of processors to utilize (defaults to 1)
+        Returns:
+            A dictionary of partial radial distribution functions
+            with pairs as keys and RDFs as values.
+            Each RDF arrays of length cutoff/bin_size.
         """
 
+        frames = [(self.structures[i * self.step_freq], self.pairs, self.n_bins, self.cutoff, self.bin_size) for i in
+                  range(self.n_frames / self.step_freq)]
+        self.counter = len(frames)
+        pool = Pool(nproc)
+        results = pool.map(_process_frame, frames)
+        pool.close()
+        pool.join()
+
+        # Collect all rdfs
         for pair in self.pairs:
-            self.RDFs[pair]=np.zeros(self.n_bins)
-        counter = 0
-        for frame in itertools.count(0, self.step_freq):
-            if frame >= self.n_frames:
-                break
-            counter +=1
-            # Coordinates in the current frame
-            coord_frame = self.structures[frame]
-            distance_matrix = coord_frame.distance_matrix
-            for atom1 in range(self.n_atoms):
-                for atom2 in range(self.n_atoms):
-                    atom1_specie = coord_frame[atom1].species_string
-                    atom2_specie = coord_frame[atom2].species_string
-                    if distance_matrix[atom1,atom2] > self.cutoff:
-                        continue
-                    bin_index = int(distance_matrix[atom1,atom2]/self.bin_size)
-                    #skip itself
-                    if bin_index == 0:
-                        continue
-                    key = (atom1_specie,atom2_specie)
-                    if key in self.RDFs:
-                        self.RDFs[key][bin_index] += 1
+            self.RDFs[pair] = np.zeros(self.n_bins)
+        for i in results:
+            for pair in self.pairs:
+                self.RDFs[pair] += i[pair]
+
         self.get_pair_order = []
 
         for i in self.RDFs.keys():
             self.get_pair_order.append('-'.join(list(i)))
-            density_of_atom2 = self.n_species[i[1]]/self.structures[0].volume
+            density_of_atom2 = self.n_species[i[1]] / self.structures[0].volume
             for j in range(self.n_bins):
-                r = j*self.bin_size
+                r = j * self.bin_size
                 if r == 0:
                     continue
-                # Divide by number of atom1 to obtain the average of atom2 at r+dr per atom type 1
-                # Divide by 4pi r^2 dr to convert to density
-                # Divide by counter to get average in time
-                self.RDFs[i][j]=self.RDFs[i][j]/self.n_species[i[0]]/4.0/np.pi/r/r/self.bin_size/density_of_atom2/counter
+                self.RDFs[i][j] = self.RDFs[i][j] / self.n_species[
+                    i[0]] / 4.0 / np.pi / r / r / self.bin_size / density_of_atom2 / self.counter
 
         if self.smooth:
-            self.RDFs= get_smooth_rdfs(self.RDFs, passes=self.smooth)
+            self.RDFs = get_smooth_rdfs(self.RDFs, passes=self.smooth)
         return self.RDFs
 
     def plot_radial_distribution_functions(self):
-        # Plots RDFs
+        """
+        :return: a plot of RDFs
+        """
         import matplotlib.pyplot as plt
         x = []
         for j in range(self.n_bins):
-            r = j*self.bin_size
+            r = j * self.bin_size
             x.append(r)
         rdfs = self.RDFs
         plt.figure()
         for rdf in rdfs:
-            plt.plot(x,rdfs[rdf])
+            plt.plot(x, rdfs[rdf])
 
         plt.xlabel("$r$, distance (Angstrom)")
         plt.ylabel("g($r$)")
-        plt.legend(self.get_pair_order,bbox_to_anchor=(0.975, 0.975), loc=0,
-                   borderaxespad=0.,prop={'family': 'sans-serif', 'size':13})
+        plt.legend(self.get_pair_order, bbox_to_anchor=(0.975, 0.975), loc=0,
+                   borderaxespad=0., prop={'family': 'sans-serif', 'size': 13})
         plt.title(self.title)
         return plt
+
+
+def _process_frame(data):
+    """
+    Helper function for parallel rdf computation
+    """
+    coord_frame, pairs, n_bins, cutoff, bin_size = \
+        data[0], data[1], data[2], data[3], data[4]
+    process_RDFs = {}
+    n_atoms = len(coord_frame)
+
+    for pair in pairs:
+        process_RDFs[pair] = np.zeros(n_bins)
+
+    distance_matrix = coord_frame.distance_matrix
+
+    for atom1 in range(n_atoms - 1):
+        atom1_specie = coord_frame[atom1].species_string
+        for atom2 in range(atom1 + 1, n_atoms):
+            atom2_specie = coord_frame[atom2].species_string
+            if distance_matrix[atom1, atom2] > cutoff:
+                continue
+            bin_index = int(distance_matrix[atom1, atom2] / bin_size)
+            # skip itself
+            if bin_index == 0:
+                continue
+            key = (atom1_specie, atom2_specie)
+            if key in process_RDFs:
+                process_RDFs[key][bin_index] += 1
+            if key[::-1] in process_RDFs:
+                process_RDFs[key[::-1]][bin_index] += 1
+    return process_RDFs
+
+
+def get_smooth_rdfs(RDFs, passes=1):
+    """
+    Helper function to recursively smooth RDFs using a 5-parameter Savitzky-Golay filter.
+    Args:
+        RDFs: A dictionary of partial radial distribution functions
+        with pairs as keys and RDFs as values.
+        passes: number of times the filter is applied during smoothing.
+    Returns
+        RDFs dictionary with with each RDF smoothed.
+    """
+    if passes == 0:
+        return RDFs
+    else:
+        for rdf in RDFs:
+            smooth_RDF = deepcopy(RDFs[rdf])
+            for j in range(2, len(RDFs[rdf]) - 2):
+                smooth_RDF[j] = (-3 * RDFs[rdf][j - 2] + 12 * RDFs[rdf][j - 1]
+                                 + 17 * RDFs[rdf][j] + 12 * RDFs[rdf][j + 1] - 3 * RDFs[rdf][j + 2]) / 35.0
+            RDFs[rdf] = smooth_RDF
+        passes -= 1
+        return get_smooth_rdfs(RDFs, passes=passes)
 
 
 def get_smooth_rdfs(RDFs, passes=1):
