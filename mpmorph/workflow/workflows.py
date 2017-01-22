@@ -57,7 +57,7 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
     wfs = []
     for s in structures:
         fw1=OptimizeFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[], **kwargs)
-        fw2=StaticFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[fw1], **kwargs)
+        fw2=StaticFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[fw1])
         wfs.append(Workflow([fw1,fw2], name=name+str(s.composition.reduced_formula)) )
     return wfs
 
@@ -66,6 +66,6 @@ def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<
     wfs = []
     for s in structures:
         fw1=OptimizeFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[], **kwargs)
-        fw2=StaticFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[fw1], **kwargs)
+        fw2=StaticFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[fw1])
         wfs.append(Workflow([fw1,fw2], name=name+str(s.composition.reduced_formula)) )
     return wfs
