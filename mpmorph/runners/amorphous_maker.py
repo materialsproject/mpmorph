@@ -18,8 +18,9 @@ class AmorphousMaker(object):
                 number of molecules is specified, an xyz file with the same name needs to be provided as xyz_paths.
                 e.g. {"V":22, "Li":10, "O":75, "B":10}
                 e.g. {"H2O": 20}
-            box_scale (float): all lattice vectors are multiplied with this scalar value.
-                e.g. edge length of a cubic simulation box
+            box_scale (float) or (numpy array): all lattice vectors are multiplied with this.
+                e.g. if one scalar value is given, it is the edge length of a cubic simulation box
+                e.g. if np.array([1.2, 0.9, 1.0]) is given, the unit lattice vectors will be multiplied with this.
             tol (float): tolerance factor for how close the atoms can get (angstroms).
                 e.g. tol = 2.0 angstroms
             packmol_path (str): path to the packmol executable
