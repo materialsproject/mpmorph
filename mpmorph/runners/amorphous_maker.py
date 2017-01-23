@@ -71,12 +71,15 @@ class AmorphousMaker(object):
         # this ensures periodic boundaries don't cause problems
         pm_l = self.tol/2
         pm_h = self.box_scale-self.tol/2
+        if len(pm_h)<2:
+            pm_h = [pm_h for i in range(3)]
 
         with open("packmol.input", "w") as f:
             f.write("tolerance "+ str(self.tol) +"\nfiletype xyz\noutput mixture.xyz\n")
             for el in self.el_num_dict:
                 f.write("structure " + el + ".xyz\n" + "  number " + str(self.el_num_dict[el])
-                          + "\n  inside box" + 3*(" " + str(pm_l)) + 3*(" " + str(pm_h))
+                          + "\n  inside box" + 3*(" " + str(pm_l))
+                          + (" " + str(pm_h[0])) + (" " + str(pm_h[1])) + (" " + str(pm_h[2]))
                           + "\nend structure\n\n")
 
             if self.xyz_paths:
