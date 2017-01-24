@@ -70,8 +70,10 @@ class AmorphousMaker(object):
 
         # this ensures periodic boundaries don't cause problems
         pm_l = self.tol/2
-        pm_h = self.box_scale-self.tol/2
-        if len(pm_h)<2:
+        pm_h = self.box_sale-self.tol/2
+        try:
+            len(pm_h)
+        except:
             pm_h = [pm_h for i in range(3)]
 
         with open("packmol.input", "w") as f:
