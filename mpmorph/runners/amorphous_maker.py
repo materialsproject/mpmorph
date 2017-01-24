@@ -70,7 +70,7 @@ class AmorphousMaker(object):
 
         # this ensures periodic boundaries don't cause problems
         pm_l = self.tol/2
-        pm_h = self.box_sale-self.tol/2
+        pm_h = self.box_scale-self.tol/2
         try:
             len(pm_h)
         except:

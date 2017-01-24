@@ -7,11 +7,29 @@ from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from pymatgen.core.structure import Structure
 import os
 
+
 def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=6, nsteps=2000, wall_time=19200,
                    vasp_input_set=None, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", name="density_finder",
                    optional_MDWF_params=None, override_default_vasp_params=None,
                    amorphous_maker_params=None, copy_calcs=False, calc_home="~/wflows"):
-
+    """
+    :param structure: (
+    :param temperature:
+    :param pressure_threshold:
+    :param max_rescales:
+    :param nsteps:
+    :param wall_time:
+    :param vasp_input_set:
+    :param vasp_cmd:
+    :param db_file:
+    :param name:
+    :param optional_MDWF_params:
+    :param override_default_vasp_params:
+    :param amorphous_maker_params:
+    :param copy_calcs:
+    :param calc_home:
+    :return:
+    """
     if copy_calcs:
         if not os.path.exists(calc_home):
             raise ValueError("calc_home must be an existing folder.")
@@ -29,7 +47,6 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
         structure = glass.random_packed_structure
 
     optional_MDWF_params = optional_MDWF_params or {}
-
     override_default_vasp_params = override_default_vasp_params or {}
     override_default_vasp_params['user_incar_settings'] = override_default_vasp_params.get('user_incar_settings') or {}
     override_default_vasp_params['user_incar_settings'].update({"ISIF": 1, "LWAVE": False})
@@ -53,6 +70,16 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
 
 def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd=">>vasp_cmd<<",
                              db_file=">>db_file<<", name="structure_sampler", **kwargs):
+    """
+    :param xdatcar_file:
+    :param n:
+    :param steps_skip_first:
+    :param vasp_cmd:
+    :param db_file:
+    :param name:
+    :param kwargs:
+    :return:
+    """
     structures = get_sample_structures(xdatcar_path=xdatcar_file, n=n, steps_skip_first=steps_skip_first)
     wfs = []
     for s in structures:
@@ -63,6 +90,14 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
 
 
 def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", name="regular_relax", **kwargs):
+    """
+    :param structures:
+    :param vasp_cmd:
+    :param db_file:
+    :param name:
+    :param kwargs:
+    :return:
+    """
     wfs = []
     for s in structures:
         fw1=OptimizeFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[], **kwargs)
