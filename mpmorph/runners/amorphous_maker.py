@@ -94,6 +94,7 @@ class AmorphousMaker(object):
                 for el in self.el_num_dict.keys():
                     with open(el+".xyz", "w") as f:
                        f.write("1\ncomment\n" + el + " 0.0 0.0 0.0\n")
+
         try:
             os.system(self.packmol_path + " < packmol.input")
         except:

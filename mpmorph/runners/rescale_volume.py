@@ -33,7 +33,7 @@ class RescaleVolume(object):
         self.beta = beta  # /bar
         self.poscar = poscar
 
-    def rescale_structure_volume(self, v2_v1, tol=0.3):
+    def rescale_structure_volume(self, v2_v1, tol=1):
         """
         Scales the volume of a structure by the given factor v2_v1.
         Args:

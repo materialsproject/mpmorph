@@ -1,3 +1,5 @@
+from html.parser import endendtag
+
 import numpy as np
 import re
 import os
@@ -26,9 +28,10 @@ def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
     if search_keys is None:
         search_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
     outcar = open(outcar_path)
-    print "OUTCAR opened"
+    print("OUTCAR opened")
     data_list = []
     md_step = 0
+    print(search_keys)
     for line in outcar:
         line = line.rstrip()
         for key_index in range(len(search_keys)):
@@ -42,19 +45,42 @@ def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
                         break
                 if key_index == len(search_keys)-1:
                     md_step +=1
-    print "Requested information parsed."
+    print("Requested information parsed.")
     outcar.close()
     return data_list
 
-def autocorrelation(data_list):
+def autocorrelation(data_list, search_keys = None, skip_first = 0):
     """
     TODO
     Args:
         data_list:
 
     Returns:
+        Autocorrelation function of the external pressure
 
     """
+    if search_keys is None:
+        search_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
+    pressures = [x[search_keys.index('external')] for x in data_list][skip_first:]
+    pres_fluc = pressures - np.mean(pressures)
+    correlation = np.zeros(len(pressures)-1)
+    for i in range(0, len(pressures)-1):
+        _starts = pres_fluc[np.arange(start=0, stop=len(pressures)-i-1)]
+        _ends = pres_fluc[np.arange(start=i,stop=len(pressures)-1)]
+        correlation[i] = np.mean(np.multiply(_starts, _ends))
+    return correlation
+
+def get_correlation_time(data_list, skip_first = 0):
+    """
+    Args:
+        data_list:
+    Returns: Correlation time in steps
+    """
+    autocorr = autocorrelation(data_list, skip_first = skip_first)
+    for i in range(len(autocorr)):
+        if autocorr[i]<=0:
+            return i
+    raise ReferenceError('Simulation too short')
 
 def get_MD_stats(data_list):
     """

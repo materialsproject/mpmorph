@@ -1,9 +1,12 @@
-from fireworks import explicit_serialize, FireTaskBase, FWAction, Firework
+from fireworks import explicit_serialize, FireTaskBase, FWAction, Firework, LaunchPad
 from mpmorph.runners.amorphous_maker import AmorphousMaker
 from mpmorph.runners.rescale_volume import RescaleVolume
 from mpmorph.analysis.md_data import parse_pressure
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
+from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet, ModifyIncar
+from mpmorph.workflow.workflows import get_wf_structure_sampler
+from pymatgen.io.vasp.sets import MITMDSet
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 import shutil
 import numpy as np
@@ -117,6 +120,8 @@ class SpawnMDFWTask(FireTaskBase):
             return FWAction(stored_data={'pressure': p}, additions=[new_fw])
 
         else:
+            lp = LaunchPad()
+            get_wf_structure_sampler(lp)
             return FWAction(stored_data={'pressure': p, 'density_calculated': True})
 
 
@@ -172,6 +177,72 @@ class CopyCalsHome(FireTaskBase):
                 pass
         return FWAction()
 
+@explicit_serialize
+class SimulatedAnnealTask(FireTaskBase):
+    """
+    Spawn fireworks until temp threshold
+    """
+    required_params = ["temperature", "temperature_threshold", "temperature_decrement", "vasp_cmd", "wall_time",
+                       "db_file", "copy_calcs", "calc_home", "spawn_count", "nsteps_cool", "nsteps_hold"]
+    optional_params = []
+
+    def run_task(self,fw_spec):
+        temperature = self["temperature"]
+        temperature_threshold = self["temperature_threshold"]
+        temperature_decrement = self["temperature_decrement"]
+        vasp_cmd = self["vasp_cmd"]
+        wall_time = self["wall_time"]
+        db_file = self["db_file"]
+        copy_calcs = self["copy_calcs"]
+        calc_home = self["calc_home"]
+        spawn_count = self["spawn_count"]
+        nsteps_cool = self["nsteps_cool"]
+        nsteps_heat = self["nsteps_heat"]
+
+        current_dir = os.getcwd()
+
+        #Check Temperature
+        if temperature >= temperature_threshold:
+            t = []
+            t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
+            t.append(ModifyIncar({'TEBEG':temperature, 'TEEND':temperature-temperature_threshold, 'NSW':500}))
+            t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
+                                          handler_group="md", wall_time=wall_time))
+
+            if copy_calcs:
+                t.append(CopyCalsHome(calc_home=calc_home, run_name=name))
+
+            t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
+            t.append(ModifyIncar({'TEBEG':temperature-temperature_threshold, 'TEEND':temperature-temperature_threshold, 'NSW': 1000}))
+            t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
+                                      handler_group="md", wall_time=wall_time))
+
+
+            t.append(SimulatedAnnealTask(temperature=temperature - temperature_decrement,
+                                         temperature_threshold=temperature_threshold,
+                                         temperature_decrement=temperature_decrement,
+                                         vasp_cmd=vasp_cmd,
+                                         wall_time=wall_time,
+                                         db_file=db_file,
+                                         copy_calcs=copy_calcs,
+                                         calc_home=calc_home,
+                                         spawn_count=spawn_count + 1, ))
+            new_fw = Firework(t, name=name)
+            return FWAction(additions=[new_fw])
+        else:
+            return FWAction()
+
+@explicit_serialize
+class CoolMDTask(FireTaskBase):
+    pass
+
+@explicit_serialize
+class HoldMDTask(FireTaskBase):
+    pass
+
+@explicit_serialize
+class StructureSamplerTask(FireTaskBase):
+    pass
 
 @explicit_serialize
 class VaspMdToDbTask(FireTaskBase):
