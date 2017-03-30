@@ -15,7 +15,7 @@ import os
 def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=6, nsteps=2000, wall_time=19200,
                    vasp_input_set=None, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", name="density_finder",
                    optional_MDWF_params=None, override_default_vasp_params=None,
-                   amorphous_maker_params=None, copy_calcs=False, calc_home="~/wflows"):
+                   amorphous_maker_params=None, copy_calcs=False, calc_home="~/wflows", cool=False):
     """
     :param structure: (
     :param temperature:
@@ -59,14 +59,16 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
                name=name+"run0", vasp_input_set=vasp_input_set, db_file=db_file,
                vasp_cmd=vasp_cmd, wall_time=wall_time, override_default_vasp_params=override_default_vasp_params,
                **optional_MDWF_params)
-    t = [CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files =["XDATCAR", "OSZICAR", "DOSCAR"])]
+    t = []
+    t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files =["XDATCAR", "OSZICAR", "DOSCAR"]))
 
     if copy_calcs:
          t.append(CopyCalsHome(calc_home=calc_home, run_name="run0"))
+
     t.append(SpawnMDFWTask(pressure_threshold=pressure_threshold, max_rescales=max_rescales,
                        wall_time=wall_time, vasp_cmd=vasp_cmd, db_file=db_file,
                        copy_calcs=copy_calcs, calc_home=calc_home,
-                       spawn_count=0))
+                       spawn_count=0, cool=cool))
 
     fw2 = Firework(t, parents=[fw1], name=name+"_initial_spawn")
     return Workflow([fw1, fw2], name=name+"_WF")
@@ -88,7 +90,8 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
         structures = get_sample_structures(xdatcar_path=xdatcar_file, n=n, steps_skip_first=steps_skip_first)
         wfs = []
         for s in structures:
-            get_simulated_anneal_wf(s, 2500)
+            _wf = get_simulated_anneal_wf(s, start_temp=2500)
+            wfs.append(_wf)
     else:
         structures = get_sample_structures(xdatcar_path=xdatcar_file, n=n, steps_skip_first=steps_skip_first)
         wfs = []
@@ -115,6 +118,7 @@ def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<
         wfs.append(Workflow([fw1,fw2], name=name+str(s.composition.reduced_formula)) )
     return wfs
 
+
 def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=500, nsteps_cool=200, nsteps_hold=500, wall_time=19200,
                             vasp_input_set=None, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", name="density_finder",
                             optional_MDWF_params=None, override_default_vasp_params=None,
@@ -125,28 +129,32 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
     override_default_vasp_params['user_incar_settings'] = override_default_vasp_params.get('user_incar_settings') or {}
     override_default_vasp_params['user_incar_settings'].update({"ISIF": 1, "LWAVE": False})
 
-    #Run first cool step
+    # Run first cool step
     fw1 = MDFW(structure=structure, start_temp=start_temp, end_temp=start_temp-temp_decrement, nsteps=nsteps_cool,
                name=name + "run0", vasp_input_set=vasp_input_set, db_file=db_file,
                vasp_cmd=vasp_cmd, wall_time=wall_time, override_default_vasp_params=override_default_vasp_params,
                **optional_MDWF_params)
-    t = [CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"])]
+    t = []
+    t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
 
     if copy_calcs:
         t.append(CopyCalsHome(calc_home=calc_home, run_name="run0"))
 
-    #Run first hold step
+    # Run first hold step
     t.append(ModifyIncar({'TEBEG':start_temp-temp_decrement, 'TEEND':start_temp-temp_decrement, 'NSW': nsteps_hold}))
     t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time))
     t.append(PassCalcLocs(name=name))
-    fw2 = Firework(t, parents=[fw1], name=name + "_initial_spawn")
-
-    t = [CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"])]
 
     if copy_calcs:
         t.append(CopyCalsHome(calc_home=calc_home, run_name="run0"))
-    #Spawn the subsequent temperature steps until the threshold temperature is reached.
+
+    fw2 = Firework(t, parents=[fw1], name=name + "_initial_spawn")
+
+    t = []
+    t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
+
+    # Spawn the subsequent temperature steps until the threshold temperature is reached.
     t.append(SimulatedAnnealTask(temperature=start_temp - temp_decrement,
                                  temperature_threshold=end_temp,
                                  temperature_decrement=temp_decrement,
