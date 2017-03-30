@@ -140,7 +140,7 @@ class SpawnMDFWTask(FireTaskBase):
                 t.append(PassCalcLocs(name=name))
                 t.append(StructureSamplerTask(copy_calcs=copy_calcs, calc_home=calc_home))
                 return FWAction(stored_data={'pressure': p, 'density_calculated': True})
-            return FWAction
+            return FWAction()
 
 
 @explicit_serialize
