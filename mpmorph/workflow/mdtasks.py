@@ -125,6 +125,7 @@ class SpawnMDFWTask(FireTaskBase):
         else:
             if snaps:
                 t = []
+                name = "long_melt"
                 if spawn_count == 0:
                     t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=False))
                 else:
@@ -138,7 +139,7 @@ class SpawnMDFWTask(FireTaskBase):
                     t.append(CopyCalsHome(calc_home=calc_home, run_name=name))
 
                 t.append(PassCalcLocs(name=name))
-                t.append(StructureSamplerTask())
+                t.append(StructureSamplerTask(copy_calcs=copy_calcs, calc_home=calc_home))
                 return FWAction(stored_data={'pressure': p, 'density_calculated': True})
             return FWAction
 
@@ -219,9 +220,7 @@ class SimulatedAnnealTask(FireTaskBase):
         # Check Temperature
         if temperature >= temperature_threshold:
             fw1 = self.CoolMD()
-            fw2 = self.HoldMD()
-            t = []
-            t.append(SimulatedAnnealTask(temperature=temperature - temperature_decrement,
+            t=SimulatedAnnealTask(temperature=temperature - temperature_decrement,
                                          temperature_threshold=temperature_threshold,
                                          temperature_decrement=temperature_decrement,
                                          vasp_cmd=vasp_cmd,
@@ -229,12 +228,18 @@ class SimulatedAnnealTask(FireTaskBase):
                                          db_file=db_file,
                                          copy_calcs=copy_calcs,
                                          calc_home=calc_home,
-                                         spawn_count=spawn_count + 1, ))
-            fw3 = Firework(t, name=name)
-            return FWAction(additions=[fw1, fw2, fw3])
+                                         spawn_count=spawn_count + 1, )
+            fw2 = self.HoldMD(sat=t)
+            return FWAction(additions=[fw1, fw2])
         else:
+            fws = []
             fw1 = OptimizeFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[], **kwargs)
+            fws.append(fw1)
             fw2 = StaticFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[fw1])
+            fws.append(fw2)
+            if copy_calcs:
+                t=[CopyCalsHome(os.path.join(calc_home, name), run_name="final_relax")]
+                fw3=Firework(t, name=name+"_copy_calcs")
             return FWAction()
 
     def CoolMD(self, nsteps=None):
@@ -252,13 +257,13 @@ class SimulatedAnnealTask(FireTaskBase):
         t.append(ModifyIncar({'TEBEG': temperature, 'TEEND': temperature - temperature_decrement, 'NSW': nsteps_cool}))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time))
-        t.append(PassCalcLocs(name=name))
+        t.append(PassCalcLocs(name=name+"_cool_"+str(temperature-temperature_decrement)))
         if copy_calcs:
-            t.append(CopyCalsHome(calc_home=calc_home, run_name=name))
+            t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name), run_name=name+"_cool_"+str(temperature-temperature_decrement)))
 
-        return Firework(t, name=name)
+        return Firework(t, name=name+"_cool_"+str(temperature-temperature_decrement))
 
-    def HoldMD(self, nsteps=None):
+    def HoldMD(self, nsteps=None, sat=None):
         temperature = self["temperature"]
         temperature_decrement = self["temperature_decrement"]
         vasp_cmd = self["vasp_cmd"]
@@ -274,24 +279,26 @@ class SimulatedAnnealTask(FireTaskBase):
              'NSW': nsteps_heat}))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time))
-        t.append(PassCalcLocs(name=name))
+        t.append(PassCalcLocs(name=name+"_hold_"+str(temperature-temperature_decrement)))
         if copy_calcs:
-            t.append(CopyCalsHome(calc_home=calc_home, run_name=name))
-
-        return Firework(t, name=name)
+            t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name), run_name=name+"_hold_"+str(temperature-temperature_decrement)))
+        t.append(sat)
+        return Firework(t, name=name+"_hold_"+str(temperature-temperature_decrement))
 
 @explicit_serialize
 class StructureSamplerTask(FireTaskBase):
     """
 
     """
-    required_params = []
+    required_params = ["copy_calcs", "calc_home"]
     optional_params = []
 
     def run_task(self, fw_spec):
+        copy_calcs = self["copy_calcs"]
+        calc_home = self["calc_home"]
         current_dir = os.getcwd()
         xdatcar_file = os.path.join(current_dir, 'XDATCAR')
-        wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True)
+        wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True, copy_calcs=copy_calcs, calc_home=calc_home)
         lp = LaunchPad()
         for _wf in wfs:
             lp.add_wf(_wf)

@@ -361,7 +361,7 @@ class VoronoiAnalysis(object):
                 "This means if the center atom is in key"
                 if -1 in key:
                     "This means if an infinity point is in key"
-                    print "Cutoff too short. Exiting."
+                    print ("Cutoff too short. Exiting.")
                     return None
                 else:
                     try:
@@ -383,7 +383,7 @@ class VoronoiAnalysis(object):
         Returns:
             A list of [voronoi_tesellation, count]
         """
-        print "This might take a while..."
+        print ("This might take a while...")
         voro_dict = {}
         step = 0
         for structure in structures:
