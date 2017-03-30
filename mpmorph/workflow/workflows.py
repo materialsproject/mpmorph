@@ -1,7 +1,6 @@
 from fireworks import Workflow, Firework
 from atomate.vasp.fireworks.core import MDFW, OptimizeFW, StaticFW
 from pymatgen.io.vasp.sets import MITMDSet
-from mpmorph.workflow.mdtasks import SpawnMDFWTask, CopyCalsHome, SimulatedAnnealTask
 from mpmorph.runners.amorphous_maker import AmorphousMaker
 from mpmorph.analysis.structural_analysis import get_sample_structures
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
@@ -175,3 +174,6 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
     fw3 = Firework(t, parents=[fw2], name=name+"simulated_anneal_spawner")
 
     return Workflow([fw1, fw2, fw3], name=name + "simulated_anneal_WF")
+
+
+from mpmorph.workflow.mdtasks import SpawnMDFWTask, CopyCalsHome, SimulatedAnnealTask

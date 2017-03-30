@@ -6,7 +6,6 @@ from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet, ModifyIncar
 from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
-from mpmorph.workflow.workflows import get_wf_structure_sampler
 from pymatgen.io.vasp.sets import MITMDSet
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 import shutil
@@ -318,3 +317,5 @@ class VaspMdToDiffusion(FireTaskBase):
 @explicit_serialize
 class VaspMdToStructuralAnalysis(FireTaskBase):
     pass
+
+from mpmorph.workflow.workflows import get_wf_structure_sampler
