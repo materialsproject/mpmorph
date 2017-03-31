@@ -18,7 +18,7 @@
       <file leaf-file-name="workflows.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/workflow/workflows.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="315">
+            <state relative-caret-position="-900">
               <caret line="21" column="24" lean-forward="true" selection-start-line="21" selection-start-column="24" selection-end-line="21" selection-end-column="24" />
               <folding>
                 <element signature="e#0#40#0" expanded="true" />
@@ -30,11 +30,21 @@
       <file leaf-file-name="mdtasks.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/workflow/mdtasks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="129">
-              <caret line="138" column="0" lean-forward="true" selection-start-line="138" selection-start-column="0" selection-end-line="138" selection-end-column="0" />
+            <state relative-caret-position="420">
+              <caret line="143" column="29" lean-forward="false" selection-start-line="143" selection-start-column="29" selection-end-line="143" selection-end-column="29" />
               <folding>
                 <element signature="e#0#85#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="structural_analysis.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/analysis/structural_analysis.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="374">
+              <caret line="479" column="59" lean-forward="false" selection-start-line="479" selection-start-column="59" selection-end-line="479" selection-end-column="59" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -64,15 +74,15 @@
         <option value="$PROJECT_DIR$/runners/rescale_volume.py" />
         <option value="$PROJECT_DIR$/runners/amorphous_maker.py" />
         <option value="$PROJECT_DIR$/analysis/md_data.py" />
-        <option value="$PROJECT_DIR$/analysis/structural_analysis.py" />
         <option value="$PROJECT_DIR$/workflow/workflows.py" />
+        <option value="$PROJECT_DIR$/analysis/structural_analysis.py" />
         <option value="$PROJECT_DIR$/workflow/mdtasks.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="466" />
-    <option name="y" value="109" />
+    <option name="x" value="200" />
+    <option name="y" value="41" />
     <option name="width" value="1440" />
     <option name="height" value="807" />
   </component>
@@ -304,7 +314,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="466" y="109" width="1440" height="807" extended-state="0" />
+    <frame x="200" y="41" width="1440" height="807" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.28819445" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -416,16 +426,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/analysis/structural_analysis.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="385" column="13" lean-forward="false" selection-start-line="385" selection-start-column="8" selection-end-line="385" selection-end-column="13" />
-          <folding>
-            <element signature="e#0#18#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/runners/amorphous_maker.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="459">
@@ -434,9 +434,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/analysis/structural_analysis.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="374">
+          <caret line="479" column="59" lean-forward="false" selection-start-line="479" selection-start-column="59" selection-end-line="479" selection-end-column="59" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/workflow/workflows.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="315">
+        <state relative-caret-position="-900">
           <caret line="21" column="24" lean-forward="true" selection-start-line="21" selection-start-column="24" selection-end-line="21" selection-end-column="24" />
           <folding>
             <element signature="e#0#40#0" expanded="true" />
@@ -446,8 +454,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/workflow/mdtasks.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="129">
-          <caret line="138" column="0" lean-forward="true" selection-start-line="138" selection-start-column="0" selection-end-line="138" selection-end-column="0" />
+        <state relative-caret-position="420">
+          <caret line="143" column="29" lean-forward="false" selection-start-line="143" selection-start-column="29" selection-end-line="143" selection-end-column="29" />
           <folding>
             <element signature="e#0#85#0" expanded="true" />
           </folding>

@@ -122,25 +122,27 @@ class SpawnMDFWTask(FireTaskBase):
             return FWAction(stored_data={'pressure': p}, additions=[new_fw])
 
         else:
+            t = []
+            name = "long_melt"
+            if spawn_count == 0:
+                t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=False))
+            else:
+                t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
+
+            t.append(ModifyIncar({'NSW': 10000}))
+            t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
+                                  handler_group="md", wall_time=wall_time, gzip_output=False))
+
+            if copy_calcs:
+                t.append(CopyCalsHome(calc_home=calc_home, run_name=name))
+
+            t.append(PassCalcLocs(name=name))
             if snaps:
-                t = []
-                name = "long_melt"
-                if spawn_count == 0:
-                    t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=False))
-                else:
-                    t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
-
-                t.append(ModifyIncar({'NSW': 10000}))
-                t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
-                                      handler_group="md", wall_time=wall_time, gzip_output=False))
-
-                if copy_calcs:
-                    t.append(CopyCalsHome(calc_home=calc_home, run_name=name))
-
-                t.append(PassCalcLocs(name=name))
                 t.append(StructureSamplerTask(copy_calcs=copy_calcs, calc_home=calc_home))
-                return FWAction(stored_data={'pressure': p, 'density_calculated': True})
-            return FWAction()
+                fw = Firework(t, name=name)
+                return FWAction(stored_data={'pressure': p, 'density_calculated': True}, additions={fw})
+            fw = Firework(t, name=name)
+            return FWAction(additions={fw})
 
 
 @explicit_serialize

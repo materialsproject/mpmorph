@@ -447,9 +447,9 @@ class RadialDistributionFunction(object):
         self.structures = structures
         self.cutoff = cutoff
         self.bin_size = bin_size
-        self.step_freq = step_freq
+        self.step_freq = int(step_freq)
         self.smooth = smooth
-        self.n_frames = len(self.structures)
+        self.n_frames = int(len(self.structures))
         self.n_atoms = len(self.structures[0])
         self.n_species = self.structures[0].composition.as_dict()
         self.get_pair_order = None
@@ -477,7 +477,7 @@ class RadialDistributionFunction(object):
         """
 
         frames = [(self.structures[i * self.step_freq], self.pairs, self.n_bins, self.cutoff, self.bin_size) for i in
-                  range(self.n_frames / self.step_freq)]
+                  range(int(self.n_frames / self.step_freq))]
         self.counter = len(frames)
         pool = Pool(nproc)
         results = pool.map(_process_frame, frames)
