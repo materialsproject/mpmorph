@@ -299,7 +299,7 @@ class StructureSamplerTask(FireTaskBase):
         calc_home = self["calc_home"]
         current_dir = os.getcwd()
         xdatcar_file = os.path.join(current_dir, 'XDATCAR')
-        wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True, copy_calcs=copy_calcs, calc_home=calc_home)
+        wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True, copy_calcs=copy_calcs, calc_home=calc_home, n=1)
         lp = LaunchPad()
         for _wf in wfs:
             lp.add_wf(_wf)

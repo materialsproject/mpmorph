@@ -621,3 +621,4 @@ def get_sample_structures(xdatcar_path, n=10, steps_skip_first=1000):
     for i in range(n):
         output_structures.append(input_structures[::-1][i*t//n])
     return output_structures
+
