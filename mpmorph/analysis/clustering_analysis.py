@@ -11,7 +11,7 @@ class ClusteringAnalyzer(object):
 
     def test(self, input_structure, radius):
         '''
-        Add founctionality to remove elements other than the desired
+        TODO: Add functionality to remove elements other than the desired
         :param input_structure:
         :param radius:
         :return:
