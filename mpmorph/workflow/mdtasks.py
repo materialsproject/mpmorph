@@ -117,7 +117,8 @@ class SpawnMDFWTask(FireTaskBase):
                                    spawn_count=spawn_count + 1,
                                    copy_calcs=copy_calcs,
                                    calc_home=calc_home,
-                                   averaging_fraction=averaging_fraction))
+                                   averaging_fraction=averaging_fraction,
+                                   cool=snaps))
             new_fw = Firework(t, name=name)
             return FWAction(stored_data={'pressure': p}, additions=[new_fw])
 
