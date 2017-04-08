@@ -7,8 +7,8 @@ class RescaleVolume(object):
     Class for adjusting the volume of an input simulation box based on conditions.
     """
 
-    def __init__(self, structure, initial_pressure=0.0, initial_temperature=1000.0,
-                         target_pressure=0.0, target_temperature=1000.0,
+    def __init__(self, structure, initial_pressure=0.0, initial_temperature=1,
+                         target_pressure=0.0, target_temperature=1,
                          alpha=10e-6, beta=10e-7, poscar=None):
         """
         Args:
