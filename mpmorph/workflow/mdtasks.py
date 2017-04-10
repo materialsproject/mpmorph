@@ -84,7 +84,7 @@ class SpawnMDFWTask(FireTaskBase):
 
         if spawn_count > max_rescales:
             # TODO: Log max rescale reached info.
-            return FWAction(defuse_workflow=True)
+            #return FWAction(defuse_workflow=True)
 
         name = ("spawnrun" + str(spawn_count))
 
