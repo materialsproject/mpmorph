@@ -95,6 +95,7 @@ class SpawnMDFWTask(FireTaskBase):
 
         if np.fabs(p) > pressure_threshold:
             t = []
+            print(name)
             # Copy the VASP outputs from previos run. Very first run get its from the initial MDWF which
             # uses PassCalcLocs. For the rest we just specify the previous dir.
             if spawn_count == 0:
@@ -126,6 +127,7 @@ class SpawnMDFWTask(FireTaskBase):
         else:
             t = []
             name = "long_melt"
+            print(name)
             if spawn_count == 0:
                 t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=False))
             else:
@@ -144,7 +146,7 @@ class SpawnMDFWTask(FireTaskBase):
                 fw = Firework(t, name=name)
                 return FWAction(stored_data={'pressure': p, 'density_calculated': True}, additions={fw})
             fw = Firework(t, name=name)
-            return FWAction(additions={fw})
+            return FWAction(stored_data={'pressure': p}, additions={fw})
 
 
 @explicit_serialize
