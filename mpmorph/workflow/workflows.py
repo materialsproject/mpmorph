@@ -74,7 +74,7 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
 
 
 def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd=">>vasp_cmd<<",
-                             db_file=">>db_file<<", name="structure_saampler", sim_anneal=False, copy_calc=False, copy_home="~/wflows", **kwargs):
+                             db_file=">>db_file<<", name="structure_sampler", sim_anneal=False, copy_calc=False, copy_home="~/wflows", **kwargs):
     """
     :param xdatcar_file:
     :param n:

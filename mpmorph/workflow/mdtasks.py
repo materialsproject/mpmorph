@@ -133,7 +133,7 @@ class SpawnMDFWTask(FireTaskBase):
             else:
                 t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
 
-            t.append(ModifyIncar({'NSW': 10000}))
+            t.append(ModifyIncar({"incar_update":{"NSW": 10000}}))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time, gzip_output=False))
 
