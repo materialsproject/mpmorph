@@ -4,9 +4,9 @@ from mpmorph.runners.rescale_volume import RescaleVolume
 from mpmorph.analysis.md_data import parse_pressure
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
-from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet, ModifyIncar
+from atomate.vasp.firetasks.write_inputs import ModifyIncar
 from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
-from pymatgen.io.vasp.sets import MITMDSet
+from pymatgen.io.vasp import Poscar, Incar, Potcar, Kpoints
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 import shutil
 import numpy as np
@@ -126,27 +126,26 @@ class SpawnMDFWTask(FireTaskBase):
 
         else:
             t = []
-            name = "long_melt"
-            print(name)
+            new_name = "longrun"
+            print(new_name)
             if spawn_count == 0:
                 t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=False))
             else:
                 t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
-
-            t.append(ModifyIncar({"incar_update":{"NSW": 10000}}))
+            t.append(ModifyIncar({"incar_update": {"NSW": 10000}}))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time, gzip_output=False))
 
             if copy_calcs:
-                t.append(CopyCalsHome(calc_home=calc_home, run_name=name))
+                t.append(CopyCalsHome(calc_home=calc_home, run_name=new_name))
 
-            t.append(PassCalcLocs(name=name))
+            t.append(PassCalcLocs(name=new_name))
             if snaps:
                 t.append(StructureSamplerTask(copy_calcs=copy_calcs, calc_home=calc_home))
-                fw = Firework(t, name=name)
-                return FWAction(stored_data={'pressure': p, 'density_calculated': True}, additions={fw})
-            fw = Firework(t, name=name)
-            return FWAction(stored_data={'pressure': p}, additions={fw})
+                new_fw = Firework(t, name=new_name)
+                return FWAction(stored_data={'pressure': p, 'density_calculated': True}, additions=[new_fw])
+            new_fw = Firework(t, name=new_name)
+            return FWAction(stored_data={'pressure':p, 'density_calculated': True}, additions=[new_fw])
 
 
 @explicit_serialize

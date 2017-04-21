@@ -95,7 +95,7 @@ def coordination_number_distribution(structures, pair, cutoff, step_freq=1):
                 for j in range(len(structure)):
                     if str(structure[j].specie) == pair[1]:
                         d = structure.get_distance(i,j)
-                        if d < cutoff:
+                        if d < cutoff and np.abs(d) > 0.1:
                             cn+=1
                 cn_dist.append(cn)
     return cn_dist
