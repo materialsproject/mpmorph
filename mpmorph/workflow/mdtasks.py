@@ -69,7 +69,7 @@ class SpawnMDFWTask(FireTaskBase):
     """
     required_params = ["pressure_threshold", "max_rescales", "vasp_cmd", "wall_time",
                        "db_file", "spawn_count", "copy_calcs", "calc_home"]
-    optional_params = ["averaging_fraction", "cool"]
+    optional_params = ["averaging_fraction", "cool", "final_run", "final_run_steps"]
 
     def run_task(self, fw_spec):
         vasp_cmd = self["vasp_cmd"]
@@ -80,7 +80,6 @@ class SpawnMDFWTask(FireTaskBase):
         spawn_count = self["spawn_count"]
         calc_home = self["calc_home"]
         copy_calcs = self["copy_calcs"]
-        snaps = self["cool"] or False
 
         if spawn_count > max_rescales:
             # TODO: Log max rescale reached info.
@@ -90,9 +89,12 @@ class SpawnMDFWTask(FireTaskBase):
         name = ("spawnrun" + str(spawn_count))
 
         current_dir = os.getcwd()
+        snaps = self.get("cool", False)
         averaging_fraction = self.get("averaging_fraction", 0.5)
         p = parse_pressure("./", averaging_fraction)[0]
 
+        final_run = self.get("final_run", True)
+        final_run_steps = self.get("final_run_steps", 30000)
         if np.fabs(p) > pressure_threshold:
             t = []
             print(name)
@@ -106,6 +108,7 @@ class SpawnMDFWTask(FireTaskBase):
             t.append(RescaleVolumeTask(initial_pressure=p * 1000.0, initial_temperature=1))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                       handler_group="md", wall_time=wall_time, gzip_output=False))
+            t.append(PassCalcLocs(name=name))
             # Will implement the database insertion
             # t.append(VaspToDbTask(db_file=db_file,
             #                       additional_fields={"task_label": "density_adjustment"}))
@@ -125,28 +128,39 @@ class SpawnMDFWTask(FireTaskBase):
             return FWAction(stored_data={'pressure': p}, additions=[new_fw])
 
         else:
-            t = []
-            new_name = "longrun"
-            print(new_name)
-            if spawn_count == 0:
-                t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=False))
-            else:
-                t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
-            t.append(ModifyIncar({"incar_update": {"NSW": 10000}}))
-            t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
-                                  handler_group="md", wall_time=wall_time, gzip_output=False))
-
-            if copy_calcs:
-                t.append(CopyCalsHome(calc_home=calc_home, run_name=new_name))
-
-            t.append(PassCalcLocs(name=new_name))
+            fw_list = []
+            if final_run or snaps:
+                fw_list = self.get_final_run_fws()
             if snaps:
-                t.append(StructureSamplerTask(copy_calcs=copy_calcs, calc_home=calc_home))
-                new_fw = Firework(t, name=new_name)
-                return FWAction(stored_data={'pressure': p, 'density_calculated': True}, additions=[new_fw])
-            new_fw = Firework(t, name=new_name)
-            return FWAction(stored_data={'pressure':p, 'density_calculated': True}, additions=[new_fw])
+                t=StructureSamplerTask(copy_calcs=copy_calcs, calc_home=calc_home, n_snapshots=1)
+                new_fw = Firework([t], name="structure_sampler")
+                fw_list.append(new_fw)
+            if snaps or final_run:
+                return FWAction(stored_data={'pressure':p, 'density_calculated': True}, additions=fw_list)
+            else:
+                return FWAction(stored_data={'pressure':p, 'density_calculated': True}, defuse_workflow=True)
 
+
+    def get_final_run_fws(self, target_steps=30000, copy_calcs=False, calc_home=None,
+                          run_steps=10000, run_time = 43200, vasp_cmd=None, db_file=None,):
+        fw_list = []
+        _steps = 0
+        spawn_count = 0
+        while _steps < target_steps:
+            name = ("longrun_" + str(spawn_count))
+            t = []
+            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+            t.append(ModifyIncar({"incar_update": {"NSW": run_steps}}))
+            t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
+                                      handler_group="md", wall_time=run_time, gzip_output=False))
+            if copy_calcs:
+                t.append(CopyCalsHome(calc_home=calc_home, run_name=name + '_' + str(spawn_count)))
+            t.append(PassCalcLocs(name=name))
+            new_fw = Firework(tasks=t, name=name)
+            fw_list.append(new_fw)
+            _steps = _steps + run_steps
+            spawn_count = spawn_count+1
+        return fw_list
 
 @explicit_serialize
 class RescaleVolumeTask(FireTaskBase):
@@ -178,6 +192,40 @@ class RescaleVolumeTask(FireTaskBase):
         # Pass the rescaled volume to Poscar
         return FWAction(stored_data=corr_vol.structure.as_dict())
 
+@explicit_serialize
+class LongRunTask(FireTaskBase):
+    required_params = ["target_steps", "steps_completed", "spawn_count", "copy_calcs", "calc_home", "vasp_cmd", "db_file"]
+    optional_params = ["run_steps", "run_time"]
+
+    def run_task(self, fw_spec):
+        spawn_count = self["spawn_count"]
+        target_steps = self["target_steps"]
+        steps_completed = self["steps_completed"]
+        calc_home = self["calc_home"]
+        copy_calcs = self["copy_calcs"]
+        vasp_cmd = self["vasp_cmd"]
+        db_file = self["db_file"]
+
+        run_steps = self.get("run_steps", 10000)
+        wall_time = self.get("run_time", 43200)
+
+        current_dir = os.getcwd()
+
+        name = "longrun"
+
+        t = []
+        t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
+        t.append(ModifyIncar({"incar_update": {"NSW": run_steps}}))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
+                                  handler_group="md", wall_time=wall_time, gzip_output=False))
+        if copy_calcs:
+            t.append(CopyCalsHome(calc_home=calc_home, run_name=name + '_' +str(spawn_count)))
+        if steps_completed < target_steps:
+            t.append(LongRunTask(target_steps=target_steps, steps_completed=steps_completed+run_steps,
+                                 spawn_count=spawn_count+1, copy_calcs=copy_calcs, calc_home=calc_home,
+                                 vasp_cmd=vasp_cmd, db_file=db_file, run_steps=run_steps, wall_time=wall_time))
+        new_fw = Firework(tasks=t, name=name)
+        return FWAction(additions=[new_fw])
 
 @explicit_serialize
 class CopyCalsHome(FireTaskBase):
@@ -232,7 +280,7 @@ class SimulatedAnnealTask(FireTaskBase):
                                          db_file=db_file,
                                          copy_calcs=copy_calcs,
                                          calc_home=calc_home,
-                                         spawn_count=spawn_count + 1, )
+                                         spawn_count=spawn_count + 1)
             fw2 = self.HoldMD(sat=t)
             return FWAction(additions=[fw1, fw2])
         else:
@@ -295,11 +343,12 @@ class StructureSamplerTask(FireTaskBase):
 
     """
     required_params = ["copy_calcs", "calc_home"]
-    optional_params = []
+    optional_params = ["n_snapshots"]
 
     def run_task(self, fw_spec):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
+        n = self.get("n_snapshots", 1)
         current_dir = os.getcwd()
         xdatcar_file = os.path.join(current_dir, 'XDATCAR')
         wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True, copy_calcs=copy_calcs, calc_home=calc_home, n=1)
