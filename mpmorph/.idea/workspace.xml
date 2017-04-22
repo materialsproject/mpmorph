@@ -15,11 +15,11 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="workflows.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="workflows.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/workflow/workflows.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="199">
-              <caret line="132" column="11" lean-forward="false" selection-start-line="132" selection-start-column="11" selection-end-line="132" selection-end-column="11" />
+            <state relative-caret-position="61">
+              <caret line="86" column="20" lean-forward="true" selection-start-line="86" selection-start-column="20" selection-end-line="86" selection-end-column="20" />
               <folding>
                 <element signature="e#0#40#0" expanded="true" />
               </folding>
@@ -27,10 +27,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="mdtasks.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="mdtasks.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/workflow/mdtasks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2374">
+            <state relative-caret-position="-42">
               <caret line="213" column="0" lean-forward="true" selection-start-line="213" selection-start-column="0" selection-end-line="213" selection-end-column="0" />
               <folding>
                 <element signature="e#0#85#0" expanded="true" />
@@ -112,14 +112,14 @@
         <option value="$PROJECT_DIR$/analysis/clustering_analysis.py" />
         <option value="$PROJECT_DIR$/runners/rescale_volume.py" />
         <option value="$PROJECT_DIR$/analysis/structural_analysis.py" />
-        <option value="$PROJECT_DIR$/workflow/workflows.py" />
         <option value="$PROJECT_DIR$/workflow/mdtasks.py" />
+        <option value="$PROJECT_DIR$/workflow/workflows.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="2107" />
-    <option name="y" value="696" />
+    <option name="x" value="187" />
+    <option name="y" value="68" />
     <option name="width" value="1248" />
     <option name="height" value="801" />
   </component>
@@ -369,7 +369,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="2107" y="696" width="1248" height="801" extended-state="0" />
+    <frame x="187" y="68" width="1248" height="801" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1963141" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -571,22 +571,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/workflow/workflows.py">
+    <entry file="file://$PROJECT_DIR$/workflow/mdtasks.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="199">
-          <caret line="132" column="11" lean-forward="false" selection-start-line="132" selection-start-column="11" selection-end-line="132" selection-end-column="11" />
+        <state relative-caret-position="-42">
+          <caret line="213" column="0" lean-forward="true" selection-start-line="213" selection-start-column="0" selection-end-line="213" selection-end-column="0" />
           <folding>
-            <element signature="e#0#40#0" expanded="true" />
+            <element signature="e#0#85#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/workflow/mdtasks.py">
+    <entry file="file://$PROJECT_DIR$/workflow/workflows.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2374">
-          <caret line="213" column="0" lean-forward="true" selection-start-line="213" selection-start-column="0" selection-end-line="213" selection-end-column="0" />
+        <state relative-caret-position="61">
+          <caret line="86" column="20" lean-forward="true" selection-start-line="86" selection-start-column="20" selection-end-line="86" selection-end-column="20" />
           <folding>
-            <element signature="e#0#85#0" expanded="true" />
+            <element signature="e#0#40#0" expanded="true" />
           </folding>
         </state>
       </provider>

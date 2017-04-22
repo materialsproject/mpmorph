@@ -202,4 +202,4 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
     return wf
 
 
-from mpmorph.workflow.mdtasks import SpawnMDFWTask, CopyCalsHome, SimulatedAnnealTask
+from mpmorph.workflow.mdtasks import SpawnMDFWTask, CopyCalsHome
