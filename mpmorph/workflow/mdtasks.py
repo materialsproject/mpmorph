@@ -159,7 +159,7 @@ class SpawnMDFWTask(FireTaskBase):
             if spawn_count > 0:
                 new_fw = Firework(tasks=t, name=name, parents=[fw_list[spawn_count]])
             else:
-                new_fw = Firework(tasks=t, name=name, parents=[fw_list[spawn_count]])
+                new_fw = Firework(tasks=t, name=name)
             fw_list.append(new_fw)
             _steps = _steps + run_steps
             spawn_count = spawn_count+1
