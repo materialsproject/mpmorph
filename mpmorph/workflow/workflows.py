@@ -7,6 +7,7 @@ from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.vasp.firetasks.write_inputs import ModifyIncar
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
+from atomate.vasp import powerups
 from pymatgen.core.structure import Structure
 import os
 
@@ -132,16 +133,21 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
                             vasp_input_set=None, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", name="anneal",
                             optional_MDWF_params=None, override_default_vasp_params=None,
                             copy_calcs=False, calc_home="~/wflows"):
+    temperature = start_temp
+
     optional_MDWF_params = optional_MDWF_params or {}
     override_default_vasp_params = override_default_vasp_params or {}
     override_default_vasp_params['user_incar_settings'] = override_default_vasp_params.get('user_incar_settings') or {}
     override_default_vasp_params['user_incar_settings'].update({"ISIF": 1, "LWAVE": False})
+
+    fw_list = []
 
     # Run first cool step
     fw1 = MDFW(structure=structure, start_temp=start_temp, end_temp=start_temp - temp_decrement, nsteps=nsteps_cool,
                name=name + "_cool_" + str(start_temp - temp_decrement), vasp_input_set=vasp_input_set, db_file=db_file,
                vasp_cmd=vasp_cmd, wall_time=wall_time, override_default_vasp_params=override_default_vasp_params,
                **optional_MDWF_params)
+    fw_list.append(fw1)
     t = []
     t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
 
@@ -151,7 +157,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
 
     # Run first hold step
     t.append(
-        ModifyIncar({'TEBEG': start_temp - temp_decrement, 'TEEND': start_temp - temp_decrement, 'NSW': nsteps_hold}))
+        ModifyIncar({"incar_update": {'TEBEG': start_temp - temp_decrement, 'TEEND': start_temp - temp_decrement, 'NSW': nsteps_hold}}))
     t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                               handler_group="md", wall_time=wall_time))
     t.append(PassCalcLocs(name=str(name) + "_hold_" + str(start_temp - temp_decrement)))
@@ -160,27 +166,40 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
         t.append(
             CopyCalsHome(calc_home=os.path.join(calc_home, name), run_name="hold_" + str(start_temp - temp_decrement)))
 
-    fw2 = Firework(t, parents=[fw1], name=name + "_hold_" + str(start_temp - temp_decrement))
+    fw_list.append(Firework(t, parents=[fw1], name=name + "_hold_" + str(start_temp - temp_decrement)))
 
-    t = []
-    t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
+    temperature -= temp_decrement
 
-    # Spawn the subsequent temperature steps until the threshold temperature is reached.
-    t.append(SimulatedAnnealTask(temperature=start_temp - temp_decrement,
-                                 temperature_threshold=end_temp,
-                                 temperature_decrement=temp_decrement,
-                                 vasp_cmd=vasp_cmd,
-                                 wall_time=wall_time,
-                                 db_file=db_file,
-                                 copy_calcs=copy_calcs,
-                                 calc_home=calc_home,
-                                 spawn_count=0,
-                                 nsteps_hold=nsteps_hold,
-                                 nsteps_cool=nsteps_cool,
-                                 name=name))
-    fw3 = Firework(t, parents=[fw2], name=name + "simulated_anneal_spawner")
+    while temperature > end_temp:
+        # Cool Step
+        t = []
+        t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
+        t.append(ModifyIncar({"incar_update": {'TEBEG': temperature, 'TEEND': temperature - temp_decrement, 'NSW': nsteps_cool}}))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
+                                  handler_group="md", wall_time=wall_time))
+        t.append(PassCalcLocs(name=name+"_cool_"+str(temperature-temp_decrement)))
+        if copy_calcs:
+            t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name), run_name=name+"_cool_"+str(temperature-temp_decrement)))
+        fw_list.append(Firework(t, name=name + "_cool_" + str(temperature - temp_decrement)))
 
-    return Workflow([fw1, fw2, fw3], name=name + "simulated_anneal_WF")
+        # Hold Step
+        t = []
+        t.append(
+            CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
+        t.append(ModifyIncar(
+            {"incar_update": {'TEBEG': temperature - temp_decrement, 'TEEND': temperature - temp_decrement, 'NSW': nsteps_cool}}))
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
+                                  handler_group="md", wall_time=wall_time))
+        t.append(PassCalcLocs(name=name + "_hold_" + str(temperature - temp_decrement)))
+        if copy_calcs:
+            t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name),
+                                  run_name=name + "_hold_" + str(temperature - temp_decrement)))
+
+        fw_list.append(Firework(t, name=name+"_hold_"+str(temperature-temp_decrement)))
+        temperature -= temp_decrement
+    wf = Workflow(fw_list, name=name + "simulated_anneal_WF")
+    wf = powerups.add_modify_incar_envchk(wf)
+    return wf
 
 
 from mpmorph.workflow.mdtasks import SpawnMDFWTask, CopyCalsHome, SimulatedAnnealTask
