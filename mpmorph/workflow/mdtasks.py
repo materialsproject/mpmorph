@@ -156,7 +156,10 @@ class SpawnMDFWTask(FireTaskBase):
             if copy_calcs:
                 t.append(CopyCalsHome(calc_home=calc_home, run_name=name + '_' + str(spawn_count)))
             t.append(PassCalcLocs(name=name))
-            new_fw = Firework(tasks=t, name=name)
+            if spawn_count > 0:
+                new_fw = Firework(tasks=t, name=name, parents=[fw_list[spawn_count]])
+            else:
+                new_fw = Firework(tasks=t, name=name, parents=[fw_list[spawn_count]])
             fw_list.append(new_fw)
             _steps = _steps + run_steps
             spawn_count = spawn_count+1

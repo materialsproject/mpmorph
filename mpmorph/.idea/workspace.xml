@@ -15,10 +15,10 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="workflows.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="workflows.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/workflow/workflows.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="61">
+            <state relative-caret-position="91">
               <caret line="86" column="20" lean-forward="true" selection-start-line="86" selection-start-column="20" selection-end-line="86" selection-end-column="20" />
               <folding>
                 <element signature="e#0#40#0" expanded="true" />
@@ -27,11 +27,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="mdtasks.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="mdtasks.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/workflow/mdtasks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-42">
-              <caret line="213" column="0" lean-forward="true" selection-start-line="213" selection-start-column="0" selection-end-line="213" selection-end-column="0" />
+            <state relative-caret-position="450">
+              <caret line="161" column="82" lean-forward="true" selection-start-line="161" selection-start-column="82" selection-end-line="161" selection-end-column="82" />
               <folding>
                 <element signature="e#0#85#0" expanded="true" />
               </folding>
@@ -112,8 +112,8 @@
         <option value="$PROJECT_DIR$/analysis/clustering_analysis.py" />
         <option value="$PROJECT_DIR$/runners/rescale_volume.py" />
         <option value="$PROJECT_DIR$/analysis/structural_analysis.py" />
-        <option value="$PROJECT_DIR$/workflow/mdtasks.py" />
         <option value="$PROJECT_DIR$/workflow/workflows.py" />
+        <option value="$PROJECT_DIR$/workflow/mdtasks.py" />
       </list>
     </option>
   </component>
@@ -571,22 +571,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/workflow/mdtasks.py">
+    <entry file="file://$PROJECT_DIR$/workflow/workflows.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-42">
-          <caret line="213" column="0" lean-forward="true" selection-start-line="213" selection-start-column="0" selection-end-line="213" selection-end-column="0" />
+        <state relative-caret-position="91">
+          <caret line="86" column="20" lean-forward="true" selection-start-line="86" selection-start-column="20" selection-end-line="86" selection-end-column="20" />
           <folding>
-            <element signature="e#0#85#0" expanded="true" />
+            <element signature="e#0#40#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/workflow/workflows.py">
+    <entry file="file://$PROJECT_DIR$/workflow/mdtasks.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="61">
-          <caret line="86" column="20" lean-forward="true" selection-start-line="86" selection-start-column="20" selection-end-line="86" selection-end-column="20" />
+        <state relative-caret-position="450">
+          <caret line="161" column="82" lean-forward="true" selection-start-line="161" selection-start-column="82" selection-end-line="161" selection-end-column="82" />
           <folding>
-            <element signature="e#0#40#0" expanded="true" />
+            <element signature="e#0#85#0" expanded="true" />
           </folding>
         </state>
       </provider>
