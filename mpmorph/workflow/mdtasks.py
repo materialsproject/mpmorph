@@ -98,6 +98,8 @@ class SpawnMDFWTask(FireTaskBase):
 
         final_run = self.get("final_run", True)
         final_run_steps = self.get("final_run_steps", 30000)
+
+        pressure_threshold = 5
         if np.fabs(p) > pressure_threshold:
             t = []
             print(name)
