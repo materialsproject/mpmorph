@@ -148,19 +148,25 @@ class SpawnMDFWTask(FireTaskBase):
         spawn_count = 0
         while _steps < target_steps:
             name = ("longrun_" + str(spawn_count))
-            t = []
-            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
-            t.append(ModifyIncar({"incar_update": {"NSW": run_steps}}))
-            t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
-                                      handler_group="md", wall_time=run_time, gzip_output=False))
-            if copy_calcs:
-                t.append(CopyCalsHome(calc_home=calc_home, run_name=name + '_' + str(spawn_count)))
-            t.append(PassCalcLocs(name=name))
             if spawn_count > 0:
-                new_fw = Firework(tasks=t, name=name, parents=[fw_list[spawn_count]])
+                t = []
+                t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
+                t.append(ModifyIncar({"incar_update": {"NSW": run_steps}}))
+                t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
+                                          handler_group="md", wall_time=run_time, gzip_output=False))
+                if copy_calcs:
+                    t.append(CopyCalsHome(calc_home=calc_home, run_name=name + '_' + str(spawn_count)))
+                t.append(PassCalcLocs(name=name))
+                new_fw = Firework(tasks=t, name=name, parents=[fw_list[spawn_count-1]])
+                fw_list.append(new_fw)
             else:
-                new_fw = Firework(tasks=t, name=name)
-            fw_list.append(new_fw)
+                CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True)
+                ModifyIncar({"incar_update": {"NSW": run_steps}})
+                RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
+                                          handler_group="md", wall_time=run_time, gzip_output=False)
+                if copy_calcs:
+                    CopyCalsHome(calc_home=calc_home, run_name=name + '_' + str(spawn_count))
+                PassCalcLocs(name=name)
             _steps = _steps + run_steps
             spawn_count = spawn_count+1
         return fw_list
