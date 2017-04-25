@@ -137,7 +137,7 @@ class SpawnMDFWTask(FireTaskBase):
         else:
             fw_list = []
             _poscar = Poscar.from_file(os.path.join(current_dir, 'CONTCAR'))
-            name = str(_poscar.structure.composition)
+            name = str(_poscar.structure.composition.reduced_formula)
             if final_run or snaps:
                 if diffusion_bool:
                     _steps = 10000
@@ -179,6 +179,7 @@ class SpawnMDFWTask(FireTaskBase):
                    **optional_MDWF_params)
         _steps += run_steps
         spawn_count += 1
+        fw_list.append(fw1)
 
         while _steps < target_steps:
             _name = (name + "_" + str(spawn_count))
