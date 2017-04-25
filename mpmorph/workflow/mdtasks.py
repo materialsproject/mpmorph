@@ -153,7 +153,7 @@ class SpawnMDFWTask(FireTaskBase):
                     new_fw = Firework([t], name=name + "structure_sampler")
                 fw_list.append(new_fw)
             if snaps or final_run:
-                wf = Workflow(fw_list, name=name + "_longruns")
+                wf = Workflow(fw_list, name=name + "_" + str(temperature) + "_longruns")
                 wf = powerups.add_modify_incar_envchk(wf)
                 lp = LaunchPad.auto_load()
                 lp.add_wf(wf)
