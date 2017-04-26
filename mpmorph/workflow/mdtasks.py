@@ -161,7 +161,7 @@ class SpawnMDFWTask(FireTaskBase):
 
 
     def get_final_run_fws(self, structure, target_steps=30000, copy_calcs=False, calc_home=None,
-                          run_steps=10000, run_time = 43200, temperature=2500, vasp_cmd=None, db_file=None, name="longrun",
+                          run_steps=10000, run_time = 43200, temperature=2500, vasp_cmd=">>vasp_cmd<<", db_file=None, name="longrun",
                    optional_MDWF_params=None, override_default_vasp_params=None, vasp_input_set=None):
         fw_list = []
         _steps = 0
