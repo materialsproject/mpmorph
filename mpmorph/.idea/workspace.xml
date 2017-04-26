@@ -30,8 +30,8 @@
       <file leaf-file-name="mdtasks.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/workflow/mdtasks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="495">
-              <caret line="163" column="102" lean-forward="false" selection-start-line="163" selection-start-column="102" selection-end-line="163" selection-end-column="102" />
+            <state relative-caret-position="139">
+              <caret line="168" column="24" lean-forward="false" selection-start-line="168" selection-start-column="24" selection-end-line="168" selection-end-column="24" />
               <folding>
                 <element signature="e#0#95#0" expanded="true" />
               </folding>
@@ -102,6 +102,7 @@
       <find>dee</find>
       <find>name</find>
       <find>modify</find>
+      <find>d</find>
     </findStrings>
   </component>
   <component name="IdeDocumentHistory">
@@ -114,13 +115,14 @@
         <option value="$PROJECT_DIR$/analysis/structural_analysis.py" />
         <option value="$PROJECT_DIR$/workflow/workflows.py" />
         <option value="$PROJECT_DIR$/../../../../fireworks/fireworks/flask_site/app.py" />
+        <option value="$PROJECT_DIR$/../../../../fireworks/fireworks/core/firework.py" />
         <option value="$PROJECT_DIR$/workflow/mdtasks.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="137" />
-    <option name="y" value="23" />
+    <option name="x" value="2057" />
+    <option name="y" value="651" />
     <option name="width" value="1248" />
     <option name="height" value="801" />
   </component>
@@ -370,7 +372,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="137" y="23" width="1248" height="801" extended-state="0" />
+    <frame x="2057" y="651" width="1248" height="801" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1963141" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -592,10 +594,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../../../../fireworks/fireworks/core/firework.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="405">
+          <caret line="230" column="50" lean-forward="true" selection-start-line="230" selection-start-column="50" selection-end-line="230" selection-end-column="50" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/workflow/mdtasks.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="495">
-          <caret line="163" column="102" lean-forward="false" selection-start-line="163" selection-start-column="102" selection-end-line="163" selection-end-column="102" />
+        <state relative-caret-position="139">
+          <caret line="168" column="24" lean-forward="false" selection-start-line="168" selection-start-column="24" selection-end-line="168" selection-end-column="24" />
           <folding>
             <element signature="e#0#95#0" expanded="true" />
           </folding>
