@@ -185,6 +185,9 @@ class SpawnMDFWTask(FireTaskBase):
         while _steps < target_steps:
             _name = (name + "_" + str(spawn_count))
             t = []
+            if spawn_count == 1:
+                if copy_calcs:
+                    t.append(CopyCalsHome(calc_home=calc_home, run_name=name + "_0"))
             t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                       handler_group="md", wall_time=run_time, gzip_output=False))
