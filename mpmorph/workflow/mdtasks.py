@@ -140,9 +140,9 @@ class SpawnMDFWTask(FireTaskBase):
             name = str(_poscar.structure.composition.reduced_formula)
             if final_run or snaps:
                 if diffusion_bool:
-                    _steps = 10000
-                else:
                     _steps = 30000
+                else:
+                    _steps = 10000
                 fw_list = self.get_final_run_fws(_poscar.structure, name=name + "_longrun", copy_calcs=copy_calcs,
                                                  calc_home=calc_home, target_steps=_steps, temperature=temperature)
             if snaps:
@@ -166,7 +166,7 @@ class SpawnMDFWTask(FireTaskBase):
         fw_list = []
         _steps = 0
         spawn_count = 0
-        run_time = 86400
+        run_time = 84600
 
         optional_MDWF_params = optional_MDWF_params or {}
         override_default_vasp_params = override_default_vasp_params or {}
