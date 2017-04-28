@@ -193,7 +193,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
         t.append(PassCalcLocs(name=name+"_cool_"+str(temperature-temp_decrement)))
         if copy_calcs:
             t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name), run_name=name+"_cool_"+str(temperature-temp_decrement)))
-        fw_list.append(Firework(t, name=name + "_cool_" + str(temperature - temp_decrement)))
+        fw_list.append(Firework(t, name=name + "_cool_" + str(temperature - temp_decrement), parents=[fw_list[len(fw_list)-1]]))
 
         # Hold Step
         t = []
@@ -211,7 +211,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
             t.append(RelaxStaticTask(copy_calcs=copy_calcs, calc_home=calc_home))
             if diffusion:
                 t.append(DiffusionTask(copy_calcs=copy_calcs, calc_home=calc_home))
-        fw_list.append(Firework(t, name=name+"_hold_"+str(temperature-temp_decrement)))
+        fw_list.append(Firework(t, name=name+"_hold_"+str(temperature-temp_decrement), parents=[fw_list[len(fw_list)-1]]))
         temperature -= temp_decrement
 
 
