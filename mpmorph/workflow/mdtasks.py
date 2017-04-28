@@ -7,7 +7,7 @@ from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.firetasks.write_inputs import ModifyIncar
 from atomate.vasp.fireworks.core import MDFW
 from atomate.vasp import powerups
-from pymatgen.io.vasp import Poscar, Incar, Potcar, Kpoints
+from pymatgen.io.vasp import Poscar, Incar, Potcar, Kpoints, Xdatcar
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 import shutil
 import numpy as np
@@ -130,7 +130,8 @@ class SpawnMDFWTask(FireTaskBase):
                                    averaging_fraction=averaging_fraction,
                                    cool=snaps,
                                    temperature=temperature,
-                                   diffusion=diffusion_bool))
+                                   diffusion=diffusion_bool,
+                                   final_run=final_run))
             new_fw = Firework(t, name=name)
             return FWAction(stored_data={'pressure': p}, additions=[new_fw])
 
@@ -272,6 +273,42 @@ class StructureSamplerTask(FireTaskBase):
         return FWAction()
 
 @explicit_serialize
+class RelaxStaticTask(FireTaskBase):
+
+    required_params = ["copy_calcs", "calc_home", "name"]
+    optional_params = []
+    def run_task(self, fw_spec):
+        name = self["name"]
+        copy_calcs = self["copy_calcs"]
+        calc_home = self["calc_home"]
+        xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR'))
+        structure = xdat.structures[len(xdat.structures)-1]
+        get_relax_static_wf([structure], name = name + "relax_static", copy_calcs = copy_calcs, calc_home=calc_home)
+        return FWAction()
+
+@explicit_serialize
+class DiffusionTask(FireTaskBase):
+
+    required_params = ["copy_calcs", "calc_home", "name"]
+    optional_params = ["temps"]
+    def run_task(self, fw_spec):
+        name = self["name"]
+        copy_calcs = self["copy_calcs"]
+        calc_home = self["calc_home"]
+        lp = LaunchPad.auto_load()
+
+        xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR'))
+        structure = xdat.structures[len(xdat.structures)-1]
+        temps = self.get("temps", [500, 1000, 1500])
+        for temp in temps:
+            wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
+                                name = str(structure.composition.reduced_formula)+'_diffusion', db_file=None,
+                                copy_calcs=copy_calcs, calc_home=calc_home, cool=False)
+            wf = powerups.add_modify_incar_envchk(wf)
+            lp.add_wf(wf)
+        return FWAction()
+
+@explicit_serialize
 class DoNothingTask(FireTaskBase):
 
     def run_task(self, fw_spec):
@@ -291,4 +328,4 @@ class VaspMdToDiffusion(FireTaskBase):
 class VaspMdToStructuralAnalysis(FireTaskBase):
     pass
 
-from mpmorph.workflow.workflows import get_wf_structure_sampler
+from mpmorph.workflow.workflows import get_wf_structure_sampler, get_relax_static_wf, get_wf_density

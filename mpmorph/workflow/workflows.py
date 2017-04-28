@@ -15,7 +15,8 @@ import os
 def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=6, nsteps=2000, wall_time=19200,
                    vasp_input_set=None, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", name="density_finder",
                    optional_MDWF_params=None, override_default_vasp_params=None,
-                   amorphous_maker_params=None, copy_calcs=False, calc_home="~/wflows", cool=False):
+                   amorphous_maker_params=None, copy_calcs=False, calc_home="~/wflows",
+                   cool=False, final_run = True, diffusion = True):
     """
     :param structure: (
     :param temperature:
@@ -68,7 +69,7 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
     t.append(SpawnMDFWTask(pressure_threshold=pressure_threshold, max_rescales=max_rescales,
                            wall_time=wall_time, vasp_cmd=vasp_cmd, db_file=db_file,
                            copy_calcs=copy_calcs, calc_home=calc_home,
-                           spawn_count=0, cool=cool))
+                           spawn_count=0, cool=cool, final_run=final_run, diffusion=diffusion))
 
     fw2 = Firework(t, parents=[fw1], name=name + "_initial_spawn")
     return Workflow([fw1, fw2], name=name + "_WF")
@@ -111,7 +112,8 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
     return wfs
 
 
-def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", name="regular_relax", **kwargs):
+def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
+                        name="regular_relax", copy_calcs=False, calc_home="~/wflows" **kwargs):
     """
     :param structures:
     :param vasp_cmd:
@@ -121,12 +123,19 @@ def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<
     :return:
     """
     wfs = []
+
     for s in structures:
         fw1 = OptimizeFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[], **kwargs)
         fw2 = StaticFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[fw1])
+        t = []
+        t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
+        if copy_calcs:
+            t.append(
+                CopyCalsHome(calc_home=os.path.join(calc_home, name),
+                             run_name=name))
+
         wfs.append(Workflow([fw1, fw2], name=name + str(s.composition.reduced_formula)))
     return wfs
-
 
 def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=500, nsteps_cool=200, nsteps_hold=500,
                             wall_time=19200,
@@ -170,7 +179,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
 
     temperature -= temp_decrement
 
-    while temperature > end_temp:
+    while temperature >= end_temp:
         # Cool Step
         t = []
         t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
@@ -194,12 +203,16 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
         if copy_calcs:
             t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name),
                                   run_name=name + "_hold_" + str(temperature - temp_decrement)))
-
+        if temperature == end_temp:
+            t.append(RelaxStaticTask(copy_calcs=copy_calcs, calc_home=calc_home, name = name))
+            t.append(DiffusionTask())
         fw_list.append(Firework(t, name=name+"_hold_"+str(temperature-temp_decrement)))
         temperature -= temp_decrement
+
+
     wf = Workflow(fw_list, name=name + "simulated_anneal_WF")
     wf = powerups.add_modify_incar_envchk(wf)
     return wf
 
 
-from mpmorph.workflow.mdtasks import SpawnMDFWTask, CopyCalsHome
+from mpmorph.workflow.mdtasks import SpawnMDFWTask, CopyCalsHome, RelaxStaticTask
