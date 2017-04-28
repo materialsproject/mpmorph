@@ -11,7 +11,9 @@ from pymatgen.io.vasp import Poscar, Incar, Potcar, Kpoints, Xdatcar
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 import shutil
 import numpy as np
+from pymatgen.io.vasp.sets import MITMDSet
 from atomate.vasp.firetasks.parse_outputs import VaspToDbTask
+from atomate.utils.utils import load_class
 import os
 
 __author__ = 'Muratahan Aykol <maykol@lbl.gov>'
@@ -309,6 +311,22 @@ class DiffusionTask(FireTaskBase):
                                 copy_calcs=copy_calcs, calc_home=calc_home, cool=False)
             wf = powerups.add_modify_incar_envchk(wf)
             lp.add_wf(wf)
+        return FWAction()
+
+@explicit_serialize
+class WriteSetTask(FireTaskBase):
+    required_params = ["start_temp", "end_temp", "nsteps"]
+    optional_params = ["override_default_vasp_params"]
+    def run_task(self, fw_spec):
+        start_temp = self["start_temp"]
+        end_temp = self["end_temp"]
+        nsteps = self["nsteps"]
+        pos = Poscar.from_file(os.path.join(os.getcwd(), 'POSCAR'))
+        structure = pos.structure()
+        override_default_vasp_params = self.get("override_default_vasp_params", {})
+        vasp_input_set = MITMDSet(structure, start_temp=start_temp, end_temp=end_temp,
+                                                    nsteps=nsteps, **override_default_vasp_params)
+        vasp_input_set.write_input(".")
         return FWAction()
 
 @explicit_serialize

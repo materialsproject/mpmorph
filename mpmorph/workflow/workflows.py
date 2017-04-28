@@ -169,8 +169,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
             CopyCalsHome(calc_home=os.path.join(calc_home, name), run_name="cool_" + str(start_temp - temp_decrement)))
 
     # Run first hold step
-    t.append(
-        ModifyIncar({"incar_update": {'TEBEG': start_temp - temp_decrement, 'TEEND': start_temp - temp_decrement, 'NSW': nsteps_hold}}))
+    t.append(WriteSetTask(start_temp= start_temp - temp_decrement, end_temp = start_temp - temp_decrement, nsteps= nsteps_hold))
     t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                               handler_group="md", wall_time=wall_time))
     t.append(PassCalcLocs(name=str(name) + "_hold_" + str(start_temp - temp_decrement)))
@@ -187,7 +186,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
         # Cool Step
         t = []
         t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
-        t.append(ModifyIncar({"incar_update": {'TEBEG': temperature, 'TEEND': temperature - temp_decrement, 'NSW': nsteps_cool}}))
+        t.append(WriteSetTask(start_temp= temperature, end_temp = temperature - temp_decrement, nsteps= nsteps_cool))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time))
         t.append(PassCalcLocs(name=name+"_cool_"+str(temperature-temp_decrement)))
@@ -199,8 +198,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
         t = []
         t.append(
             CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
-        t.append(ModifyIncar(
-            {"incar_update": {'TEBEG': temperature - temp_decrement, 'TEEND': temperature - temp_decrement, 'NSW': nsteps_cool}}))
+        t.append(WriteSetTask(start_temp=temperature-temp_decrement, end_temp=temperature - temp_decrement, nsteps=nsteps_hold))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time))
         t.append(PassCalcLocs(name=name + "_hold_" + str(temperature - temp_decrement)))
@@ -220,4 +218,4 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
     return wf
 
 
-from mpmorph.workflow.mdtasks import SpawnMDFWTask, CopyCalsHome, RelaxStaticTask, DiffusionTask
+from mpmorph.workflow.mdtasks import SpawnMDFWTask, CopyCalsHome, RelaxStaticTask, DiffusionTask, WriteSetTask
