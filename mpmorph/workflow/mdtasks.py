@@ -283,7 +283,10 @@ class RelaxStaticTask(FireTaskBase):
         xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR'))
         structure = xdat.structures[len(xdat.structures)-1]
         name = structure.composition.reduced_formula
-        get_relax_static_wf([structure], name = name + "relax_static", copy_calcs = copy_calcs, calc_home=calc_home)
+        wf = get_relax_static_wf([structure], name = name + "relax_static", copy_calcs = copy_calcs, calc_home=calc_home)
+        wf = powerups.add_modify_incar_envchk(wf)
+        lp = LaunchPad.auto_load()
+        lp.add_wf(wf)
         return FWAction()
 
 @explicit_serialize
