@@ -117,7 +117,7 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
 
 
 def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
-                        name="regular_relax", copy_calcs=False, calc_home="~/wflows" **kwargs):
+                        name="regular_relax", copy_calcs=False, calc_home="~/wflows", **kwargs):
     """
     :param structures:
     :param vasp_cmd:
