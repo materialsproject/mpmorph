@@ -305,7 +305,7 @@ class DiffusionTask(FireTaskBase):
         temps = self.get("temps", [500, 1000, 1500])
         for temp in temps:
             wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
-                                name = name+'_diffusion', db_file=None,
+                                name = name+'_diffusion_'+str(temp), db_file=None,
                                 copy_calcs=copy_calcs, calc_home=calc_home, cool=False)
             wf = powerups.add_modify_incar_envchk(wf)
             lp.add_wf(wf)
