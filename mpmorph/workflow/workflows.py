@@ -205,7 +205,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
                                   run_name=name + "_hold_" + str(temperature - temp_decrement)))
         if temperature == end_temp:
             t.append(RelaxStaticTask(copy_calcs=copy_calcs, calc_home=calc_home, name = name))
-            t.append(DiffusionTask())
+            t.append(DiffusionTask(copy_calcs=copy_calcs, calc_home=calc_home, name = name))
         fw_list.append(Firework(t, name=name+"_hold_"+str(temperature-temp_decrement)))
         temperature -= temp_decrement
 
@@ -215,4 +215,4 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
     return wf
 
 
-from mpmorph.workflow.mdtasks import SpawnMDFWTask, CopyCalsHome, RelaxStaticTask
+from mpmorph.workflow.mdtasks import SpawnMDFWTask, CopyCalsHome, RelaxStaticTask, DiffusionTask
