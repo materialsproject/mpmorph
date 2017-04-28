@@ -266,7 +266,7 @@ class StructureSamplerTask(FireTaskBase):
         current_dir = os.getcwd()
         CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True)
         xdatcar_file = os.path.join(current_dir, 'XDATCAR')
-        wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True, copy_calcs=copy_calcs, calc_home=calc_home, n=1)
+        wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True, copy_calcs=copy_calcs, calc_home=calc_home, n=10)
         lp = LaunchPad()
         for _wf in wfs:
             lp.add_wf(_wf)
@@ -275,34 +275,34 @@ class StructureSamplerTask(FireTaskBase):
 @explicit_serialize
 class RelaxStaticTask(FireTaskBase):
 
-    required_params = ["copy_calcs", "calc_home", "name"]
-    optional_params = []
+    required_params = ["copy_calcs", "calc_home"]
+    optional_params = ["name"]
     def run_task(self, fw_spec):
-        name = self["name"]
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
         xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR'))
         structure = xdat.structures[len(xdat.structures)-1]
+        name = structure.composition.reduced_formula
         get_relax_static_wf([structure], name = name + "relax_static", copy_calcs = copy_calcs, calc_home=calc_home)
         return FWAction()
 
 @explicit_serialize
 class DiffusionTask(FireTaskBase):
 
-    required_params = ["copy_calcs", "calc_home", "name"]
-    optional_params = ["temps"]
+    required_params = ["copy_calcs", "calc_home"]
+    optional_params = ["temps", "name"]
     def run_task(self, fw_spec):
-        name = self["name"]
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
         lp = LaunchPad.auto_load()
 
         xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR'))
         structure = xdat.structures[len(xdat.structures)-1]
+        name = str(structure.composition.reduced_formula)
         temps = self.get("temps", [500, 1000, 1500])
         for temp in temps:
             wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
-                                name = str(structure.composition.reduced_formula)+'_diffusion', db_file=None,
+                                name = name+'_diffusion', db_file=None,
                                 copy_calcs=copy_calcs, calc_home=calc_home, cool=False)
             wf = powerups.add_modify_incar_envchk(wf)
             lp.add_wf(wf)

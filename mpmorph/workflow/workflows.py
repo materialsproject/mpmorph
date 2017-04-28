@@ -99,7 +99,11 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
         wfs = []
         i = 0
         for s in structures:
-            _wf = get_simulated_anneal_wf(s, start_temp=2500, name='snap_' + str(i))
+            if i == 0:
+                diffusion = True
+            else:
+                diffusion = False
+            _wf = get_simulated_anneal_wf(s, start_temp=2500, name='snap_' + str(i), diffusion=diffusion)
             wfs.append(_wf)
             i += 1
     else:
@@ -141,7 +145,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
                             wall_time=19200,
                             vasp_input_set=None, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", name="anneal",
                             optional_MDWF_params=None, override_default_vasp_params=None,
-                            copy_calcs=False, calc_home="~/wflows"):
+                            copy_calcs=False, calc_home="~/wflows", diffusion=False):
     temperature = start_temp
 
     optional_MDWF_params = optional_MDWF_params or {}
@@ -204,8 +208,9 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
             t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name),
                                   run_name=name + "_hold_" + str(temperature - temp_decrement)))
         if temperature == end_temp:
-            t.append(RelaxStaticTask(copy_calcs=copy_calcs, calc_home=calc_home, name = name))
-            t.append(DiffusionTask(copy_calcs=copy_calcs, calc_home=calc_home, name = name))
+            t.append(RelaxStaticTask(copy_calcs=copy_calcs, calc_home=calc_home))
+            if diffusion:
+                t.append(DiffusionTask(copy_calcs=copy_calcs, calc_home=calc_home))
         fw_list.append(Firework(t, name=name+"_hold_"+str(temperature-temp_decrement)))
         temperature -= temp_decrement
 
