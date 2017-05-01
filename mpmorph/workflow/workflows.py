@@ -103,7 +103,8 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
                 diffusion = True
             else:
                 diffusion = False
-            _wf = get_simulated_anneal_wf(s, start_temp=2500, name='snap_' + str(i), diffusion=diffusion)
+            wflow_name=s.composition.reduced_formula
+            _wf = get_simulated_anneal_wf(s, start_temp=2500, name='snap_' + str(i), diffusion=diffusion, wflow_name=wflow_name)
             _wf = powerups.add_modify_incar_envchk(_wf)
             wfs.append(_wf)
             i += 1
@@ -148,7 +149,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
                             wall_time=19200,
                             vasp_input_set=None, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", name="anneal",
                             optional_MDWF_params=None, override_default_vasp_params=None,
-                            copy_calcs=False, calc_home="~/wflows", diffusion=False):
+                            copy_calcs=False, calc_home="~/wflows", diffusion=False, wflow_name=""):
     temperature = start_temp
 
     optional_MDWF_params = optional_MDWF_params or {}
@@ -216,7 +217,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
         temperature -= temp_decrement
 
 
-    wf = Workflow(fw_list, name=name + "simulated_anneal_WF")
+    wf = Workflow(fw_list, name=wflow_name + "_" + name + "simulated_anneal_WF")
     wf = powerups.add_modify_incar_envchk(wf)
     return wf
 
