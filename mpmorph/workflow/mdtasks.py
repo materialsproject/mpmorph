@@ -149,7 +149,9 @@ class SpawnMDFWTask(FireTaskBase):
                 fw_list = self.get_final_run_fws(_poscar.structure, name=name + "_longrun", copy_calcs=copy_calcs,
                                                  calc_home=calc_home, target_steps=_steps, temperature=temperature)
             if snaps:
-                t=StructureSamplerTask(copy_calcs=copy_calcs, calc_home=calc_home, n_snapshots=1)
+                t = []
+                t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR"]))
+                t.append(StructureSamplerTask(copy_calcs=copy_calcs, calc_home=calc_home, n_snapshots=1))
                 if len(fw_list) > 0:
                     new_fw = Firework([t], name=name + "structure_sampler", parents=fw_list[len(fw_list)-1])
                 else:
@@ -266,10 +268,9 @@ class StructureSamplerTask(FireTaskBase):
         calc_home = self["calc_home"]
         n = self.get("n_snapshots", 1)
         current_dir = os.getcwd()
-        CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True)
         xdatcar_file = os.path.join(current_dir, 'XDATCAR')
         wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True, copy_calcs=copy_calcs, calc_home=calc_home, n=10)
-        lp = LaunchPad()
+        lp = LaunchPad.auto_load()
         for _wf in wfs:
             lp.add_wf(_wf)
         return FWAction()
