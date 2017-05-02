@@ -269,7 +269,7 @@ class StructureSamplerTask(FireTaskBase):
         n = self.get("n_snapshots", 1)
         current_dir = os.getcwd()
         xdatcar_file = os.path.join(current_dir, 'XDATCAR')
-        wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True, copy_calcs=copy_calcs, calc_home=calc_home, n=10)
+        wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True, copy_calcs=copy_calcs, calc_home=calc_home, n=10, db_file=None)
         lp = LaunchPad.auto_load()
         for _wf in wfs:
             lp.add_wf(_wf)
@@ -279,14 +279,15 @@ class StructureSamplerTask(FireTaskBase):
 class RelaxStaticTask(FireTaskBase):
 
     required_params = ["copy_calcs", "calc_home"]
-    optional_params = ["name"]
+    optional_params = ["name", "db_file"]
     def run_task(self, fw_spec):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
+        db_file = self.get("db_file", None)
         xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR'))
         structure = xdat.structures[len(xdat.structures)-1]
         name = structure.composition.reduced_formula
-        wf = get_relax_static_wf([structure], name = name + "relax_static", copy_calcs = copy_calcs, calc_home=calc_home)
+        wf = get_relax_static_wf([structure], name = name + "relax_static", copy_calcs = copy_calcs, calc_home=calc_home, db_file=db_file)
         wf = powerups.add_modify_incar_envchk(wf)
         lp = LaunchPad.auto_load()
         lp.add_wf(wf)
@@ -296,10 +297,11 @@ class RelaxStaticTask(FireTaskBase):
 class DiffusionTask(FireTaskBase):
 
     required_params = ["copy_calcs", "calc_home"]
-    optional_params = ["temps", "name"]
+    optional_params = ["temps", "name", "db_file"]
     def run_task(self, fw_spec):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
+        db_file = self.get("db_file", None)
         lp = LaunchPad.auto_load()
 
         xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR'))
@@ -308,7 +310,7 @@ class DiffusionTask(FireTaskBase):
         temps = self.get("temps", [500, 1000, 1500])
         for temp in temps:
             wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
-                                name = name+'_diffusion_'+str(temp), db_file=None,
+                                name = name+'_diffusion_'+str(temp), db_file=db_file,
                                 copy_calcs=copy_calcs, calc_home=calc_home, cool=False)
             wf = powerups.add_modify_incar_envchk(wf)
             lp.add_wf(wf)

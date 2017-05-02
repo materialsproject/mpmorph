@@ -79,8 +79,8 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
 
 
 def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd=">>vasp_cmd<<",
-                             db_file=">>db_file<<", name="structure_sampler", sim_anneal=False, copy_calc=False,
-                             copy_home="~/wflows", **kwargs):
+                             db_file=">>db_file<<", name="structure_sampler", sim_anneal=False, copy_calcs=False,
+                             calc_home="~/wflows", **kwargs):
     """
     :param xdatcar_file:
     :param n:
@@ -104,7 +104,9 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
             else:
                 diffusion = False
             wflow_name=s.composition.reduced_formula
-            _wf = get_simulated_anneal_wf(s, start_temp=2500, name='snap_' + str(i), diffusion=diffusion, wflow_name=wflow_name)
+            _wf = get_simulated_anneal_wf(s, start_temp=2500, name='snap_' + str(i), diffusion=diffusion,
+                                          wflow_name=wflow_name, calc_home=calc_home, copy_calcs=copy_calcs,
+                                          db_file=db_file)
             _wf = powerups.add_modify_incar_envchk(_wf)
             wfs.append(_wf)
             i += 1
@@ -210,9 +212,9 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
             t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name),
                                   run_name=name + "_hold_" + str(temperature - temp_decrement)))
         if temperature == end_temp:
-            t.append(RelaxStaticTask(copy_calcs=copy_calcs, calc_home=calc_home))
+            t.append(RelaxStaticTask(copy_calcs=copy_calcs, calc_home=calc_home, db_file=db_file))
             if diffusion:
-                t.append(DiffusionTask(copy_calcs=copy_calcs, calc_home=calc_home))
+                t.append(DiffusionTask(copy_calcs=copy_calcs, calc_home=calc_home, db_file=db_file))
         fw_list.append(Firework(t, name=name+"_hold_"+str(temperature-temp_decrement), parents=[fw_list[len(fw_list)-1]]))
         temperature -= temp_decrement
 
