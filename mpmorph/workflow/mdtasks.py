@@ -246,6 +246,8 @@ class CopyCalsHome(FireTaskBase):
         calc_home = self["calc_home"]
         run_name = self["run_name"]
         target_dir = os.path.join(calc_home, run_name)
+        if not os.path.exists(calc_home):
+            os.mkdir(calc_home)
         if not os.path.exists(target_dir):
             os.mkdir(target_dir)
         for f in files:
