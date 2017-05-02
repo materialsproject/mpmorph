@@ -325,7 +325,7 @@ class WriteSetTask(FireTaskBase):
         end_temp = self["end_temp"]
         nsteps = self["nsteps"]
         pos = Poscar.from_file(os.path.join(os.getcwd(), 'POSCAR'))
-        structure = pos.structure()
+        structure = pos.structure
         override_default_vasp_params = self.get("override_default_vasp_params", {})
         vasp_input_set = MITMDSet(structure, start_temp=start_temp, end_temp=end_temp,
                                                     nsteps=nsteps, **override_default_vasp_params)
