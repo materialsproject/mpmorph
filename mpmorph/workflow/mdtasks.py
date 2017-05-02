@@ -99,7 +99,7 @@ class SpawnMDFWTask(FireTaskBase):
         p = parse_pressure("./", averaging_fraction)[0]
 
         final_run = self.get("final_run", True)
-        final_run_steps = self.get("final_run_steps", 30000)
+        final_run_steps = self.get("final_run_steps", 40000)
 
         pressure_threshold = 5
         if np.fabs(p) > pressure_threshold:
@@ -143,7 +143,7 @@ class SpawnMDFWTask(FireTaskBase):
             name = str(_poscar.structure.composition.reduced_formula)
             if final_run or snaps:
                 if diffusion_bool:
-                    _steps = 30000
+                    _steps = 40000
                 else:
                     _steps = 10000
                 fw_list = self.get_final_run_fws(_poscar.structure, name=name + "_longrun", copy_calcs=copy_calcs,
@@ -165,7 +165,7 @@ class SpawnMDFWTask(FireTaskBase):
             return FWAction(stored_data={'pressure':p, 'density_calculated': True}, defuse_workflow=True)
 
 
-    def get_final_run_fws(self, structure, target_steps=30000, copy_calcs=False, calc_home=None,
+    def get_final_run_fws(self, structure, target_steps=40000, copy_calcs=False, calc_home=None,
                           run_steps=10000, run_time = 86400, temperature=2500, vasp_cmd=">>vasp_cmd<<", db_file=None, name="longrun",
                    optional_MDWF_params=None, override_default_vasp_params=None, vasp_input_set=None):
         fw_list = []
@@ -190,10 +190,10 @@ class SpawnMDFWTask(FireTaskBase):
         while _steps < target_steps:
             _name = (name + "_" + str(spawn_count))
             t = []
+            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
             if spawn_count == 1:
                 if copy_calcs:
                     t.append(CopyCalsHome(calc_home=calc_home, run_name=name + "_0"))
-            t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                       handler_group="md", wall_time=run_time, gzip_output=False))
             if copy_calcs:
