@@ -177,7 +177,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
     # Run first hold step
     t.append(WriteSetTask(start_temp= start_temp - temp_decrement, end_temp = start_temp - temp_decrement, nsteps= nsteps_hold))
     t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
-                              handler_group="md", wall_time=wall_time))
+                              handler_group="md", wall_time=wall_time, gzip_output=False))
     t.append(PassCalcLocs(name=str(name) + "_hold_" + str(start_temp - temp_decrement)))
 
     if copy_calcs:
@@ -194,7 +194,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
         t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
         t.append(WriteSetTask(start_temp= temperature, end_temp = temperature - temp_decrement, nsteps= nsteps_cool))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
-                                  handler_group="md", wall_time=wall_time))
+                                  handler_group="md", wall_time=wall_time, gzip_output=False))
         t.append(PassCalcLocs(name=name+"_cool_"+str(temperature-temp_decrement)))
         if copy_calcs:
             t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name), run_name="cool_"+str(temperature-temp_decrement)))
@@ -206,7 +206,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
             CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
         t.append(WriteSetTask(start_temp=temperature-temp_decrement, end_temp=temperature - temp_decrement, nsteps=nsteps_hold))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
-                                  handler_group="md", wall_time=wall_time))
+                                  handler_group="md", wall_time=wall_time, gzip_output=False))
         t.append(PassCalcLocs(name=name + "_hold_" + str(temperature - temp_decrement)))
         if copy_calcs:
             t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name),

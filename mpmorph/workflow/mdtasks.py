@@ -286,7 +286,10 @@ class RelaxStaticTask(FireTaskBase):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
         db_file = self.get("db_file", None)
-        xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR.gz'))
+        if os.path.exists(os.path.join(os.getcwd(),'XDATCAR.gz')):
+            xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR.gz'))
+        else:
+            xdat = Xdatcar(os.path.join(os.getcwd(), 'XDATCAR'))
         structure = xdat.structures[len(xdat.structures)-1]
         name = structure.composition.reduced_formula
         wf = get_relax_static_wf([structure], name = name + "relax_static", copy_calcs = copy_calcs, calc_home=calc_home, db_file=db_file)
