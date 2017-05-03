@@ -188,7 +188,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
 
     temperature -= temp_decrement
 
-    while temperature >= end_temp:
+    while temperature > end_temp:
         # Cool Step
         t = []
         t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
@@ -197,7 +197,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
                                   handler_group="md", wall_time=wall_time))
         t.append(PassCalcLocs(name=name+"_cool_"+str(temperature-temp_decrement)))
         if copy_calcs:
-            t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name), run_name=name+"_cool_"+str(temperature-temp_decrement)))
+            t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name), run_name="cool_"+str(temperature-temp_decrement)))
         fw_list.append(Firework(t, name=name + "_cool_" + str(temperature - temp_decrement), parents=[fw_list[len(fw_list)-1]]))
 
         # Hold Step
@@ -210,7 +210,7 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
         t.append(PassCalcLocs(name=name + "_hold_" + str(temperature - temp_decrement)))
         if copy_calcs:
             t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name),
-                                  run_name=name + "_hold_" + str(temperature - temp_decrement)))
+                                  run_name="hold_" + str(temperature - temp_decrement)))
         if temperature == end_temp:
             t.append(RelaxStaticTask(copy_calcs=copy_calcs, calc_home=calc_home, db_file=db_file))
             if diffusion:
