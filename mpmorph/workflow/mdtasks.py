@@ -294,7 +294,7 @@ class RelaxStaticTask(FireTaskBase):
         name = structure.composition.reduced_formula
         wf = get_relax_static_wf([structure], name = name + "relax_static", copy_calcs = copy_calcs, calc_home=calc_home, db_file=db_file)
         lp = LaunchPad.auto_load()
-        lp.add_wf(wf)
+        lp.add_wf(wf[0])
         return FWAction()
 
 @explicit_serialize
