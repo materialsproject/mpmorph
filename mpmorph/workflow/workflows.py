@@ -141,9 +141,9 @@ def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<
             t.append(
                 CopyCalsHome(calc_home=os.path.join(calc_home, name),
                              run_name=name))
-        fw3 = Firework(t, name="relax_copy_calcs")
-        wf = Workflow([fw1, fw2], name=name + str(s.composition.reduced_formula))
-        wf = powerups.add_modify_incar_envchk(wf)
+        fw3 = Firework(t, name="relax_copy_calcs", parents=[fw2])
+        _wf = Workflow([fw1, fw2, fw3], name=name + str(s.composition.reduced_formula))
+        wf = powerups.add_modify_incar_envchk(_wf)
         wfs.append(wf)
     return wfs
 
