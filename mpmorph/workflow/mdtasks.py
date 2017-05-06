@@ -309,16 +309,19 @@ class DiffusionTask(FireTaskBase):
         db_file = self.get("db_file", None)
         lp = LaunchPad.auto_load()
 
-        xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR'))
+        if os.path.exists(os.path.join(os.getcwd(),'XDATCAR.gz')):
+            xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR.gz'))
+        else:
+            xdat = Xdatcar(os.path.join(os.getcwd(), 'XDATCAR'))
         structure = xdat.structures[len(xdat.structures)-1]
         name = str(structure.composition.reduced_formula)
         temps = self.get("temps", [500, 1000, 1500])
         for temp in temps:
-            wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
+            _wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
                                 name = name+'_diffusion_'+str(temp), db_file=db_file,
                                 copy_calcs=copy_calcs, calc_home=calc_home, cool=False)
-            wf = powerups.add_modify_incar_envchk(wf)
-            lp.add_wf(wf)
+            _wf = powerups.add_modify_incar_envchk(_wf)
+            lp.add_wf(_wf)
         return FWAction()
 
 @explicit_serialize
