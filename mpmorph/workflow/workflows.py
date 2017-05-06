@@ -106,7 +106,7 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
             wflow_name=s.composition.reduced_formula
             _wf = get_simulated_anneal_wf(s, start_temp=2500, name='snap_' + str(i), diffusion=diffusion,
                                           wflow_name=wflow_name, calc_home=calc_home, copy_calcs=copy_calcs,
-                                          db_file=db_file)
+                                          db_file=db_file, snap_num=i)
             _wf = powerups.add_modify_incar_envchk(_wf)
             wfs.append(_wf)
             i += 1
@@ -121,7 +121,7 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
 
 
 def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
-                        name="regular_relax", copy_calcs=False, calc_home="~/wflows", **kwargs):
+                        name="regular_relax", copy_calcs=False, calc_home="~/wflows", snap=0, **kwargs):
     """
     :param structures:
     :param vasp_cmd:
@@ -131,7 +131,7 @@ def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<
     :return:
     """
     wfs = []
-
+    calc_home = os.path.join(calc_home, "snap_" + snap)
     for s in structures:
         fw1 = OptimizeFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[], **kwargs)
         fw2 = StaticFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[fw1])
@@ -142,12 +142,12 @@ def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<
                 CopyCalsHome(calc_home=os.path.join(calc_home, name),
                              run_name=name))
         fw3 = Firework(t, name="relax_copy_calcs", parents=[fw2])
-        _wf = Workflow([fw1, fw2, fw3], name=name + str(s.composition.reduced_formula))
+        _wf = Workflow([fw1, fw2, fw3], name=str(s.composition.reduced_formula) + "_" + str(snap) + "_" + name)
         wf = powerups.add_modify_incar_envchk(_wf)
         wfs.append(wf)
     return wfs
 
-def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=500, nsteps_cool=200, nsteps_hold=500,
+def get_simulated_anneal_wf(structure, start_temp, snap_num, end_temp=500, temp_decrement=500, nsteps_cool=200, nsteps_hold=500,
                             wall_time=19200,
                             vasp_input_set=None, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", name="anneal",
                             optional_MDWF_params=None, override_default_vasp_params=None,
@@ -212,9 +212,9 @@ def get_simulated_anneal_wf(structure, start_temp, end_temp=500, temp_decrement=
             t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name),
                                   run_name="hold_" + str(temperature - temp_decrement)))
         if temperature == end_temp:
-            t.append(RelaxStaticTask(copy_calcs=copy_calcs, calc_home=calc_home, db_file=db_file))
+            t.append(RelaxStaticTask(copy_calcs=copy_calcs, calc_home=calc_home, db_file=db_file, snap_num=snap_num))
             if diffusion:
-                t.append(DiffusionTask(copy_calcs=copy_calcs, calc_home=calc_home, db_file=db_file))
+                t.append(DiffusionTask(copy_calcs=copy_calcs, calc_home=calc_home, db_file=db_file, snap_num=snap_num))
         fw_list.append(Firework(t, name=name+"_hold_"+str(temperature-temp_decrement), parents=[fw_list[len(fw_list)-1]]))
         temperature -= temp_decrement
 

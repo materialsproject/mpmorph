@@ -280,11 +280,12 @@ class StructureSamplerTask(FireTaskBase):
 @explicit_serialize
 class RelaxStaticTask(FireTaskBase):
 
-    required_params = ["copy_calcs", "calc_home"]
+    required_params = ["copy_calcs", "calc_home", "snap"]
     optional_params = ["name", "db_file"]
     def run_task(self, fw_spec):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
+        snap_num = self["snap_num"]
         db_file = self.get("db_file", None)
         if os.path.exists(os.path.join(os.getcwd(),'XDATCAR.gz')):
             xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR.gz'))
@@ -292,8 +293,8 @@ class RelaxStaticTask(FireTaskBase):
             xdat = Xdatcar(os.path.join(os.getcwd(), 'XDATCAR'))
         lp = LaunchPad.auto_load()
         structure = xdat.structures[len(xdat.structures)-1]
-        name = structure.composition.reduced_formula
-        wfs = get_relax_static_wf([structure], name = "relax_static", copy_calcs = copy_calcs, calc_home=calc_home, db_file=db_file)
+        wfs = get_relax_static_wf([structure], name = "relax_static", copy_calcs = copy_calcs,
+                                  calc_home=calc_home, db_file=db_file, snap_num=snap_num)
         for _wf in wfs:
             lp.add_wf(_wf)
         return FWAction()
@@ -301,11 +302,12 @@ class RelaxStaticTask(FireTaskBase):
 @explicit_serialize
 class DiffusionTask(FireTaskBase):
 
-    required_params = ["copy_calcs", "calc_home"]
+    required_params = ["copy_calcs", "calc_home", "snap"]
     optional_params = ["temps", "name", "db_file"]
     def run_task(self, fw_spec):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
+        snap_num = self["snap_num"]
         db_file = self.get("db_file", None)
         lp = LaunchPad.auto_load()
 
@@ -318,7 +320,7 @@ class DiffusionTask(FireTaskBase):
         temps = self.get("temps", [500, 1000, 1500])
         for temp in temps:
             _wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
-                                name = name+'_diffusion_'+str(temp), db_file=db_file,
+                                name = name+"_snap_"+snap+'_diffusion_'+str(temp), db_file=db_file,
                                 copy_calcs=copy_calcs, calc_home=calc_home, cool=False)
             _wf = powerups.add_modify_incar_envchk(_wf)
             lp.add_wf(_wf)
