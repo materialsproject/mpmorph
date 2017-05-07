@@ -294,7 +294,7 @@ class RelaxStaticTask(FireTaskBase):
         lp = LaunchPad.auto_load()
         structure = xdat.structures[len(xdat.structures)-1]
         wfs = get_relax_static_wf([structure], name = "relax_static", copy_calcs = copy_calcs,
-                                  calc_home=calc_home, db_file=db_file, snap_num=snap_num)
+                                  calc_home=calc_home, db_file=db_file, snap=snap_num)
         for _wf in wfs:
             lp.add_wf(_wf)
         return FWAction()
