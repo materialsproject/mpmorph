@@ -280,12 +280,12 @@ class StructureSamplerTask(FireTaskBase):
 @explicit_serialize
 class RelaxStaticTask(FireTaskBase):
 
-    required_params = ["copy_calcs", "calc_home", "snap"]
-    optional_params = ["name", "db_file"]
+    required_params = ["copy_calcs", "calc_home"]
+    optional_params = ["name", "db_file", "snap_num"]
     def run_task(self, fw_spec):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
-        snap_num = self["snap_num"]
+        snap_num = self.get("snap_num", 0)
         db_file = self.get("db_file", None)
         if os.path.exists(os.path.join(os.getcwd(),'XDATCAR.gz')):
             xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR.gz'))
@@ -302,12 +302,12 @@ class RelaxStaticTask(FireTaskBase):
 @explicit_serialize
 class DiffusionTask(FireTaskBase):
 
-    required_params = ["copy_calcs", "calc_home", "snap"]
-    optional_params = ["temps", "name", "db_file"]
+    required_params = ["copy_calcs", "calc_home"]
+    optional_params = ["temps", "name", "db_file", "snap_num"]
     def run_task(self, fw_spec):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
-        snap_num = self["snap_num"]
+        snap_num = self.get("snap_num", 0)
         db_file = self.get("db_file", None)
         lp = LaunchPad.auto_load()
 
