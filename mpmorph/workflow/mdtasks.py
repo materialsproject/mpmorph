@@ -4,16 +4,13 @@ from mpmorph.runners.rescale_volume import RescaleVolume
 from mpmorph.analysis.md_data import parse_pressure
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
-from atomate.vasp.firetasks.write_inputs import ModifyIncar
 from atomate.vasp.fireworks.core import MDFW
 from atomate.vasp import powerups
-from pymatgen.io.vasp import Poscar, Incar, Potcar, Kpoints, Xdatcar
+from pymatgen.io.vasp import Poscar,Xdatcar
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 import shutil
 import numpy as np
 from pymatgen.io.vasp.sets import MITMDSet
-from atomate.vasp.firetasks.parse_outputs import VaspToDbTask
-from atomate.utils.utils import load_class
 import os
 
 __author__ = 'Muratahan Aykol <maykol@lbl.gov>'
@@ -102,9 +99,9 @@ class SpawnMDFWTask(FireTaskBase):
         final_run_steps = self.get("final_run_steps", 40000)
 
         pressure_threshold = 5
+
         if np.fabs(p) > pressure_threshold:
             t = []
-            print(name)
             # Copy the VASP outputs from previous run. Very first run get its from the initial MDWF which
             # uses PassCalcLocs. For the rest we just specify the previous dir.
             if spawn_count == 0:
@@ -112,7 +109,7 @@ class SpawnMDFWTask(FireTaskBase):
             else:
                 t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
 
-            t.append(RescaleVolumeTask(initial_pressure=p * 1000.0, initial_temperature=1, beta = 0.000003))
+            t.append(RescaleVolumeTask(initial_pressure=p * 1000.0, initial_temperature=1, beta = 0.000004))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                       handler_group="md", wall_time=wall_time, gzip_output=False))
             t.append(PassCalcLocs(name=name))
@@ -136,7 +133,6 @@ class SpawnMDFWTask(FireTaskBase):
                                    final_run=final_run))
             new_fw = Firework(t, name=name)
             return FWAction(stored_data={'pressure': p}, additions=[new_fw])
-
         else:
             fw_list = []
             _poscar = Poscar.from_file(os.path.join(current_dir, 'CONTCAR'))
@@ -166,12 +162,11 @@ class SpawnMDFWTask(FireTaskBase):
 
 
     def get_final_run_fws(self, structure, target_steps=40000, copy_calcs=False, calc_home=None,
-                          run_steps=10000, run_time = 86400, temperature=2500, vasp_cmd=">>vasp_cmd<<", db_file=None, name="longrun",
+                          run_steps=8000, run_time = 86400, temperature=2500, vasp_cmd=">>vasp_cmd<<", db_file=None, name="longrun",
                    optional_MDWF_params=None, override_default_vasp_params=None, vasp_input_set=None):
         fw_list = []
         _steps = 0
         spawn_count = 0
-        run_time = 84600
 
         optional_MDWF_params = optional_MDWF_params or {}
         override_default_vasp_params = override_default_vasp_params or {}
@@ -320,7 +315,7 @@ class DiffusionTask(FireTaskBase):
         temps = self.get("temps", [500, 1000, 1500])
         for temp in temps:
             _wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
-                                name = name+"_snap_"+snap_num+'_diffusion_'+str(temp), db_file=db_file,
+                                name = name+"_snap_"+str(snap_num)+'_diffusion_'+str(temp), db_file=db_file,
                                 copy_calcs=copy_calcs, calc_home=calc_home, cool=False)
             _wf = powerups.add_modify_incar_envchk(_wf)
             lp.add_wf(_wf)
