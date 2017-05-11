@@ -297,12 +297,12 @@ class RelaxStaticTask(FireTaskBase):
 @explicit_serialize
 class DiffusionTask(FireTaskBase):
 
-    required_params = ["copy_calcs", "calc_home"]
-    optional_params = ["temps", "name", "db_file", "snap_num"]
+    required_params = ["copy_calcs", "calc_home", "snap_num"]
+    optional_params = ["temps", "name", "db_file"]
     def run_task(self, fw_spec):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
-        snap_num = self.get("snap_num", 0)
+        snap_num = self["snap_num"]
         db_file = self.get("db_file", None)
         lp = LaunchPad.auto_load()
 
@@ -316,7 +316,7 @@ class DiffusionTask(FireTaskBase):
         for temp in temps:
             _wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
                                 name = name+"_snap_"+str(snap_num)+'_diffusion_'+str(temp), db_file=db_file,
-                                copy_calcs=copy_calcs, calc_home=calc_home, cool=False)
+                                copy_calcs=copy_calcs, calc_home=calc_home, cool=False, diffusion=True)
             _wf = powerups.add_modify_incar_envchk(_wf)
             lp.add_wf(_wf)
         return FWAction()
