@@ -99,7 +99,7 @@ class SpawnMDFWTask(FireTaskBase):
 
         pressure_threshold = 5
 
-        if np.fabs(p) > pressure_threshold and spawn_count<1:
+        if np.fabs(p) > pressure_threshold:
             t = []
             # Copy the VASP outputs from previous run. Very first run get its from the initial MDWF which
             # uses PassCalcLocs. For the rest we just specify the previous dir.
@@ -137,7 +137,7 @@ class SpawnMDFWTask(FireTaskBase):
             if os.path.exists(os.path.join(current_dir, 'CONTCAR')):
                 _poscar = Poscar.from_file(os.path.join(current_dir, 'CONTCAR'))
             else:
-                _poscar = Poscar.from_file(os.path.join(current_dir, 'CONTCAR.gz'))
+                _poscar = Poscar.from_file(os.path.join(current_dir, 'POSCAR'))
 
             name = str(_poscar.structure.composition.reduced_formula)
             if final_run or snaps:
