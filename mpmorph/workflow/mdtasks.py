@@ -96,7 +96,6 @@ class SpawnMDFWTask(FireTaskBase):
         p = parse_pressure("./", averaging_fraction)[0]
 
         final_run = self.get("final_run", True)
-        final_run_steps = self.get("final_run_steps", 40000)
 
         pressure_threshold = 5
 
@@ -149,9 +148,9 @@ class SpawnMDFWTask(FireTaskBase):
                 t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR"]))
                 t.append(StructureSamplerTask(copy_calcs=copy_calcs, calc_home=calc_home, n_snapshots=1))
                 if len(fw_list) > 0:
-                    new_fw = Firework([t], name=name + "structure_sampler", parents=fw_list[len(fw_list)-1])
+                    new_fw = Firework(t, name=name + "structure_sampler", parents=fw_list[len(fw_list)-1])
                 else:
-                    new_fw = Firework([t], name=name + "structure_sampler")
+                    new_fw = Firework(t, name=name + "structure_sampler")
                 fw_list.append(new_fw)
             if snaps or final_run:
                 wf = Workflow(fw_list, name=name + "_" + str(temperature) + "_longruns")
