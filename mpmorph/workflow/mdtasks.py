@@ -99,7 +99,7 @@ class SpawnMDFWTask(FireTaskBase):
 
         pressure_threshold = 5
 
-        if np.fabs(p) > pressure_threshold:
+        if np.fabs(p) > pressure_threshold and spawn_count<1:
             t = []
             # Copy the VASP outputs from previous run. Very first run get its from the initial MDWF which
             # uses PassCalcLocs. For the rest we just specify the previous dir.
