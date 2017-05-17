@@ -134,7 +134,11 @@ class SpawnMDFWTask(FireTaskBase):
             return FWAction(stored_data={'pressure': p}, additions=[new_fw])
         else:
             fw_list = []
-            _poscar = Poscar.from_file(os.path.join(current_dir, 'CONTCAR'))
+            if os.path.exists(os.path.join(current_dir, 'CONTCAR')):
+                _poscar = Poscar.from_file(os.path.join(current_dir, 'CONTCAR'))
+            else:
+                _poscar = Poscar.from_file(os.path.join(current_dir, 'CONTCAR.gz'))
+
             name = str(_poscar.structure.composition.reduced_formula)
             if final_run or snaps:
                 if diffusion_bool:
