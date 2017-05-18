@@ -144,7 +144,7 @@ class SpawnMDFWTask(FireTaskBase):
                 if diffusion_bool:
                     _steps = 40000
                 else:
-                    _steps = 5000
+                    _steps = 10000
                 fw_list = self.get_final_run_fws(_poscar.structure, name=name + "_longrun", copy_calcs=copy_calcs,
                                                  calc_home=calc_home, target_steps=_steps, temperature=temperature)
             if snaps:

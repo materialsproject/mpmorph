@@ -125,6 +125,13 @@ class Diffusion(object):
         "to be implemented"
         pass
 
+    def get_v(self):
+
+        return
+
+    def green_kubo_D(self):
+
+        return
 
 class Activation(object):
     def __init__(self, D_t):
