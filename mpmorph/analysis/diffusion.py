@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 from pymatgen.io.vasp import Xdatcar
+import scipy.integrate as integrate
 
 
 class Diffusion(object):
@@ -43,11 +44,13 @@ class Diffusion(object):
         self.block_l = block_l
         self.ci = ci
         self.msds = None
+        self.vel_matrix = None
         self.scaling_factor = 0.1 / self.t_step  # conv. to cm2/s
 
     @property
     def n_origins(self):
         n = (self.total_t - self.block_t - self.skip_first) / self.corr_t + 1
+        n = int(np.floor(n))
         if n <= 0:
             raise ValueError("Too many blocks for the correlation time")
         return n
@@ -125,13 +128,39 @@ class Diffusion(object):
         "to be implemented"
         pass
 
-    def get_v(self):
+    def get_v(self, el):
+        # Make copy of structures
+        _structures = [structure.copy() for structure in self.structures]
 
+        # Find unneccessary elements and delete
+        prune_els = []
+        for specie in _structures[0].species:
+            if specie != el:
+                prune_els.append(specie)
+        for structure in _structures:
+            structure.remove_species(prune_els)
+        _structures_sites = [structure.sites for structure in _structures]
+
+        # Iterate through each site through each timestep and find velocity
+        vel_matrix = [[0 for y in range(len(_structures)-1)] for x in range(len(_structures[0].sites))]
+        for i in range(len(vel_matrix)):
+            for j in range(vel_matrix[0]):
+                vel_matrix[i] = _structures_sites[j][i].distance(_structures_sites[j+1][i])/self.t_step
+        self.vel_matrix=vel_matrix
         return
 
-    def green_kubo_D(self):
+    def green_kubo_D(self, el):
+        self.get_v(el)
+        #Get velocity autocorrelation function for each site
+        vacfs = []
+        for site_vel in self.vel_matrix:
+            _vacf = np.correlate(site_vel, site_vel, "full")
+            vacfs.append(_vacf)
 
-        return
+        D = []
+        for vacf in vacfs:
+            D.append(integrate.simps(vacf))
+        return D
 
 class Activation(object):
     def __init__(self, D_t):
