@@ -107,7 +107,6 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
             _wf = get_simulated_anneal_wf(s, start_temp=2500, name='snap_' + str(i), diffusion=diffusion,
                                           wflow_name=wflow_name, calc_home=calc_home, copy_calcs=copy_calcs,
                                           db_file=db_file, snap_num=i)
-            _wf = powerups.add_modify_incar_envchk(_wf)
             wfs.append(_wf)
             i += 1
     else:
@@ -211,7 +210,7 @@ def get_simulated_anneal_wf(structure, start_temp, snap_num, end_temp=500, temp_
         if copy_calcs:
             t.append(CopyCalsHome(calc_home=os.path.join(calc_home, name),
                                   run_name="hold_" + str(temperature - temp_decrement)))
-        if temperature == end_temp:
+        if temperature == end_temp+temp_decrement:
             t.append(RelaxStaticTask(copy_calcs=copy_calcs, calc_home=calc_home, db_file=db_file, snap_num=snap_num))
             if diffusion:
                 t.append(DiffusionTask(copy_calcs=copy_calcs, calc_home=calc_home, db_file=db_file, snap_num=snap_num))

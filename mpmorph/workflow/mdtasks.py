@@ -108,7 +108,7 @@ class SpawnMDFWTask(FireTaskBase):
             else:
                 t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
 
-            t.append(RescaleVolumeTask(initial_pressure=p * 1000.0, initial_temperature=1, beta = 0.000004))
+            t.append(RescaleVolumeTask(initial_pressure=p * 1000.0, initial_temperature=1, beta = 0.000002))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                       handler_group="md", wall_time=wall_time, gzip_output=False))
             t.append(PassCalcLocs(name=name))
@@ -164,7 +164,6 @@ class SpawnMDFWTask(FireTaskBase):
                 lp = LaunchPad.auto_load()
                 lp.add_wf(wf)
             return FWAction(stored_data={'pressure':p, 'density_calculated': True}, defuse_workflow=True)
-
 
     def get_final_run_fws(self, structure, target_steps=40000, copy_calcs=False, calc_home=None,
                           run_steps=5000, run_time = 86400, temperature=2500, vasp_cmd=">>vasp_cmd<<", db_file=None, name="longrun",

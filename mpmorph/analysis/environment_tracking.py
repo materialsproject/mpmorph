@@ -10,9 +10,7 @@ class EnvironmentTracker():
     def __init__(self):
         pass
 
-    def run(self, xdatcar_path, frames=None, prune_els=[]):
-        xdat = Xdatcar(xdatcar_path)
-        structures = xdat.structures
+    def run(self, structures, frames=None, prune_els=[]):
         if frames==None:
             frames = len(structures)
         bond_lengths = self.get_bond_distance(structures)
