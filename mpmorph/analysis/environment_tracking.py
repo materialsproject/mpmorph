@@ -4,6 +4,7 @@ from mpmorph.analysis.clustering_analysis import ClusteringAnalyzer
 from mpmorph.analysis.structural_analysis import RadialDistributionFunction
 import matplotlib.pyplot as plt
 import numpy as np
+import multiprocessing
 
 class EnvironmentTracker():
     # TODO: Add functionality for multielemental clusters
@@ -36,7 +37,7 @@ class EnvironmentTracker():
         bin_size = 0.1
         cutoff = 5
         rdf = RadialDistributionFunction(structures, step_freq=1, bin_size=bin_size, cutoff=cutoff, smooth=1)
-        a = rdf.get_radial_distribution_functions()
+        a = rdf.get_radial_distribution_functions(nproc=multiprocessing.cpu_count())
         rdf.plot_radial_distribution_functions()
         plt.show()
 
