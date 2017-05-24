@@ -69,7 +69,8 @@ class SpawnMDFWTask(FireTaskBase):
     """
     required_params = ["pressure_threshold", "max_rescales", "vasp_cmd", "wall_time",
                        "db_file", "spawn_count", "copy_calcs", "calc_home"]
-    optional_params = ["averaging_fraction", "cool", "final_run", "final_run_steps", "diffusion", "temperature"]
+    optional_params = ["averaging_fraction", "cool", "final_run", "final_run_steps",
+                       "diffusion", "temperature", "priority_spec"]
 
     def run_task(self, fw_spec):
         vasp_cmd = self["vasp_cmd"]
@@ -82,6 +83,7 @@ class SpawnMDFWTask(FireTaskBase):
         copy_calcs = self["copy_calcs"]
         temperature = self.get("temperature", 2500)
         diffusion_bool = self.get("diffusion", False)
+        priority_spec = self.get("priority_spec", {})
 
         if spawn_count > max_rescales:
             # TODO: Log max rescale reached info.
@@ -129,8 +131,9 @@ class SpawnMDFWTask(FireTaskBase):
                                    cool=snaps,
                                    temperature=temperature,
                                    diffusion=diffusion_bool,
-                                   final_run=final_run))
-            new_fw = Firework(t, name=name)
+                                   final_run=final_run,
+                                   priority_spec = priority_spec))
+            new_fw = Firework(t, name=name, spec=priority_spec)
             return FWAction(stored_data={'pressure': p}, additions=[new_fw])
         else:
             fw_list = []
@@ -148,15 +151,16 @@ class SpawnMDFWTask(FireTaskBase):
                     _steps = 10000
                     _name = "longrun"
                 fw_list = self.get_final_run_fws(_poscar.structure, name=_name, copy_calcs=copy_calcs,
-                                                 calc_home=calc_home, target_steps=_steps, temperature=temperature)
+                                                 calc_home=calc_home, target_steps=_steps, temperature=temperature,
+                                                 priority_spec=priority_spec)
             if snaps:
                 t = []
                 t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR"]))
-                t.append(StructureSamplerTask(copy_calcs=copy_calcs, calc_home=calc_home, n_snapshots=1))
+                t.append(StructureSamplerTask(copy_calcs=copy_calcs, calc_home=calc_home, n_snapshots=1, priority_spec=priority_spec))
                 if len(fw_list) > 0:
-                    new_fw = Firework(t, name=name + "structure_sampler", parents=fw_list[len(fw_list)-1])
+                    new_fw = Firework(t, name=name + "structure_sampler", parents=fw_list[len(fw_list)-1], spec=priority_spec)
                 else:
-                    new_fw = Firework(t, name=name + "structure_sampler")
+                    new_fw = Firework(t, name=name + "structure_sampler", spec=priority_spec)
                 fw_list.append(new_fw)
             if snaps or final_run:
                 wf = Workflow(fw_list, name=name + "_" + str(temperature) + "_longruns")
@@ -167,12 +171,13 @@ class SpawnMDFWTask(FireTaskBase):
 
     def get_final_run_fws(self, structure, target_steps=40000, copy_calcs=False, calc_home=None,
                           run_steps=5000, run_time = 86400, temperature=2500, vasp_cmd=">>vasp_cmd<<", db_file=None, name="longrun",
-                   optional_MDWF_params=None, override_default_vasp_params=None, vasp_input_set=None):
+                   optional_MDWF_params=None, override_default_vasp_params=None, vasp_input_set=None, priority_spec={}):
         fw_list = []
         _steps = 0
         spawn_count = 0
 
         optional_MDWF_params = optional_MDWF_params or {}
+        optional_MDWF_params['spec'] = priority_spec
         override_default_vasp_params = override_default_vasp_params or {}
         override_default_vasp_params['user_incar_settings'] = override_default_vasp_params.get(
             'user_incar_settings') or {}
@@ -198,7 +203,7 @@ class SpawnMDFWTask(FireTaskBase):
             if copy_calcs:
                 t.append(CopyCalsHome(calc_home=calc_home, run_name=_name))
             t.append(PassCalcLocs(name=_name))
-            new_fw = Firework(tasks=t, name=_name, parents=[fw_list[spawn_count-1]])
+            new_fw = Firework(tasks=t, name=_name, parents=[fw_list[spawn_count-1]], spec=priority_spec)
             _steps += run_steps
             spawn_count += 1
             fw_list.append(new_fw)
@@ -262,15 +267,18 @@ class StructureSamplerTask(FireTaskBase):
 
     """
     required_params = ["copy_calcs", "calc_home"]
-    optional_params = ["n_snapshots"]
+    optional_params = ["n_snapshots", "priority_spec"]
 
     def run_task(self, fw_spec):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
         n = self.get("n_snapshots", 1)
+        priority_spec = self.get("priority_spec", {})
+
         current_dir = os.getcwd()
         xdatcar_file = os.path.join(current_dir, 'XDATCAR')
-        wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True, copy_calcs=copy_calcs, calc_home=calc_home, n=10, db_file=None)
+        wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True, copy_calcs=copy_calcs,
+                                       calc_home=calc_home, n=10, db_file=None, priority_spec=priority_spec)
         lp = LaunchPad.auto_load()
         for _wf in wfs:
             lp.add_wf(_wf)
@@ -280,12 +288,14 @@ class StructureSamplerTask(FireTaskBase):
 class RelaxStaticTask(FireTaskBase):
 
     required_params = ["copy_calcs", "calc_home"]
-    optional_params = ["name", "db_file", "snap_num"]
+    optional_params = ["name", "db_file", "snap_num", "priority_spec"]
     def run_task(self, fw_spec):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
         snap_num = self.get("snap_num", 0)
         db_file = self.get("db_file", None)
+        priority_spec = self.get("priority_spec", {})
+
         if os.path.exists(os.path.join(os.getcwd(),'XDATCAR.gz')):
             xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR.gz'))
         else:
@@ -293,7 +303,7 @@ class RelaxStaticTask(FireTaskBase):
         lp = LaunchPad.auto_load()
         structure = xdat.structures[len(xdat.structures)-1]
         wfs = get_relax_static_wf([structure], name = "relax_static", copy_calcs = copy_calcs,
-                                  calc_home=calc_home, db_file=db_file, snap=snap_num)
+                                  calc_home=calc_home, db_file=db_file, snap=snap_num, priority_spec=priority_spec)
         for _wf in wfs:
             lp.add_wf(_wf)
         return FWAction()
@@ -302,12 +312,13 @@ class RelaxStaticTask(FireTaskBase):
 class DiffusionTask(FireTaskBase):
 
     required_params = ["copy_calcs", "calc_home", "snap_num"]
-    optional_params = ["temps", "name", "db_file"]
+    optional_params = ["temps", "name", "db_file", "priority_spec"]
     def run_task(self, fw_spec):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
         snap_num = self["snap_num"]
         db_file = self.get("db_file", None)
+        priority_spec = self.get("priority_spec", {})
         lp = LaunchPad.auto_load()
 
         if os.path.exists(os.path.join(os.getcwd(),'XDATCAR.gz')):
@@ -320,7 +331,7 @@ class DiffusionTask(FireTaskBase):
         for temp in temps:
             _wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
                                 name = name+"_snap_"+str(snap_num)+'_diffusion_'+str(temp), db_file=db_file,
-                                copy_calcs=copy_calcs, calc_home=calc_home, cool=False, diffusion=True)
+                                copy_calcs=copy_calcs, calc_home=calc_home, cool=False, diffusion=True, priority_spec=priority_spec)
             _wf = powerups.add_modify_incar_envchk(_wf)
             lp.add_wf(_wf)
         return FWAction()

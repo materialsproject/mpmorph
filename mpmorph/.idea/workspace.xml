@@ -18,8 +18,8 @@
       <file leaf-file-name="workflows.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/workflow/workflows.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="480">
-              <caret line="141" column="32" lean-forward="false" selection-start-line="141" selection-start-column="32" selection-end-line="141" selection-end-column="32" />
+            <state relative-caret-position="-404">
+              <caret line="170" column="23" lean-forward="true" selection-start-line="170" selection-start-column="23" selection-end-line="170" selection-end-column="23" />
               <folding>
                 <element signature="e#0#40#0" expanded="true" />
               </folding>
@@ -30,8 +30,8 @@
       <file leaf-file-name="mdtasks.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/workflow/mdtasks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="190">
-              <caret line="289" column="24" lean-forward="false" selection-start-line="289" selection-start-column="24" selection-end-line="289" selection-end-column="24" />
+            <state relative-caret-position="-134">
+              <caret line="333" column="131" lean-forward="false" selection-start-line="333" selection-start-column="131" selection-end-line="333" selection-end-column="131" />
               <folding>
                 <element signature="e#0#95#0" expanded="true" />
                 <element signature="e#708#800#0" expanded="false" />
@@ -118,6 +118,9 @@
       <find>multi</find>
       <find>relax_static</find>
       <find>relax_sta</find>
+      <find>Firework(</find>
+      <find>FW</find>
+      <find>Firework</find>
     </findStrings>
     <replaceStrings>
       <replace>sites</replace>
@@ -134,16 +137,16 @@
         <option value="$PROJECT_DIR$/../../../../fireworks/fireworks/core/firework.py" />
         <option value="$PROJECT_DIR$/analysis/structural_analysis.py" />
         <option value="$PROJECT_DIR$/analysis/clustering_analysis.py" />
-        <option value="$PROJECT_DIR$/workflow/mdtasks.py" />
         <option value="$PROJECT_DIR$/analysis/diffusion.py" />
         <option value="$PROJECT_DIR$/analysis/environment_tracking.py" />
+        <option value="$PROJECT_DIR$/workflow/mdtasks.py" />
         <option value="$PROJECT_DIR$/workflow/workflows.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="48" />
-    <option name="y" value="23" />
+    <option name="x" value="1968" />
+    <option name="y" value="651" />
     <option name="width" value="1331" />
     <option name="height" value="813" />
   </component>
@@ -393,7 +396,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="48" y="23" width="1331" height="813" extended-state="0" />
+    <frame x="1968" y="651" width="1331" height="813" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24267468" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -840,8 +843,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/workflow/mdtasks.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="190">
-          <caret line="289" column="24" lean-forward="false" selection-start-line="289" selection-start-column="24" selection-end-line="289" selection-end-column="24" />
+        <state relative-caret-position="-134">
+          <caret line="333" column="131" lean-forward="false" selection-start-line="333" selection-start-column="131" selection-end-line="333" selection-end-column="131" />
           <folding>
             <element signature="e#0#95#0" expanded="true" />
             <element signature="e#708#800#0" expanded="false" />
@@ -851,8 +854,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/workflow/workflows.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="480">
-          <caret line="141" column="32" lean-forward="false" selection-start-line="141" selection-start-column="32" selection-end-line="141" selection-end-column="32" />
+        <state relative-caret-position="-404">
+          <caret line="170" column="23" lean-forward="true" selection-start-line="170" selection-start-column="23" selection-end-line="170" selection-end-column="23" />
           <folding>
             <element signature="e#0#40#0" expanded="true" />
           </folding>
