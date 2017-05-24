@@ -138,7 +138,7 @@ def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<
         t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
         if copy_calcs:
             t.append(
-                CopyCalsHome(calc_home=os.path.join(calc_home, name),
+                CopyCalsHome(calc_home=calc_home,
                              run_name=name))
         fw3 = Firework(t, name="relax_copy_calcs", parents=[fw2])
         _wf = Workflow([fw1, fw2, fw3], name=str(s.composition.reduced_formula) + "_" + str(snap) + "_" + name)
