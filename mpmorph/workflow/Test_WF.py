@@ -54,8 +54,9 @@ class SamplerTask(FireTaskBase):
     def run_task(self, fw_spec):
         spawn_count=self["spawn_count"]
         priority_spec = self["priority_spec"]
-        fws=[]
+        wfs = []
         for i in range(spawn_count):
+            fws=[]
             fws.append(Firework(EmptyTask(), name="snap_" + str(i) + "_cool_1500", spec=priority_spec))
             fws.append(Firework(EmptyTask(), name="snap_" + str(i) + "_hold_1500", spec=priority_spec, parents=fws[len(fws)-1]))
             fws.append(Firework(EmptyTask(), name="snap_" + str(i) + "_cool_1000", spec=priority_spec, parents=fws[len(fws)-1]))
@@ -69,5 +70,5 @@ class SamplerTask(FireTaskBase):
                     fws.append(Firework(EmptyTask(), name="diffusion_run0_" + str(temp), spec=priority_spec, parents=fws[final_fw]))
                     fws.append(Firework(SpawnTask(spawn_count=0, spawn_limit=3, diffusion=True, priority_spec=priority_spec),
                                         name="spawn_1", spec=priority_spec, parents=fws[len(fws)-1]))
-        wf = Workflow(fws)
-        return FWAction(additions=wf)
+            wfs.append(Workflow(fws))
+        return FWAction(additions=wfs)

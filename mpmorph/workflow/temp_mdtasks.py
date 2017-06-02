@@ -1,4 +1,4 @@
-from fireworks import explicit_serialize, FireTaskBase, FWAction, Firework, Workflow
+from fireworks import explicit_serialize, FireTaskBase, FWAction, Firework, LaunchPad, Workflow
 from mpmorph.runners.amorphous_maker import AmorphousMaker
 from mpmorph.runners.rescale_volume import RescaleVolume
 from mpmorph.analysis.md_data import parse_pressure
@@ -277,7 +277,10 @@ class StructureSamplerTask(FireTaskBase):
         xdatcar_file = os.path.join(current_dir, 'XDATCAR')
         wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True, copy_calcs=copy_calcs,
                                        calc_home=calc_home, n=10, db_file=None, priority_spec=priority_spec)
-        return FWAction(additions=wfs)
+        lp = LaunchPad.auto_load()
+        for _wf in wfs:
+            lp.add_wf(_wf)
+        return FWAction()
 
 @explicit_serialize
 class RelaxStaticTask(FireTaskBase):
@@ -295,10 +298,13 @@ class RelaxStaticTask(FireTaskBase):
             xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR.gz'))
         else:
             xdat = Xdatcar(os.path.join(os.getcwd(), 'XDATCAR'))
+        lp = LaunchPad.auto_load()
         structure = xdat.structures[len(xdat.structures)-1]
         wfs = get_relax_static_wf([structure], name = "relax_static", copy_calcs = copy_calcs,
                                   calc_home=calc_home, db_file=db_file, snap=snap_num, priority_spec=priority_spec)
-        return FWAction(additions=wfs)
+        for _wf in wfs:
+            lp.add_wf(_wf)
+        return FWAction()
 
 @explicit_serialize
 class DiffusionTask(FireTaskBase):
@@ -311,6 +317,7 @@ class DiffusionTask(FireTaskBase):
         snap_num = self["snap_num"]
         db_file = self.get("db_file", None)
         priority_spec = self.get("priority_spec", {})
+        lp = LaunchPad.auto_load()
 
         if os.path.exists(os.path.join(os.getcwd(),'XDATCAR.gz')):
             xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR.gz'))
@@ -319,13 +326,13 @@ class DiffusionTask(FireTaskBase):
         structure = xdat.structures[len(xdat.structures)-1]
         name = str(structure.composition.reduced_formula)
         temps = self.get("temps", [500, 1000, 1500])
-        wfs = []
         for temp in temps:
             _wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
                                 name = name+"_snap_"+str(snap_num)+'_diffusion_'+str(temp), db_file=db_file,
                                 copy_calcs=copy_calcs, calc_home=calc_home, cool=False, diffusion=True, priority_spec=priority_spec)
-            wfs.append(_wf)
-        return FWAction(additions=wfs)
+            _wf = powerups.add_modify_incar_envchk(_wf)
+            lp.add_wf(_wf)
+        return FWAction()
 
 @explicit_serialize
 class WriteSetTask(FireTaskBase):
@@ -363,4 +370,4 @@ class VaspMdToDiffusion(FireTaskBase):
 class VaspMdToStructuralAnalysis(FireTaskBase):
     pass
 
-from mpmorph.workflow.workflows import get_wf_structure_sampler, get_relax_static_wf, get_wf_density
+from mpmorph.workflow.temp_workflows import get_wf_structure_sampler, get_relax_static_wf, get_wf_density
