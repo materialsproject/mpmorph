@@ -283,7 +283,7 @@ class StructureSamplerTask(FireTaskBase):
 class RelaxStaticTask(FireTaskBase):
 
     required_params = ["copy_calcs", "calc_home"]
-    optional_params = ["name", "db_file", "snap_num", "priority_spec"]
+    optional_params = ["name", "db_file", "snap_num", "priority_spec", "temps"]
     def run_task(self, fw_spec):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
@@ -296,8 +296,20 @@ class RelaxStaticTask(FireTaskBase):
         else:
             xdat = Xdatcar(os.path.join(os.getcwd(), 'XDATCAR'))
         structure = xdat.structures[len(xdat.structures)-1]
+
         wfs = get_relax_static_wf([structure], name = "relax_static", copy_calcs = copy_calcs,
                                   calc_home=calc_home, db_file=db_file, snap=snap_num, priority_spec=priority_spec)
+
+        if snap_num == 0:
+            name = str(structure.composition.reduced_formula)
+            temps = self.get("temps", [500, 1000, 1500])
+            for temp in temps:
+                _wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
+                                     name=name + "_snap_" + str(snap_num) + '_diffusion_' + str(temp), db_file=db_file,
+                                     copy_calcs=copy_calcs, calc_home=calc_home, cool=False, diffusion=True,
+                                     priority_spec=priority_spec)
+                wfs.append(_wf)
+
         return FWAction(additions=wfs)
 
 @explicit_serialize
@@ -317,6 +329,7 @@ class DiffusionTask(FireTaskBase):
         else:
             xdat = Xdatcar(os.path.join(os.getcwd(), 'XDATCAR'))
         structure = xdat.structures[len(xdat.structures)-1]
+
         name = str(structure.composition.reduced_formula)
         temps = self.get("temps", [500, 1000, 1500])
         wfs = []
