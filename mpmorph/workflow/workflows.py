@@ -105,6 +105,7 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
             _wf = get_simulated_anneal_wf(s, start_temp=2500, name='snap_' + str(i), diffusion=diffusion,
                                           wflow_name=wflow_name, calc_home=calc_home, copy_calcs=copy_calcs,
                                           db_file=db_file, snap_num=i, priority_spec=priority_spec)
+            _wf = powerups.add_modify_incar_envchk(_wf)
             wfs.append(_wf)
             i += 1
     else:
@@ -140,6 +141,7 @@ def get_relax_static_wf(structures, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<
                              run_name=name))
         fw3 = Firework(t, name="relax_copy_calcs", parents=[fw2], spec=priority_spec)
         _wf = Workflow([fw1, fw2, fw3], name=str(s.composition.reduced_formula) + "_" + str(snap) + "_" + name)
+        _wf = powerups.add_modify_incar_envchk(_wf)
         wfs.append(_wf)
     return wfs
 
@@ -217,6 +219,7 @@ def get_simulated_anneal_wf(structure, start_temp, snap_num, end_temp=500, temp_
 
 
     wf = Workflow(fw_list, name=wflow_name + "_" + name + "simulated_anneal_WF")
+    wf = powerups.add_modify_incar_envchk(wf)
     return wf
 
 

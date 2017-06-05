@@ -164,6 +164,7 @@ class SpawnMDFWTask(FireTaskBase):
                 fw_list.append(new_fw)
             if snaps or final_run:
                 wf = Workflow(fw_list, name=name + "_" + str(temperature) + "_longruns")
+                wf = powerups.add_modify_incar_envchk(wf)
                 return FWAction(stored_data={'pressure':p, 'density_calculated': True}, additions=wf)
             return FWAction(stored_data={'pressure':p, 'density_calculated': True})
 
@@ -337,6 +338,7 @@ class DiffusionTask(FireTaskBase):
             _wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
                                 name = name+"_snap_"+str(snap_num)+'_diffusion_'+str(temp), db_file=db_file,
                                 copy_calcs=copy_calcs, calc_home=calc_home, cool=False, diffusion=True, priority_spec=priority_spec)
+            _wf = powerups.add_modify_incar_envchk(_wf)
             wfs.append(_wf)
         return FWAction(additions=wfs)
 
