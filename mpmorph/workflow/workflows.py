@@ -16,7 +16,7 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
                    vasp_input_set=None, vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<", name="density_finder",
                    optional_MDWF_params=None, override_default_vasp_params=None,
                    amorphous_maker_params=None, copy_calcs=False, calc_home="~/wflows",
-                   cool=False, final_run = True, diffusion = True, priority_spec={}):
+                   cool=False, final_run = True, diffusion = True, rsv_beta = 0.000002, priority_spec={}):
     """
     :param structure: (
     :param temperature:
@@ -71,7 +71,7 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
                            wall_time=wall_time, vasp_cmd=vasp_cmd, db_file=db_file,
                            copy_calcs=copy_calcs, calc_home=calc_home,
                            spawn_count=0, cool=cool, final_run=final_run, diffusion=diffusion,
-                           temperature=temperature, priority_spec=priority_spec))
+                           temperature=temperature, priority_spec=priority_spec, rsv_beta=rsv_beta))
 
     fw2 = Firework(t, parents=[fw1], name=name + "_initial_spawn", spec=priority_spec)
     return Workflow([fw1, fw2], name=name + "_WF")

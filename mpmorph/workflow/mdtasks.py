@@ -70,7 +70,7 @@ class SpawnMDFWTask(FireTaskBase):
     required_params = ["pressure_threshold", "max_rescales", "vasp_cmd", "wall_time",
                        "db_file", "spawn_count", "copy_calcs", "calc_home"]
     optional_params = ["averaging_fraction", "cool", "final_run", "final_run_steps",
-                       "diffusion", "temperature", "priority_spec"]
+                       "diffusion", "temperature", "priority_spec", "rsv_beta"]
 
     def run_task(self, fw_spec):
         vasp_cmd = self["vasp_cmd"]
@@ -84,6 +84,7 @@ class SpawnMDFWTask(FireTaskBase):
         temperature = self.get("temperature", 2500)
         diffusion_bool = self.get("diffusion", False)
         priority_spec = self.get("priority_spec", {})
+        rsv_beta = self.get("rsv_beta", 0.000002)
 
         if spawn_count > max_rescales:
             # TODO: Log max rescale reached info.
@@ -110,7 +111,7 @@ class SpawnMDFWTask(FireTaskBase):
             else:
                 t.append(CopyVaspOutputs(calc_dir=current_dir, contcar_to_poscar=True))
 
-            t.append(RescaleVolumeTask(initial_pressure=p * 1000.0, initial_temperature=1, beta = 0.000002))
+            t.append(RescaleVolumeTask(initial_pressure=p * 1000.0, initial_temperature=1, beta = rsv_beta))
             t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                       handler_group="md", wall_time=wall_time, gzip_output=False))
             t.append(PassCalcLocs(name=name))
@@ -132,7 +133,8 @@ class SpawnMDFWTask(FireTaskBase):
                                    temperature=temperature,
                                    diffusion=diffusion_bool,
                                    final_run=final_run,
-                                   priority_spec = priority_spec))
+                                   priority_spec = priority_spec,
+                                   rsv_beta=rsv_beta))
             new_fw = Firework(t, name=name, spec=priority_spec)
             return FWAction(stored_data={'pressure': p}, additions=[new_fw])
         else:
