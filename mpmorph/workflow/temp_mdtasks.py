@@ -288,20 +288,26 @@ class RelaxStaticTask(FireTaskBase):
     required_params = ["copy_calcs", "calc_home"]
     optional_params = ["name", "db_file", "snap_num", "priority_spec"]
     def run_task(self, fw_spec):
+        # Load Required Parameters
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
+
+        # Load Required Parameters
         snap_num = self.get("snap_num", 0)
         db_file = self.get("db_file", None)
         priority_spec = self.get("priority_spec", {})
 
+        # Find path of XDATCAR
         if os.path.exists(os.path.join(os.getcwd(),'XDATCAR.gz')):
             xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR.gz'))
         else:
             xdat = Xdatcar(os.path.join(os.getcwd(), 'XDATCAR'))
-        lp = LaunchPad.auto_load()
+
         structure = xdat.structures[len(xdat.structures)-1]
         wfs = get_relax_static_wf([structure], name = "relax_static", copy_calcs = copy_calcs,
                                   calc_home=calc_home, db_file=db_file, snap=snap_num, priority_spec=priority_spec)
+
+        lp = LaunchPad.auto_load()
         for _wf in wfs:
             lp.add_wf(_wf)
         return FWAction()
@@ -312,26 +318,40 @@ class DiffusionTask(FireTaskBase):
     required_params = ["copy_calcs", "calc_home", "snap_num"]
     optional_params = ["temps", "name", "db_file", "priority_spec"]
     def run_task(self, fw_spec):
+        # Load Required Parameters
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
         snap_num = self["snap_num"]
+
+        # Load Optional Parameters:
         db_file = self.get("db_file", None)
         priority_spec = self.get("priority_spec", {})
-        lp = LaunchPad.auto_load()
 
+        # Find path of XDATCAR
         if os.path.exists(os.path.join(os.getcwd(),'XDATCAR.gz')):
             xdat = Xdatcar(os.path.join(os.getcwd(),'XDATCAR.gz'))
         else:
             xdat = Xdatcar(os.path.join(os.getcwd(), 'XDATCAR'))
+
+        # Grab structure of final frame in MD run
         structure = xdat.structures[len(xdat.structures)-1]
         name = str(structure.composition.reduced_formula)
         temps = self.get("temps", [500, 1000, 1500])
+
+        # Generate workflows for finding density
+        wfs = []
         for temp in temps:
             _wf = get_wf_density(structure=structure, temperature=temp, pressure_threshold=5,
                                 name = name+"_snap_"+str(snap_num)+'_diffusion_'+str(temp), db_file=db_file,
                                 copy_calcs=copy_calcs, calc_home=calc_home, cool=False, diffusion=True, priority_spec=priority_spec)
-            _wf = powerups.add_modify_incar_envchk(_wf)
-            lp.add_wf(_wf)
+            wf = powerups.add_modify_incar_envchk(_wf)
+            wfs.append(wf)
+
+        # Add workflows to launchpad
+        lp = LaunchPad.auto_load()
+        for wf in wfs:
+            lp.add_wf(wf)
+
         return FWAction()
 
 @explicit_serialize
