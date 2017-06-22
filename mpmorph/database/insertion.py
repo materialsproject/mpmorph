@@ -33,12 +33,13 @@ class PostRunInsertion():
         for dir in directories:
             if os.path.isfile(os.path.join(dir[0], "vasprun.xml")):
                 dirs.append(dir[0])
-        print(dirs)
+
         for calc_dir in dirs:
             #TODO Add functionality for md runs
             name = "vasp_run"
             if "relax" in calc_dir:
-                self.get_task_doc(calc_dir, name="static")
+                task_doc = self.get_task_doc(calc_dir, name="static")
+                self.insert_task_doc(task_doc=task_doc)
         return
 
     def get_task_doc(self, calc_dir, name):
