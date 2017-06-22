@@ -109,15 +109,15 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
     :param kwargs:
     :return:
     """
+    structures = get_sample_structures(xdatcar_path=xdatcar_file, n=n, steps_skip_first=steps_skip_first)
+    wfs = []
+
     if sim_anneal:
-        structures = get_sample_structures(xdatcar_path=xdatcar_file, n=n, steps_skip_first=steps_skip_first)
-        wfs = []
+        # Molecular dynamics in alternating cool and hold stages until desired temp is reached.
+
         i = 0
         for s in structures:
-            if i == 0:
-                diffusion = True
-            else:
-                diffusion = False
+            diffusion = True if i==0 else False
             wflow_name=s.composition.reduced_formula
             _wf = get_simulated_anneal_wf(s, start_temp=2500, name='snap_' + str(i), diffusion=diffusion,
                                           wflow_name=wflow_name, calc_home=calc_home, copy_calcs=copy_calcs,
@@ -126,8 +126,8 @@ def get_wf_structure_sampler(xdatcar_file, n=10, steps_skip_first=1000, vasp_cmd
             wfs.append(_wf)
             i += 1
     else:
-        structures = get_sample_structures(xdatcar_path=xdatcar_file, n=n, steps_skip_first=steps_skip_first)
-        wfs = []
+        # Relax the structure using a static relax with Materials Project Vasp settings
+
         for s in structures:
             fw1 = OptimizeFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[], spec=priority_spec, **kwargs)
             fw2 = StaticFW(s, vasp_cmd=vasp_cmd, db_file=db_file, parents=[fw1], spec=priority_spec)
@@ -193,8 +193,6 @@ def get_simulated_anneal_wf(structure, start_temp, snap_num, end_temp=500, temp_
     :param priority_spec:
     :return:
     """
-    temperature = start_temp
-
     optional_MDWF_params = optional_MDWF_params or {}
     optional_MDWF_params['spec'] = priority_spec
     override_default_vasp_params = override_default_vasp_params or {}
@@ -203,7 +201,9 @@ def get_simulated_anneal_wf(structure, start_temp, snap_num, end_temp=500, temp_
 
     fw_list = []
 
-    # Run first cool step
+    temperature = start_temp
+
+    # Firework for first cool step
     fw1 = MDFW(structure=structure, start_temp=start_temp, end_temp=start_temp - temp_decrement, nsteps=nsteps_cool,
                name=name + "_cool_" + str(start_temp - temp_decrement), vasp_input_set=vasp_input_set, db_file=db_file,
                vasp_cmd=vasp_cmd, wall_time=wall_time, override_default_vasp_params=override_default_vasp_params,
@@ -216,7 +216,7 @@ def get_simulated_anneal_wf(structure, start_temp, snap_num, end_temp=500, temp_
         t.append(
             CopyCalsHome(calc_home=os.path.join(calc_home, name), run_name="cool_" + str(start_temp - temp_decrement)))
 
-    # Run first hold step
+    # Firework for first hold step
     t.append(WriteSetTask(start_temp= start_temp - temp_decrement, end_temp = start_temp - temp_decrement, nsteps= nsteps_hold))
     t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                               handler_group="md", wall_time=wall_time, gzip_output=False))
@@ -230,10 +230,11 @@ def get_simulated_anneal_wf(structure, start_temp, snap_num, end_temp=500, temp_
 
     temperature -= temp_decrement
 
+
     while temperature > end_temp:
         # Cool Step
         t = []
-        t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
+        t.appen(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
         t.append(WriteSetTask(start_temp= temperature, end_temp = temperature - temp_decrement, nsteps= nsteps_cool))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time, gzip_output=False))
