@@ -69,7 +69,7 @@ def get_wf_density(structure, temperature, pressure_threshold=5.0, max_rescales=
     # Construct MD firework from atomate for initial run
     fw1 = MDFW(structure=structure, start_temp=temperature, end_temp=temperature, nsteps=nsteps,
                name=name + "run0", vasp_input_set=vasp_input_set, db_file=db_file,
-               vasp_cmd=vasp_cmd, wall_time=wall_time, override_default_vasp_params=override_default_vasp_params,
+               vasp_cmd=vasp_cmd, wall_time=wall_time, copy_vasp_outputs=False, override_default_vasp_params=override_default_vasp_params,
                **optional_MDWF_params)
 
     # Copy calculations into external directory
@@ -206,7 +206,7 @@ def get_simulated_anneal_wf(structure, start_temp, snap_num, end_temp=500, temp_
     # Firework for first cool step
     fw1 = MDFW(structure=structure, start_temp=start_temp, end_temp=start_temp - temp_decrement, nsteps=nsteps_cool,
                name=name + "_cool_" + str(start_temp - temp_decrement), vasp_input_set=vasp_input_set, db_file=db_file,
-               vasp_cmd=vasp_cmd, wall_time=wall_time, override_default_vasp_params=override_default_vasp_params,
+               vasp_cmd=vasp_cmd, wall_time=wall_time, copy_vasp_outputs=False, override_default_vasp_params=override_default_vasp_params,
                **optional_MDWF_params)
     fw_list.append(fw1)
     t = []
@@ -234,7 +234,7 @@ def get_simulated_anneal_wf(structure, start_temp, snap_num, end_temp=500, temp_
     while temperature > end_temp:
         # Cool Step
         t = []
-        t.appen(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
+        t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR", "OSZICAR", "DOSCAR"]))
         t.append(WriteSetTask(start_temp= temperature, end_temp = temperature - temp_decrement, nsteps= nsteps_cool))
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time, gzip_output=False))

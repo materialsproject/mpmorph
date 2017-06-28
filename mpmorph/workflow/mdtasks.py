@@ -186,7 +186,7 @@ class SpawnMDFWTask(FireTaskBase):
 
         fw1 = MDFW(structure=structure, start_temp=temperature, end_temp=temperature, nsteps=run_steps,
                    name=name + "_" + str(spawn_count), vasp_input_set=vasp_input_set, db_file=db_file,
-                   vasp_cmd=vasp_cmd, wall_time=run_time, override_default_vasp_params=override_default_vasp_params,
+                   vasp_cmd=vasp_cmd, wall_time=run_time, copy_vasp_outputs=False, override_default_vasp_params=override_default_vasp_params,
                    **optional_MDWF_params)
         _steps += run_steps
         spawn_count += 1
