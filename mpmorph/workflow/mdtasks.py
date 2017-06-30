@@ -70,7 +70,7 @@ class SpawnMDFWTask(FireTaskBase):
     required_params = ["pressure_threshold", "max_rescales", "vasp_cmd", "wall_time",
                        "db_file", "spawn_count", "copy_calcs", "calc_home"]
     optional_params = ["averaging_fraction", "cool", "final_run", "final_run_steps",
-                       "diffusion", "temperature", "priority_spec", "rsv_beta"]
+                       "diffusion", "temperature", "priority_spec", "rsv_beta", "snaps"]
 
     def run_task(self, fw_spec):
         vasp_cmd = self["vasp_cmd"]
@@ -85,6 +85,7 @@ class SpawnMDFWTask(FireTaskBase):
         diffusion_bool = self.get("diffusion", False)
         priority_spec = self.get("priority_spec", {})
         rsv_beta = self.get("rsv_beta", 0.000002)
+        snaps = self.get("snaps", 10)
 
         if spawn_count > max_rescales:
             # TODO: Log max rescale reached info.
@@ -134,7 +135,8 @@ class SpawnMDFWTask(FireTaskBase):
                                    diffusion=diffusion_bool,
                                    final_run=final_run,
                                    priority_spec = priority_spec,
-                                   rsv_beta=rsv_beta))
+                                   rsv_beta=rsv_beta,
+                                   snaps=snaps))
             new_fw = Firework(t, name=name, spec=priority_spec)
             return FWAction(stored_data={'pressure': p}, additions=[new_fw])
         else:
@@ -158,7 +160,7 @@ class SpawnMDFWTask(FireTaskBase):
             if snaps:
                 t = []
                 t.append(CopyVaspOutputs(calc_loc=True, contcar_to_poscar=True, additional_files=["XDATCAR"]))
-                t.append(StructureSamplerTask(copy_calcs=copy_calcs, calc_home=calc_home, n_snapshots=1, priority_spec=priority_spec))
+                t.append(StructureSamplerTask(copy_calcs=copy_calcs, calc_home=calc_home, n_snapshots=snaps, priority_spec=priority_spec))
                 if len(fw_list) > 0:
                     new_fw = Firework(t, name=name + "structure_sampler", parents=fw_list[len(fw_list)-1], spec=priority_spec)
                 else:
@@ -273,13 +275,13 @@ class StructureSamplerTask(FireTaskBase):
     def run_task(self, fw_spec):
         copy_calcs = self["copy_calcs"]
         calc_home = self["calc_home"]
-        n = self.get("n_snapshots", 1)
+        n = self.get("n_snapshots", 10)
         priority_spec = self.get("priority_spec", {})
 
         current_dir = os.getcwd()
         xdatcar_file = os.path.join(current_dir, 'XDATCAR')
         wfs = get_wf_structure_sampler(xdatcar_file=xdatcar_file, sim_anneal=True, copy_calcs=copy_calcs,
-                                       calc_home=calc_home, n=10, db_file=None, priority_spec=priority_spec)
+                                       calc_home=calc_home, n=n, db_file=None, priority_spec=priority_spec)
         return FWAction(additions=wfs)
 
 @explicit_serialize
