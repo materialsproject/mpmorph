@@ -303,7 +303,7 @@ class RelaxStaticTask(FireTaskBase):
         structure = xdat.structures[len(xdat.structures)-1]
 
         wfs = get_relax_static_wf([structure], name = "relax_static", copy_calcs = copy_calcs,
-                                  calc_home=calc_home, db_file=db_file, snap=snap_num, priority_spec=priority_spec)
+                                  calc_home=calc_home, snap=snap_num, priority_spec=priority_spec)
 
         if snap_num == 0:
             name = str(structure.composition.reduced_formula)
