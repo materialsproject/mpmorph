@@ -21,7 +21,7 @@ xyz_paths = ['H2O.xyz']
 name = 'H2O_df_'+str(temperature)
 
 
-from mpmorph.workflow.workflows import get_wf_density
+from mpmorph.workflow.old_workflows import get_wf_density
 from fireworks import LaunchPad
 
 amorphous_maker_params = {'box_scale':box_scale, 'packmol_path':packmol_path, 'xyz_paths': xyz_paths, 'tol': 2.0}

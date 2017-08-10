@@ -1,33 +1,63 @@
 from fireworks import Firework, Workflow
-from mpmorph.fireworks.core import ConvergeFW
 import mpmorph.fireworks.powerups as mp_powerup
 from atomate.vasp.fireworks.core import MDFW
 
 
-def get_converge(structure, temperatures, converge_type="density", unconverged=True, **kwargs):
-    kwargs["converge_type"]=converge_type
+def get_converge(structure, temperatures, priority = None, preconverged=False, prod_quants={"nsteps":5000,"target": 40000}, spawner_args={}, converge_args={}, prod_args={}, converge_type="density", **kwargs):
+    """
+
+    :param structure:
+    :param temperatures:
+    :param priority:
+    :param preconverged:
+    :param prod_quants:
+    :param spawner_args:
+    :param converge_args:
+    :param prod_args:
+    :param converge_type:
+    :param kwargs:
+    :return:
+    """
     fw_list = []
+    #Initial Run and convergence of structure
 
-    #TODO: Converge property
-    # "density", "total_energy", "kinetic_energy"
-    if unconverged:
-        fw = MDFW(structure=structure, start_temp=temperature, end_temp=temperature, nsteps=nsteps,
-               name=name + "run0", vasp_input_set=vasp_input_set, db_file=db_file,
-               vasp_cmd=vasp_cmd, wall_time=wall_time, copy_vasp_outputs=False, override_default_vasp_params=override_default_vasp_params,
-               **optional_MDWF_params)
-        mp_powerup.add_converge_task(fw, **kwargs)
-        fw_list.append(fw)
-        #Add final structure to DB after every stage
+    if not preconverged:
+        run_args = {"md_params": {"start_temp": 3000, "end_temp": 3000, "nsteps":2000},
+                    "run_specs":{"vasp_input_set": None ,"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<", "wall_time": 86400},
+                    "optional_fw_params":{"override_default_vasp_params":None, "copy_vasp_outputs": False, "spec":{}}}
 
-    #TODO: Production Run
-    #Steps desired, chunks
-    while prod_steps < prod_target - prod_length:
-        fw = MDFW(structure=structure, start_temp=temperature, end_temp=temperature, nsteps=nsteps,
-               name=name + "run0", vasp_input_set=vasp_input_set, db_file=db_file,
-               vasp_cmd=vasp_cmd, wall_time=wall_time, copy_vasp_outputs=False, override_default_vasp_params=override_default_vasp_params,
-               **optional_MDWF_params)
-        fw = mp_powerup.add_cont_structure(fw, vasp_input_set=vasp_input_set)
+        run_args.update(converge_args)
+        run_args["optional_fw_params"]["spec"]["_priority"] = priority
+
+        fw = MDFW(structure=structure, name = "run0", **run_args["md_params"],**run_args["run_specs"], **run_args["optional_fw_params"])
+
+        _spawner_args = {"converge_params":{"converge_type": [("density", 5)], "max_rescales": 10, "spawn_count": 0}, "run_specs": run_args["run_specs"], "md_params": run_args["md_params"]}
+        _spawner_args.update(_spawner_args)
+
+        mp_powerup.add_converge_task(fw, **_spawner_args)
+        mp_powerup.add_pass_structure(fw)
+
         fw_list.append(fw)
+
+    #Production length MD runs
+    #TODO Build continuation of MD on FIZZLED(from walltime) firework
+    prod_steps = 0
+    i = 0
+    while prod_steps < prod_quants["target"] - prod_quants["nsteps"]:
+        run_args = run_args = {"md_params": {"start_temp": 3000, "end_temp": 3000, "nsteps":2000},
+                    "run_specs":{"vasp_input_set": None ,"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<", "wall_time": 86400},
+                    "optional_fw_params":{"override_default_vasp_params":None, "copy_vasp_outputs": False, "spec":{}}}
+
+        run_args.update(prod_args)
+        run_args["optional_fw_params"]["spec"]["_priority"] = priority
+
+        fw = MDFW(structure=structure, name = "prod_run_" + str(i), **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"])
+        fw = mp_powerup.add_cont_structure(fw, position=1) #Add after MDFW WriteInputSet to override structure
+        fw = mp_powerup.add_pass_structure(fw) #Add at end to append structure to fw_spec
+        fw_list.append(fw)
+
+        prod_steps += prod_quants["nsteps"]
+        i+=1
 
     pretty_name=structure.composition.reduced_formula
     wf = Workflow(fireworks=fw_list, name = pretty_name + "_diffusion")

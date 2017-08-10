@@ -382,4 +382,4 @@ class VaspMdToDiffusion(FireTaskBase):
 class VaspMdToStructuralAnalysis(FireTaskBase):
     pass
 
-from mpmorph.workflow.workflows import get_wf_structure_sampler, get_relax_static_wf, get_wf_density
+from mpmorph.workflow.old_workflows import get_wf_structure_sampler, get_relax_static_wf, get_wf_density

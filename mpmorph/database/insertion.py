@@ -12,7 +12,7 @@ logger =get_logger(__name__)
 
 class PostRunInsertion():
     """
-    Inserts existing amorphous calculations into MongoDB without using fireworks
+    Inserts existing amorphous calculations into MongoDB
     """
     def __init__(self):
         with open("/global/homes/s/sivonxay/.conda/envs/knl_env/config/my_launchpad.yaml", "r") as f:
