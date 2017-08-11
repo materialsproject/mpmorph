@@ -1,12 +1,11 @@
-from fireworks import explicit_serialize, Firework, Workflow, FireTaskBase, FWAction
-from fireworks import FiretaskBase, FWAction, explicit_serialize
+from fireworks import explicit_serialize, Firework, Workflow, FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
-from atomate.vasp.database import VaspCalcDb
-from atomate.vasp.drones import VaspDrone
+from mpmorph.database.database import VaspCalcDb
+from mpmorph.drones import VaspDrone
 from pymatgen.io.vasp import Vasprun
 import numpy as np
 import os
@@ -39,7 +38,8 @@ class VaspMDToDb(FiretaskBase):
             Defaults to True.
     """
     optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
-                       "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful"]
+                       "additional_fields", "db_file", "fw_spec_field",
+                       "md_structures", "defuse_unsuccessful"]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -74,7 +74,7 @@ class VaspMDToDb(FiretaskBase):
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
             t_id = mmdb.insert_task(task_doc,
                                     parse_dos=self.get("parse_dos", False),
-                                    parse_bs=bool(self.get("bandstructure_mode", False)))
+                                    parse_bs=bool(self.get("bandstructure_mode", False)), md_structures=self.get("md_structures"))
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         if self.get("defuse_unsuccessful", True):

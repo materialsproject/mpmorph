@@ -1,23 +1,12 @@
-from fireworks import explicit_serialize, Firework, Workflow
-from pymatgen import Structure, Composition
-from mpmorph.fireworks.core import ConvergeFW, DiffusionFW
+from mpmorph.workflow.converge import get_converge
 
-def get_diffusion(structure, temperatures, unconverged=True, copy_calcs=False, calc_home="./wflows"):
-    fw_list = []
-    #If structure is composition, get amorphous structure first
-    if not isinstance(structure, Structure):
-        #Run full amorphous workflow with only one snap
-        get_amorphous()
+def get_diffusion(structure, temperatures=[500, 1000, 1500], prod_quants={"nsteps": 5000, "target": 40000}, converge_args={}, prod_args={}):
+    wfs = []
+    for temperature in temperatures:
+        converge_args["md_params"]["start_temp"] = temperature
+        converge_args["md_params"]["end_temp"] = temperature
 
-    #TODO: Diffusion Converge
-    #converge pressure on structure
-    # "density", "total_energy", "kinetic_energy"
-    if unconverged:
-        fw_list.append(ConvergeFW("density"))
+        wf = get_converge(structure, prod_quants=prod_quants, converge_args=converge_args, prod_args=prod_args)
+        wfs.append(wf)
 
-    #TODO: Production Diffusion Run
-    fw_list.append(DiffusionFW(temps))
-
-    pretty_name=structure.composition.reduced_formula
-    wf = Workflow(fireworks=fw_list, name = pretty_name + "_diffusion")
-
+    # Combine workflows
