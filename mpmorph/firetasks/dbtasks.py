@@ -4,7 +4,7 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
-from mpmorph.database.database import VaspCalcDb
+from mpmorph.database.database import VaspMDCalcDb
 from mpmorph.drones import VaspDrone
 from pymatgen.io.vasp import Vasprun
 import numpy as np
@@ -71,7 +71,7 @@ class VaspMDToDb(FiretaskBase):
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
-            mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+            mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
             t_id = mmdb.insert_task(task_doc,
                                     parse_dos=self.get("parse_dos", False),
                                     parse_bs=bool(self.get("bandstructure_mode", False)), md_structures=self.get("md_structures", False))
