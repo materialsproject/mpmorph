@@ -5,7 +5,7 @@ from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
 from mpmorph.database.database import VaspMDCalcDb
-from mpmorph.drones import VaspDrone
+from mpmorph.drones import VaspMDDrone
 from pymatgen.io.vasp import Vasprun
 import numpy as np
 import os
@@ -52,7 +52,7 @@ class VaspMDToDb(FiretaskBase):
         # parse the VASP directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
 
-        drone = VaspDrone(additional_fields=self.get("additional_fields"),
+        drone = VaspMDDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False), compress_dos=1,
                           bandstructure_mode=self.get("bandstructure_mode", False), compress_bs=1)
 
