@@ -55,7 +55,7 @@ class VaspMDCalcDb(VaspCalcDb):
             gfs_id, compression_type = self.insert_gridfs(structures, "structures_fs")
             task_doc["calcs_reversed"][0]["structures_compression"] = compression_type
             task_doc["calcs_reversed"][0]["structures_fs_id"] = gfs_id
-            del task_doc["output"]["structures"]
+            del task_doc["calcs_reversed"][0]["structures"]
 
         # insert the task document and return task_id
         return self.insert(task_doc)
