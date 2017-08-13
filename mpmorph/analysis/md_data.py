@@ -3,7 +3,7 @@ from html.parser import endendtag
 import numpy as np
 import re
 import os
-from monty.io import zopen
+import gzip
 
 def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
     '''
@@ -28,7 +28,7 @@ def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
         search_data_column = [3, 4, 4, 4]
     if search_keys is None:
         search_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
-    outcar = zopen(outcar_path)
+    outcar = gzip.open(outcar_path)
     print("OUTCAR opened")
     data_list = []
     md_step = 0
