@@ -17,13 +17,14 @@ class ConvergeTask(FireTaskBase):
 
     def run_task(self, fw_spec):
         # Load Structure from Poscar
-        _poscar = Poscar.from_file("CONTCAR")
+
+        _poscar = Poscar.from_file("CONTCAR.gz")
         structure = _poscar.structure
 
         #Check convergence of all values in converge_params
         converge_params = self["converge_params"]
         data_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
-        outcar_data = md_data.get_MD_data("./OUTCAR", search_keys=data_keys)
+        outcar_data = md_data.get_MD_data("./OUTCAR.gz", search_keys=data_keys)
         convergence_vars = converge_params["converge_type"]
         converged = False
 

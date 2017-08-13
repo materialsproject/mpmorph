@@ -3,6 +3,7 @@ from html.parser import endendtag
 import numpy as np
 import re
 import os
+from monty.io import zopen
 
 def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
     '''
@@ -27,7 +28,7 @@ def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
         search_data_column = [3, 4, 4, 4]
     if search_keys is None:
         search_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
-    outcar = open(outcar_path)
+    outcar = zopen(outcar_path)
     print("OUTCAR opened")
     data_list = []
     md_step = 0
@@ -80,7 +81,7 @@ def get_correlation_time(data_list, skip_first = 0):
     for i in range(len(autocorr)):
         if autocorr[i]<=0:
             return i
-    raise ReferenceError('Simulation too short')
+    raise ReferenceError('Simulation too short')g
 
 def get_MD_stats(data_list):
     """
