@@ -81,7 +81,7 @@ def get_correlation_time(data_list, skip_first = 0):
     for i in range(len(autocorr)):
         if autocorr[i]<=0:
             return i
-    raise ReferenceError('Simulation too short')g
+    raise ReferenceError('Simulation too short')
 
 def get_MD_stats(data_list):
     """
