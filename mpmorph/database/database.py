@@ -57,5 +57,11 @@ class VaspMDCalcDb(VaspCalcDb):
             task_doc["calcs_reversed"][0]["structures_fs_id"] = gfs_id
             del task_doc["calcs_reversed"][0]["structures"]
 
+            ionic_steps = json.dumps(task_doc["calcs_reversed"][0]['output']['ionic_steps'], cls=MontyEncoder)
+            gfs_id, compression_type = self.insert_gridfs(ionic_steps, "structures_fs")
+            task_doc["calcs_reversed"][0]['output']['ionic_steps_compression'] = compression_type
+            task_doc["calcs_reversed"][0]['output']['ionic_steps_fs_id'] = gfs_id
+            del task_doc["calcs_reversed"][0]['output']['ionic_steps']
+
         # insert the task document and return task_id
         return self.insert(task_doc)
