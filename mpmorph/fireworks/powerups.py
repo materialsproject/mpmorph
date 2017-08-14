@@ -1,5 +1,6 @@
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 from atomate.common.firetasks.glue_tasks import PassResult
+from mpmorph.firetasks.mdtasks import RescaleVolumeTask
 from fireworks import Firework
 
 from mpmorph.firetasks.mdtasks import ConvergeTask
@@ -20,6 +21,11 @@ def add_pass_structure(fw, **kwargs):
     pass_structure = PassResult(pass_dict={"structure": ">>structures.-1"}, parse_class="pymatgen.io.vasp.Vasprun",
                                 parse_kwargs={"filename": "vasprun.xml", "parse_dos": False, "parse_eigen": False})
     fw.tasks.append(pass_structure)
+    return fw
+
+def add_rescale_volume(fw, **kwargs):
+    rsv_task = RescaleVolumeTask(**kwargs)
+    fw.tasks.append(rsv_task)
     return fw
 
 def replace_vaspmdtodb(fw, **kwargs):
