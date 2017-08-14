@@ -4,6 +4,7 @@ import numpy as np
 import re
 import os
 import gzip
+import shutil
 
 def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
     '''
@@ -28,7 +29,14 @@ def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
         search_data_column = [3, 4, 4, 4]
     if search_keys is None:
         search_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
-    outcar = gzip.open(outcar_path)
+
+    if "OUTCAR.gz" in outcar_path:
+        with gzip.open(outcar_path + ".gz", 'rb') as f_in:
+            with open(outcar_path[:-3], 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        outcar_path = outcar_path[:-3]
+
+    outcar = open(outcar_path)
     print("OUTCAR opened")
     data_list = []
     md_step = 0
