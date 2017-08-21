@@ -62,13 +62,14 @@ class ConvergeTask(FireTaskBase):
                 structure = self["structure"]
                 run_specs = self["run_specs"]
                 md_params = self["md_params"]
+                optional_params = self["optional_fw_params"]
 
                 rescale_args = {"initial_pressure": pressure, "initial_temp": 1, "beta": 0.000002}
                 rescale_args.update(self.get("rescale_params", {}))
 
                 #Spawn fw
-                fw = MDFW(structure, **run_specs, **md_params)
-                _spawner_args = {"converge_params":converge_params, "run_specs":run_specs, "md_params":md_params}
+                fw = MDFW(structure, **run_specs, **md_params, **optional_params)
+                _spawner_args = {"converge_params":converge_params, "run_specs":run_specs, "md_params":md_params, "optional_fw_params": optional_params}
                 fw = powerups.replace_vaspmdtodb(fw)
                 fw = powerups.add_cont_structure(fw, position=1) #Add after MDFW WriteInputSet to override structure
                 fw = powerups.add_rescale_volume(fw, **rescale_args)

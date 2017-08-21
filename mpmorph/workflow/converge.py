@@ -24,14 +24,17 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
     if not preconverged:
         run_args = {"md_params": {"start_temp": 3000, "end_temp": 3000, "nsteps":2000},
                     "run_specs":{"vasp_input_set": None ,"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<", "wall_time": 86400},
-                    "optional_fw_params":{"override_default_vasp_params":None, "copy_vasp_outputs": False, "spec":{}}}
+                    "optional_fw_params":{"override_default_vasp_params":{}, "copy_vasp_outputs": False, "spec":{}}}
 
+        run_args["optional_fw_params"]["override_default_vasp_params"].update({'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
         run_args.update(converge_args)
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
 
         fw = MDFW(structure=structure, name = "run0", **run_args["md_params"],**run_args["run_specs"], **run_args["optional_fw_params"])
 
-        _spawner_args = {"converge_params":{"converge_type": [("density", 5)], "max_rescales": 10, "spawn_count": 0}, "run_specs": run_args["run_specs"], "md_params": run_args["md_params"]}
+        _spawner_args = {"converge_params":{"converge_type": [("density", 5)], "max_rescales": 10, "spawn_count": 0},
+                         "run_specs": run_args["run_specs"], "md_params": run_args["md_params"],
+                         "optional_fw_params":run_args["optional_fw_params"]}
         _spawner_args.update(_spawner_args)
 
         fw = powerups.replace_vaspmdtodb(fw)
@@ -47,8 +50,10 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
     while prod_steps <= prod_quants["target"] - prod_quants["nsteps"]:
         run_args = run_args = {"md_params": {"start_temp": 3000, "end_temp": 3000, "nsteps":2000},
                     "run_specs":{"vasp_input_set": None ,"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<", "wall_time": 86400},
-                    "optional_fw_params":{"override_default_vasp_params":None, "copy_vasp_outputs": False, "spec":{}}}
+                    "optional_fw_params":{"override_default_vasp_params":{}, "copy_vasp_outputs": False, "spec":{}}}
 
+        run_args["optional_fw_params"]["override_default_vasp_params"].update(
+            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
         run_args.update(prod_args)
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
         parents = fw_list[-1] if len(fw_list) > 0 else []
