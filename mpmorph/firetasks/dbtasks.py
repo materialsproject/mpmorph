@@ -5,7 +5,7 @@ from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
 from mpmorph.database.database import VaspMDCalcDb
-from mpmorph.drones import VaspMDDrone
+from atomate.vasp.drones import VaspDrone
 from pymatgen.io.vasp import Vasprun
 import numpy as np
 import os
@@ -52,7 +52,7 @@ class VaspMDToDb(FiretaskBase):
         # parse the VASP directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
 
-        drone = VaspMDDrone(additional_fields=self.get("additional_fields"),
+        drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False), compress_dos=1,
                           bandstructure_mode=self.get("bandstructure_mode", False), compress_bs=1)
 
@@ -74,7 +74,7 @@ class VaspMDToDb(FiretaskBase):
             mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
             t_id = mmdb.insert_task(task_doc,
                                     parse_dos=self.get("parse_dos", False),
-                                    parse_bs=bool(self.get("bandstructure_mode", False)), md_structures=self.get("md_structures", False))
+                                    parse_bs=bool(self.get("bandstructure_mode", False)), md_structures=self.get("md_structures", True))
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         if self.get("defuse_unsuccessful", True):

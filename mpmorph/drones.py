@@ -57,7 +57,7 @@ class VaspMDDrone(VaspDrone):
             'formula_pretty', 'formula_reduced_abc', 'composition_reduced',
             'vasp_version', 'formula_anonymous', 'nsites',
             'composition_unit_cell', 'completed_at', 'task', 'input', 'output',
-            'has_vasp_completed', 'structures'
+            'has_vasp_completed',
         },
         "analysis": {'delta_volume_percent', 'delta_volume', 'max_force',
                      'errors',
@@ -110,7 +110,6 @@ class VaspMDDrone(VaspDrone):
         else:
             bs = vrun.get_band_structure()
 
-        d["structures"] = [structure.as_dict() for structure in vrun.structures]
         d["bandstructure"] = bs.as_dict()
 
         d["output"]["vbm"] = bs.get_vbm()["energy"]

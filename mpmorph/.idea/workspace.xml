@@ -27,7 +27,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="io.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="io.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/io.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="210">
@@ -42,7 +42,7 @@
       <file leaf-file-name="mdtasks.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/firetasks/mdtasks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-180">
+            <state relative-caret-position="-375">
               <caret line="42" column="0" lean-forward="true" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
               <folding>
                 <element signature="e#0#84#0" expanded="true" />
@@ -51,21 +51,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="diffusion.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/workflow/diffusion.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="converge.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/workflow/converge.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="825">
-              <caret line="57" column="87" lean-forward="false" selection-start-line="57" selection-start-column="87" selection-end-line="57" selection-end-column="87" />
+            <state relative-caret-position="705">
+              <caret line="51" column="34" lean-forward="true" selection-start-line="51" selection-start-column="34" selection-end-line="51" selection-end-column="34" />
               <folding>
                 <element signature="e#0#40#0" expanded="true" />
               </folding>
@@ -73,11 +63,21 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="diffusion.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/analysis/diffusion.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1935">
+              <caret line="177" column="56" lean-forward="true" selection-start-line="177" selection-start-column="56" selection-end-line="177" selection-end-column="56" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="dbtasks.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/firetasks/dbtasks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="59" column="45" lean-forward="false" selection-start-line="59" selection-start-column="45" selection-end-line="59" selection-end-column="45" />
+            <state relative-caret-position="315">
+              <caret line="68" column="38" lean-forward="true" selection-start-line="68" selection-start-column="38" selection-end-line="68" selection-end-column="38" />
               <folding>
                 <element signature="e#0#84#0" expanded="true" />
               </folding>
@@ -88,8 +88,8 @@
       <file leaf-file-name="database.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/database/database.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="825">
-              <caret line="57" column="59" lean-forward="true" selection-start-line="57" selection-start-column="59" selection-end-line="57" selection-end-column="59" />
+            <state relative-caret-position="390">
+              <caret line="52" column="58" lean-forward="true" selection-start-line="52" selection-start-column="58" selection-end-line="52" selection-end-column="58" />
               <folding>
                 <element signature="e#0#82#0" expanded="true" />
               </folding>
@@ -97,22 +97,14 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="drones.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/drones.py">
+      <file leaf-file-name="powerups.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/fireworks/powerups.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
-              <caret line="87" column="0" lean-forward="true" selection-start-line="87" selection-start-column="0" selection-end-line="87" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="insertion.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/database/insertion.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="45">
-              <caret line="3" column="0" lean-forward="true" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
-              <folding />
+            <state relative-caret-position="315">
+              <caret line="37" column="56" lean-forward="false" selection-start-line="37" selection-start-column="56" selection-end-line="37" selection-end-column="56" />
+              <folding>
+                <element signature="e#0#66#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -140,7 +132,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>print</find>
       <find>dee</find>
       <find>name</find>
       <find>d</find>
@@ -170,6 +161,7 @@
       <find>process_vasp</find>
       <find>outcar_data</find>
       <find>gz</find>
+      <find>structures</find>
     </findStrings>
     <replaceStrings>
       <replace>sites</replace>
@@ -208,13 +200,13 @@
         <option value="$PROJECT_DIR$/database.py" />
         <option value="$PROJECT_DIR$/workflow/diffusion.py" />
         <option value="$PROJECT_DIR$/workflow/converge.py" />
-        <option value="$PROJECT_DIR$/firetasks/dbtasks.py" />
-        <option value="$PROJECT_DIR$/database/database.py" />
         <option value="$PROJECT_DIR$/analysis/md_data.py" />
         <option value="$PROJECT_DIR$/fireworks/powerups.py" />
         <option value="$PROJECT_DIR$/firetasks/mdtasks.py" />
-        <option value="$PROJECT_DIR$/drones.py" />
         <option value="$PROJECT_DIR$/io.py" />
+        <option value="$PROJECT_DIR$/drones.py" />
+        <option value="$PROJECT_DIR$/database/database.py" />
+        <option value="$PROJECT_DIR$/firetasks/dbtasks.py" />
       </list>
     </option>
   </component>
@@ -733,13 +725,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/analysis/diffusion.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="949">
-          <caret line="69" column="41" lean-forward="false" selection-start-line="69" selection-start-column="41" selection-end-line="69" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/analysis/clustering_analysis.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="365">
@@ -777,27 +762,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/workflow/converge.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="825">
-          <caret line="57" column="87" lean-forward="false" selection-start-line="57" selection-start-column="87" selection-end-line="57" selection-end-column="87" />
-          <folding>
-            <element signature="e#0#40#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/workflow/old_temp_mdtasks.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="15">
           <caret line="1" column="58" lean-forward="true" selection-start-line="1" selection-start-column="58" selection-end-line="2" selection-end-column="56" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/fireworks/powerups.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="293">
-          <caret line="24" column="0" lean-forward="true" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -828,10 +796,58 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/io.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="59" lean-forward="true" selection-start-line="14" selection-start-column="59" selection-end-line="14" selection-end-column="59" />
+          <folding>
+            <element signature="e#0#26#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/workflow/converge.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="705">
+          <caret line="51" column="34" lean-forward="true" selection-start-line="51" selection-start-column="34" selection-end-line="51" selection-end-column="34" />
+          <folding>
+            <element signature="e#0#40#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/analysis/diffusion.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1935">
+          <caret line="177" column="56" lean-forward="true" selection-start-line="177" selection-start-column="56" selection-end-line="177" selection-end-column="56" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/firetasks/mdtasks.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-375">
+          <caret line="42" column="0" lean-forward="true" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#84#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/database.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="52" column="58" lean-forward="true" selection-start-line="52" selection-start-column="58" selection-end-line="52" selection-end-column="58" />
+          <folding>
+            <element signature="e#0#82#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/firetasks/dbtasks.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="59" column="45" lean-forward="false" selection-start-line="59" selection-start-column="45" selection-end-line="59" selection-end-column="45" />
+        <state relative-caret-position="315">
+          <caret line="68" column="38" lean-forward="true" selection-start-line="68" selection-start-column="38" selection-end-line="68" selection-end-column="38" />
           <folding>
             <element signature="e#0#84#0" expanded="true" />
           </folding>
@@ -840,38 +856,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/drones.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="87" column="0" lean-forward="true" selection-start-line="87" selection-start-column="0" selection-end-line="87" selection-end-column="0" />
+        <state relative-caret-position="1155">
+          <caret line="91" column="49" lean-forward="true" selection-start-line="91" selection-start-column="49" selection-end-line="91" selection-end-column="49" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/database/database.py">
+    <entry file="file://$PROJECT_DIR$/fireworks/powerups.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="825">
-          <caret line="57" column="59" lean-forward="true" selection-start-line="57" selection-start-column="59" selection-end-line="57" selection-end-column="59" />
+        <state relative-caret-position="315">
+          <caret line="37" column="56" lean-forward="false" selection-start-line="37" selection-start-column="56" selection-end-line="37" selection-end-column="56" />
           <folding>
-            <element signature="e#0#82#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/firetasks/mdtasks.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-180">
-          <caret line="42" column="0" lean-forward="true" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#84#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/io.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" column="59" lean-forward="true" selection-start-line="14" selection-start-column="59" selection-end-line="14" selection-end-column="59" />
-          <folding>
-            <element signature="e#0#26#0" expanded="true" />
+            <element signature="e#0#66#0" expanded="true" />
           </folding>
         </state>
       </provider>
