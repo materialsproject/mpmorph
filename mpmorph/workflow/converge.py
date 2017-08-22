@@ -35,6 +35,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         _spawner_args = {"converge_params":{"converge_type": [("density", 5)], "max_rescales": 10, "spawn_count": 0},
                          "run_specs": run_args["run_specs"], "md_params": run_args["md_params"],
                          "optional_fw_params":run_args["optional_fw_params"]}
+        _spawner_args["md_params"].update({"start_temp":run_args["md_params"]["end_temp"]})
         _spawner_args.update(_spawner_args)
 
         fw = powerups.replace_vaspmdtodb(fw)

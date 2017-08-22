@@ -59,7 +59,6 @@ class ConvergeTask(FireTaskBase):
             if spawn_count >= max_spawns:
                 return FWAction(defuse_children=True)
             else:
-                structure = self["structure"]
                 run_specs = self["run_specs"]
                 md_params = self["md_params"]
                 optional_params = self["optional_fw_params"]
