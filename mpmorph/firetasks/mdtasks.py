@@ -75,7 +75,7 @@ class ConvergeTask(FireTaskBase):
                 fw = powerups.add_converge_task(fw, **_spawner_args)
                 fw = powerups.add_pass_structure(fw)
                 wf = Workflow([fw])
-                return FWAction(additions=wf)
+                return FWAction(detours=wf)
         else:
             return FWAction()
 

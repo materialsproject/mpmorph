@@ -18,8 +18,8 @@ def add_cont_structure(fw, position):
     return fw
 
 def add_pass_structure(fw, **kwargs):
-    pass_structure = PassResult(pass_dict={"structure": ">>structures.-1"}, parse_class="pymatgen.io.vasp.Vasprun",
-                                parse_kwargs={"filename": "vasprun.xml", "parse_dos": False, "parse_eigen": False})
+    pass_structure = PassResult(pass_dict={"poscar"}, parse_class="pymatgen.io.vasp.Poscar",
+                                parse_kwargs={"filename": "CONTCAR", "check_for_POTCAR":True, "read_velocities":True})
     fw.tasks.append(pass_structure)
     return fw
 
