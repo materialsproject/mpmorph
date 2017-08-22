@@ -74,7 +74,7 @@ class ConvergeTask(FireTaskBase):
                 fw = powerups.add_rescale_volume(fw, **rescale_args)
                 fw = powerups.add_converge_task(fw, **_spawner_args)
                 fw = powerups.add_pass_structure(fw)
-                wf = Workflow(fw)
+                wf = Workflow([fw])
                 return FWAction(additions=wf)
         else:
             return FWAction()
