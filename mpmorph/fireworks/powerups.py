@@ -1,6 +1,7 @@
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 from atomate.common.firetasks.glue_tasks import PassResult
 from mpmorph.firetasks.mdtasks import RescaleVolumeTask
+from mpmorph.firetasks.vibtasks import AdsorbateGeneratorTask
 from fireworks import Firework
 
 from mpmorph.firetasks.mdtasks import ConvergeTask
@@ -17,12 +18,17 @@ def add_cont_structure(fw, position):
     fw.tasks.insert(position, prev_struct_task)
     return fw
 
-def add_pass_structure(fw, **kwargs):
+def add_pass_structure(fw, velocity=True, **kwargs):
     pass_structure = PassResult(pass_dict={"structure": ">>ionic_steps.-1.structure"}, parse_class="pymatgen.io.vasp.Vasprun",
-                                parse_kwargs={"filename": "Vasprun.xml.gz", "check_for_POTCAR":True, "read_velocities":True},
+                                parse_kwargs={"filename": "Vasprun.xml.gz", "parse_dos": False, "parse_eigen": False},
                                 mod_spec_cmd='_push_all', mod_spec_key='structure')
+    if velocity:
+        pass_structure = PassResult(pass_dict={"velocities": ">>velocities"}, parse_class="pymatgen.io.vasp.Poscar",
+                                    parse_kwargs={"filename": "CONTCAR.gz", "check_for_POTCAR":True, "read_velocities":True},
+                                    mod_spec_cmd='_push_all', mod_spec_key='velocity')
     fw.tasks.append(pass_structure)
     return fw
+
 
 def add_rescale_volume(fw, **kwargs):
     rsv_task = RescaleVolumeTask(**kwargs)
@@ -34,11 +40,11 @@ def replace_vaspmdtodb(fw, **kwargs):
     replaced = False
     fw_dict = fw.to_dict()
     for i in range(len(fw_dict['spec']['_tasks'])):
-        print(fw_dict['spec']['_tasks'][i]["_fw_name"])
+        #print(fw_dict['spec']['_tasks'][i]["_fw_name"])
         if fw_dict['spec']['_tasks'][i]["_fw_name"] == '{{atomate.vasp.firetasks.parse_outputs.VaspToDb}}':
             del fw_dict['spec']['_tasks'][i]["_fw_name"]
             fw.tasks[i] = VaspMDToDb(**fw_dict['spec']['_tasks'][i])
-            print(fw.tasks)
+            #print(fw.tasks)
             replaced = True
             break
     #TODO: Replace with real error handling
@@ -46,4 +52,9 @@ def replace_vaspmdtodb(fw, **kwargs):
         print("error, no vasptodb to replace")
         return
 
+    return fw
+
+def add_adsorbate_task(fw, **kwargs):
+    asd_task = AdsorbateGeneratorTask(**kwargs)
+    fw.tasks.append(asd_task)
     return fw

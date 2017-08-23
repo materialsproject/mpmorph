@@ -1,11 +1,12 @@
 # Create Adsorbtion Structures
-from fireworks import FireTaskBase, Firework, Workflow, FWAction
+from fireworks import FireTaskBase, Firework, Workflow, FWAction, explicit_serialize
 from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
 from pymatgen.io.vasp import Poscar
 
 from pymatgen.analysis.adsorption import AdsorbateSiteFinder
 
 
+@explicit_serialize
 class AdsorbateGeneratorTask(FireTaskBase):
     required_params = ["run_specs", "molecule"]
     optional_params = ["adsorbate_gen_args"]
@@ -39,6 +40,7 @@ class AdsorbateGeneratorTask(FireTaskBase):
         return FWAction(additions=wf)
 
 
+@explicit_serialize
 class SpawnVibrationalFWTask(FireTaskBase):
     required_params = ["run_specs", "incar_updates"]
     optional_params = []

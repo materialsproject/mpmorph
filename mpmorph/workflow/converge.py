@@ -1,7 +1,7 @@
 from fireworks import Firework, Workflow
 from mpmorph.fireworks import powerups
 from atomate.vasp.fireworks.core import MDFW
-
+import collections
 
 def get_converge(structure, priority = None, preconverged=False, prod_quants={"nsteps":5000,"target": 40000}, spawner_args={}, converge_args={}, prod_args={}, converge_type="density", **kwargs):
     """
@@ -27,7 +27,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
                     "optional_fw_params":{"override_default_vasp_params":{}, "copy_vasp_outputs": False, "spec":{}}}
 
         run_args["optional_fw_params"]["override_default_vasp_params"].update({'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
-        run_args.update(converge_args)
+        run_args = recursive_update(run_args, converge_args)
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
 
         fw = MDFW(structure=structure, name = "run0", **run_args["md_params"],**run_args["run_specs"], **run_args["optional_fw_params"])
@@ -49,13 +49,13 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
     prod_steps = 0
     i = 0
     while prod_steps <= prod_quants["target"] - prod_quants["nsteps"]:
-        run_args = run_args = {"md_params": {"start_temp": 3000, "end_temp": 3000, "nsteps":2000},
+        run_args = {"md_params": {"start_temp": run_args["md_params"]["end_temp"], "end_temp": run_args["md_params"]["end_temp"], "nsteps":5000},
                     "run_specs":{"vasp_input_set": None ,"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<", "wall_time": 86400},
                     "optional_fw_params":{"override_default_vasp_params":{}, "copy_vasp_outputs": False, "spec":{}}}
 
         run_args["optional_fw_params"]["override_default_vasp_params"].update(
             {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
-        run_args.update(prod_args)
+        run_args = recursive_update(run_args, prod_args)
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
         parents = fw_list[-1] if len(fw_list) > 0 else []
         fw = MDFW(structure=structure, name = "prod_run_" + str(i), **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
@@ -70,3 +70,14 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
     pretty_name=structure.composition.reduced_formula
     wf = Workflow(fireworks=fw_list, name = pretty_name + "_diffusion")
     return wf
+
+def recursive_update(orig_dict, new_dict):
+    for key, val in new_dict.items():
+        if isinstance(val, collections.Mapping):
+            tmp = recursive_update(orig_dict.get(key, {}), val)
+            orig_dict[key] = tmp
+        elif isinstance(val, list):
+            orig_dict[key] = (orig_dict.get(key, []) + val)
+        else:
+            orig_dict[key] = new_dict[key]
+    return orig_dict

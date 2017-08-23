@@ -2,6 +2,7 @@ from fireworks import Workflow
 from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
 from pymatgen.core.surface import SlabGenerator
 from mpmorph.firetasks.vibtasks import AdsorbateGeneratorTask
+from mpmorph.fireworks.powerups import add_adsorbate_task
 
 
 def get_phonon_frequency_wf(structure, molecule, slab_gen_args, adsorbate_gen_args,
@@ -19,7 +20,7 @@ def get_phonon_frequency_wf(structure, molecule, slab_gen_args, adsorbate_gen_ar
                      **run_specs)
     fw2 = StaticFW(structure=slab, name=structure.composition.reduced_formula + "_slab_static",
                    prev_calc_loc=True, parents=[fw1], **run_specs)
-    fw2.tasks.append(AdsorbateGeneratorTask(molecule=molecule, adsorbate_gen_args=adsorbate_gen_args, run_specs=run_specs))
+    fw2 = add_adsorbate_task(fw2, molecule=molecule, adsorbate_gen_args=adsorbate_gen_args, run_specs=run_specs)
     fws = [fw1, fw2]
 
     wf = Workflow(fws, name=name)
