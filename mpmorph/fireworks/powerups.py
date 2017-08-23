@@ -18,8 +18,9 @@ def add_cont_structure(fw, position):
     return fw
 
 def add_pass_structure(fw, **kwargs):
-    pass_structure = PassResult(pass_dict={"poscar"}, parse_class="pymatgen.io.vasp.Poscar",
-                                parse_kwargs={"filename": "CONTCAR", "check_for_POTCAR":True, "read_velocities":True})
+    pass_structure = PassResult(pass_dict={"structure": ">>ionic_steps.-1.structure"}, parse_class="pymatgen.io.vasp.Vasprun",
+                                parse_kwargs={"filename": "Vasprun.xml.gz", "check_for_POTCAR":True, "read_velocities":True},
+                                mod_spec_cmd='_push_all', mod_spec_key='structure')
     fw.tasks.append(pass_structure)
     return fw
 
