@@ -2,10 +2,11 @@ from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 from atomate.common.firetasks.glue_tasks import PassResult
 from mpmorph.firetasks.mdtasks import RescaleVolumeTask
 from mpmorph.firetasks.vibtasks import AdsorbateGeneratorTask
+from pymatgen.io.vasp.inputs import Poscar
 from fireworks import Firework
 
 from mpmorph.firetasks.mdtasks import ConvergeTask
-from mpmorph.firetasks.util import PreviousStructureTask
+from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask
 from mpmorph.firetasks.dbtasks import VaspMDToDb
 
 def add_converge_task(fw, **kwargs):
@@ -19,14 +20,8 @@ def add_cont_structure(fw, position):
     return fw
 
 def add_pass_structure(fw, velocity=True, **kwargs):
-    pass_structure = PassResult(pass_dict={"structure": ">>ionic_steps.-1.structure"}, parse_class="pymatgen.io.vasp.Vasprun",
-                                parse_kwargs={"filename": "Vasprun.xml.gz", "parse_dos": False, "parse_eigen": False},
-                                mod_spec_cmd='_push_all', mod_spec_key='structure')
-    if velocity:
-        pass_structure = PassResult(pass_dict={"velocities": ">>velocities"}, parse_class="pymatgen.io.vasp.Poscar",
-                                    parse_kwargs={"filename": "CONTCAR.gz", "check_for_POTCAR":True, "read_velocities":True},
-                                    mod_spec_cmd='_push_all', mod_spec_key='velocity')
-    fw.tasks.append(pass_structure)
+    save_struct_task = SaveStructureTask()
+    fw.tasks.append(save_struct_task)
     return fw
 
 
