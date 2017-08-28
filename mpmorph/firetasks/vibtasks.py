@@ -17,7 +17,7 @@ class AdsorbateGeneratorTask(FireTaskBase):
         adsorbate_gen_args = self.get("adsorbate_gen_args", {"find_args": {"distance": 2.0}, "repeat": [1, 1, 1]})
 
         # Load structure from file
-        _poscar = Poscar("CONTCAR")
+        _poscar = Poscar.from_file("CONTCAR")
         structure = _poscar.structure
 
         adsorb_finder = AdsorbateSiteFinder(slab=structure, selective_dynamics=True)
