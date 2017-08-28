@@ -42,12 +42,12 @@ class AdsorbateGeneratorTask(FireTaskBase):
 
 @explicit_serialize
 class SpawnVibrationalFWTask(FireTaskBase):
-    required_params = ["run_specs", "incar_updates"]
-    optional_params = []
+    required_params = ["run_specs"]
+    optional_params = ["incar_updates"]
 
     def run_task(self, fw_spec):
         run_specs = self["run_specs"]
-        incar_updates = self["incar_updates"]
+        incar_updates = self.get("incar_updates", {})
 
         # Load structure from file
         _poscar = Poscar("CONTCAR")

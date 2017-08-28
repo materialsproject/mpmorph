@@ -1,7 +1,7 @@
 from fireworks import Firework, Workflow
 from mpmorph.fireworks import powerups
 from atomate.vasp.fireworks.core import MDFW
-import collections
+from mpmorph.util import recursive_update
 
 def get_converge(structure, priority = None, preconverged=False, prod_quants={"nsteps":5000,"target": 40000}, spawner_args={}, converge_args={}, prod_args={}, converge_type="density", **kwargs):
     """
@@ -70,14 +70,3 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
     pretty_name=structure.composition.reduced_formula
     wf = Workflow(fireworks=fw_list, name = pretty_name + "_diffusion")
     return wf
-
-def recursive_update(orig_dict, new_dict):
-    for key, val in new_dict.items():
-        if isinstance(val, collections.Mapping):
-            tmp = recursive_update(orig_dict.get(key, {}), val)
-            orig_dict[key] = tmp
-        elif isinstance(val, list):
-            orig_dict[key] = (orig_dict.get(key, []) + val)
-        else:
-            orig_dict[key] = new_dict[key]
-    return orig_dict
