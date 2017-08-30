@@ -70,9 +70,9 @@ class ConvergeTask(FireTaskBase):
                 fw = MDFW(structure, **run_specs, **md_params, **optional_params)
                 _spawner_args = {"converge_params":converge_params, "run_specs":run_specs, "md_params":md_params, "optional_fw_params": optional_params}
                 fw = powerups.replace_vaspmdtodb(fw)
+                fw = powerups.add_pass_structure(fw)
                 fw = powerups.add_cont_structure(fw, position=1) #Add after MDFW WriteInputSet to override structure
                 fw = powerups.add_rescale_volume(fw, **rescale_args)
-                fw = powerups.add_pass_structure(fw)
                 fw = powerups.add_converge_task(fw, **_spawner_args)
                 wf = Workflow([fw])
                 return FWAction(detours=wf)

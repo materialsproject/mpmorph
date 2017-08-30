@@ -38,8 +38,8 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         _spawner_args["md_params"].update({"start_temp":run_args["md_params"]["end_temp"]})
         _spawner_args.update(_spawner_args)
 
-        fw = powerups.replace_vaspmdtodb(fw)
         fw = powerups.add_pass_structure(fw)
+        fw = powerups.replace_vaspmdtodb(fw)
         fw = powerups.add_converge_task(fw, **_spawner_args)
 
         fw_list.append(fw)
