@@ -20,6 +20,6 @@ class SaveStructureTask(FireTaskBase):
         poscar_dict = _poscar.as_dict()
 
         with open("testwrite", 'w') as file:
-            file.write(poscar_dict)
+            file.write(_poscar.get_string())
             file.close()
         return FWAction(mod_spec=[{ "_push" : {"CONTCAR": poscar_dict}}])
