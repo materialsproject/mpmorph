@@ -2,6 +2,7 @@
 from fireworks import FireTaskBase, Firework, Workflow, FWAction, explicit_serialize
 from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
 from pymatgen.io.vasp import Poscar
+from pymatgen import Structure
 
 from pymatgen.analysis.adsorption import AdsorbateSiteFinder
 
@@ -26,10 +27,16 @@ class AdsorbateGeneratorTask(FireTaskBase):
         opt_fws = []
         stat_fws = []
         for ad_struct in ad_structs:
+            _struct_dict = ad_struct.as_dict()
+            for site in __struct_dict["sites"]:
+                if "velocities" in site["properties"].keys():
+                    del site["properties"]["velocities"]
+
+            _ad_struct = Structure.from_dict(_struct_dict)
             opt_fws.append(
-                OptimizeFW(structure=ad_struct, name=structure.composition.reduced_formula + "_slab_optimize",
+                OptimizeFW(structure=_ad_struct, name=structure.composition.reduced_formula + "_slab_optimize",
                            **run_specs))
-            stat_fw = StaticFW(structure=ad_struct, name=structure.composition.reduced_formula + "_slab_static",
+            stat_fw = StaticFW(structure=_ad_struct, name=structure.composition.reduced_formula + "_slab_static",
                                prev_calc_loc=True, **run_specs, parents=[opt_fws[-1]])
             stat_fw.tasks.append(SpawnVibrationalFWTask(run_specs=run_specs))
             stat_fws.append(stat_fw)
