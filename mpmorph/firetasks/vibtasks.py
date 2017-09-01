@@ -28,7 +28,7 @@ class AdsorbateGeneratorTask(FireTaskBase):
         stat_fws = []
         for ad_struct in ad_structs:
             _struct_dict = ad_struct.as_dict()
-            for site in __struct_dict["sites"]:
+            for site in _struct_dict["sites"]:
                 if "velocities" in site["properties"].keys():
                     del site["properties"]["velocities"]
 
@@ -57,8 +57,18 @@ class SpawnVibrationalFWTask(FireTaskBase):
         incar_updates = self.get("incar_updates", {})
 
         # Load structure from file
-        _poscar = Poscar("CONTCAR")
+        _poscar = Poscar("CONTCAR.gz")
         structure = _poscar.structure
+
+        _struct_dict = structure.as_dict()
+        for site in _struct_dict["sites"]:
+            if "velocities" in site["properties"].keys():
+                del site["properties"]["velocities"]
+            if site["properties"]["surface_properties"] != "adsorbate":
+                site["properties"]["selective_dynamics"] = [False, False, False]
+
+        structure = Structure.from_dict(_struct_dict)
+
         fw = VibrationalFW(structure, incar_updates=incar_updates)
         wf = Workflow(fw)
         return FWAction(additions=wf)
