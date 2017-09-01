@@ -33,7 +33,13 @@ def add_pass_structure(fw, velocity=True, **kwargs):
 
 def add_rescale_volume(fw, **kwargs):
     rsv_task = RescaleVolumeTask(**kwargs)
-    fw.tasks.append(rsv_task)
+    insert_i = 2
+    for (i, task) in enumerate(fw.tasks):
+        if task.fw_name == "{{atomate.vasp.firetasks.run_calc.RunVaspCustodian}}":
+            insert_i = i-1
+            break
+
+    fw.tasks.insert(insert_i, rsv_task)
     return fw
 
 def replace_vaspmdtodb(fw, **kwargs):
