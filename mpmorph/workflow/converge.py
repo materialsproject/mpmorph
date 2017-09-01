@@ -1,6 +1,6 @@
 from fireworks import Firework, Workflow
 from mpmorph.fireworks import powerups
-from atomate.vasp.fireworks.core import MDFW
+from mpmorph.fireworks.core import MDFW
 from mpmorph.util import recursive_update
 
 def get_converge(structure, priority = None, preconverged=False, prod_quants={"nsteps":5000,"target": 40000}, spawner_args={}, converge_args={}, prod_args={}, converge_type="density", **kwargs):
@@ -30,7 +30,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         run_args = recursive_update(run_args, converge_args)
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
 
-        fw = MDFW(structure=structure, name = "run0", **run_args["md_params"],**run_args["run_specs"], **run_args["optional_fw_params"])
+        fw = MDFW(structure=structure, name = "run0", previous_structure=True, insert_db=False, **run_args["md_params"],**run_args["run_specs"], **run_args["optional_fw_params"])
 
         _spawner_args = {"converge_params":{"converge_type": [("density", 5)], "max_rescales": 10, "spawn_count": 0},
                          "run_specs": run_args["run_specs"], "md_params": run_args["md_params"],
@@ -38,8 +38,6 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         _spawner_args["md_params"].update({"start_temp":run_args["md_params"]["end_temp"]})
         _spawner_args.update(_spawner_args)
 
-        fw = powerups.add_pass_structure(fw)
-        fw = powerups.replace_vaspmdtodb(fw)
         fw = powerups.add_converge_task(fw, **_spawner_args)
 
         fw_list.append(fw)
@@ -58,10 +56,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         run_args = recursive_update(run_args, prod_args)
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
         parents = fw_list[-1] if len(fw_list) > 0 else []
-        fw = MDFW(structure=structure, name = "prod_run_" + str(i), **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
-        fw = powerups.replace_vaspmdtodb(fw)
-        fw = powerups.add_cont_structure(fw, position=1) #Add after MDFW WriteInputSet to override structure
-        fw = powerups.add_pass_structure(fw) #Add at end to append structure to fw_spec
+        fw = MDFW(structure=structure, name = "prod_run_" + str(i), previous_structure=True, insert_db=True, **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
         fw_list.append(fw)
 
         prod_steps += prod_quants["nsteps"]

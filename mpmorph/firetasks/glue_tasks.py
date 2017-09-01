@@ -7,7 +7,7 @@ class PreviousStructureTask(FireTaskBase):
 
     def run_task(self, fw_spec):
         #get last structure from fw_spec
-        poscar_dict = fw_spec['CONTCAR'][-1]
+        poscar_dict = fw_spec['structure']
         _poscar = Poscar.from_dict(poscar_dict)
         _poscar.write_file("POSCAR")
         return FWAction()
@@ -17,9 +17,6 @@ class SaveStructureTask(FireTaskBase):
 
     def run_task(self, fw_spec):
         _poscar = Poscar.from_file(filename="CONTCAR.gz", check_for_POTCAR=True, read_velocities=True)
-        poscar_dict = _poscar.as_dict()
+        _structure = _poscar.structure.as_dict()
 
-        with open("testwrite", 'w') as file:
-            file.write(_poscar.get_string())
-            file.close()
-        return FWAction(mod_spec=[{ "_push_all" : {"CONTCAR": poscar_dict}}])
+        return FWAction(mod_spec=[{ "_push" : {"structure": _structure}}])

@@ -11,7 +11,13 @@ from mpmorph.firetasks.dbtasks import VaspMDToDb
 
 def add_converge_task(fw, **kwargs):
     spawner_task = ConvergeTask(**kwargs)
-    fw.tasks.append(spawner_task)
+    insert_i = -2
+    for (i, task) in enumerate(fw.tasks):
+        if task.fw_name == "{{atomate.vasp.firetasks.run_calc.RunVaspCustodian}}":
+            insert_i = i+1
+            break
+
+    fw.tasks.insert(i, spawner_task)
     return fw
 
 def add_cont_structure(fw, position):
