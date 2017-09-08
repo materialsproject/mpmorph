@@ -30,7 +30,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         run_args = recursive_update(run_args, converge_args)
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
 
-        fw = MDFW(structure=structure, name = "run0", previous_structure=True, insert_db=False, **run_args["md_params"],**run_args["run_specs"], **run_args["optional_fw_params"])
+        fw = MDFW(structure=structure, name = "run0", previous_structure=False, insert_db=False, **run_args["md_params"],**run_args["run_specs"], **run_args["optional_fw_params"])
 
         _spawner_args = {"converge_params":{"converge_type": [("density", 5)], "max_rescales": 10, "spawn_count": 0},
                          "run_specs": run_args["run_specs"], "md_params": run_args["md_params"],
