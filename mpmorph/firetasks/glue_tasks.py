@@ -8,7 +8,7 @@ class PreviousStructureTask(FireTaskBase):
     def run_task(self, fw_spec):
         #get last structure from fw_spec
         structure_dict = fw_spec["structure"]
-        _structure = Structure.from_dict(structure_dict)
+        _structure = Structure.from_dict(structure_dict[-1])
         _poscar = Poscar(_structure)
         _poscar.write_file("POSCAR")
         return FWAction()
