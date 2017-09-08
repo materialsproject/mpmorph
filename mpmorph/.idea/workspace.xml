@@ -14,11 +14,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="glue_tasks.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="glue_tasks.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/firetasks/glue_tasks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
-              <caret line="11" column="35" lean-forward="true" selection-start-line="11" selection-start-column="35" selection-end-line="11" selection-end-column="35" />
+            <state relative-caret-position="165">
+              <caret line="13" column="29" lean-forward="true" selection-start-line="13" selection-start-column="29" selection-end-line="13" selection-end-column="29" />
               <folding />
             </state>
           </provider>
@@ -37,8 +37,18 @@
       <file leaf-file-name="converge.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/workflow/converge.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-242">
+            <state relative-caret-position="-289">
               <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="mdtasks.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/firetasks/mdtasks.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="316">
+              <caret line="69" column="66" lean-forward="false" selection-start-line="69" selection-start-column="66" selection-end-line="69" selection-end-column="66" />
               <folding />
             </state>
           </provider>
@@ -134,15 +144,15 @@
         <option value="$PROJECT_DIR$/firetasks/vibtasks.py" />
         <option value="$PROJECT_DIR$/workflow/converge.py" />
         <option value="$PROJECT_DIR$/fireworks/core.py" />
-        <option value="$PROJECT_DIR$/firetasks/mdtasks.py" />
         <option value="$PROJECT_DIR$/firetasks/glue_tasks.py" />
         <option value="$PROJECT_DIR$/fireworks/powerups.py" />
+        <option value="$PROJECT_DIR$/firetasks/mdtasks.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="28" />
-    <option name="y" value="435" />
+    <option name="x" value="865" />
+    <option name="y" value="726" />
     <option name="width" value="1080" />
     <option name="height" value="807" />
   </component>
@@ -367,7 +377,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="28" y="435" width="1080" height="807" extended-state="0" />
+    <frame x="865" y="726" width="1080" height="807" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22222222" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -566,12 +576,11 @@
     <entry file="file://$PROJECT_DIR$/fireworks/core.py" />
     <entry file="file://$PROJECT_DIR$/workflow/vibrational.py" />
     <entry file="file://$PROJECT_DIR$/workflow/quench.py" />
-    <entry file="file://$PROJECT_DIR$/firetasks/mdtasks.py" />
     <entry file="file://$PROJECT_DIR$/firetasks/vibtasks.py" />
-    <entry file="file://$PROJECT_DIR$/workflow/converge.py">
+    <entry file="file://$PROJECT_DIR$/firetasks/glue_tasks.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-242">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="165">
+          <caret line="13" column="29" lean-forward="true" selection-start-line="13" selection-start-column="29" selection-end-line="13" selection-end-column="29" />
           <folding />
         </state>
       </provider>
@@ -584,10 +593,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/firetasks/glue_tasks.py">
+    <entry file="file://$PROJECT_DIR$/workflow/converge.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="11" column="35" lean-forward="true" selection-start-line="11" selection-start-column="35" selection-end-line="11" selection-end-column="35" />
+        <state relative-caret-position="-289">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/firetasks/mdtasks.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="316">
+          <caret line="69" column="66" lean-forward="false" selection-start-line="69" selection-start-column="66" selection-end-line="69" selection-end-column="66" />
           <folding />
         </state>
       </provider>
