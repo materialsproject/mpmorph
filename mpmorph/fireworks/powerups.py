@@ -17,7 +17,7 @@ def add_converge_task(fw, **kwargs):
             insert_i = i+1
             break
 
-    fw.tasks.insert(i, spawner_task)
+    fw.tasks.insert(insert_i, spawner_task)
     return fw
 
 def add_cont_structure(fw, position):

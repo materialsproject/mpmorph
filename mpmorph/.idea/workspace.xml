@@ -17,8 +17,28 @@
       <file leaf-file-name="glue_tasks.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/firetasks/glue_tasks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="10" column="58" lean-forward="false" selection-start-line="10" selection-start-column="58" selection-end-line="10" selection-end-column="58" />
+            <state relative-caret-position="135">
+              <caret line="11" column="35" lean-forward="true" selection-start-line="11" selection-start-column="35" selection-end-line="11" selection-end-column="35" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="powerups.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/fireworks/powerups.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="150">
+              <caret line="19" column="27" lean-forward="false" selection-start-line="19" selection-start-column="27" selection-end-line="19" selection-end-column="27" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="converge.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/workflow/converge.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-242">
+              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -114,15 +134,15 @@
         <option value="$PROJECT_DIR$/firetasks/vibtasks.py" />
         <option value="$PROJECT_DIR$/workflow/converge.py" />
         <option value="$PROJECT_DIR$/fireworks/core.py" />
-        <option value="$PROJECT_DIR$/fireworks/powerups.py" />
         <option value="$PROJECT_DIR$/firetasks/mdtasks.py" />
         <option value="$PROJECT_DIR$/firetasks/glue_tasks.py" />
+        <option value="$PROJECT_DIR$/fireworks/powerups.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1078" />
-    <option name="y" value="325" />
+    <option name="x" value="28" />
+    <option name="y" value="435" />
     <option name="width" value="1080" />
     <option name="height" value="807" />
   </component>
@@ -153,12 +173,22 @@
               <item name="mpmorph" type="462c0819:PsiDirectoryNode" />
               <item name="firetasks" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="mpmorph" type="b2602c69:ProjectViewProjectNode" />
+              <item name="mpmorph" type="462c0819:PsiDirectoryNode" />
+              <item name="fireworks" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="mpmorph" type="b2602c69:ProjectViewProjectNode" />
+              <item name="mpmorph" type="462c0819:PsiDirectoryNode" />
+              <item name="workflow" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scratches" />
       <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -337,16 +367,17 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="1078" y="325" width="1080" height="807" extended-state="0" />
+    <frame x="28" y="435" width="1080" height="807" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22222222" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.19727892" sideWeight="0.5092593" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3292517" sideWeight="0.5037037" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3292517" sideWeight="0.4962963" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -534,15 +565,29 @@
     <entry file="file://$PROJECT_DIR$/database/database.py" />
     <entry file="file://$PROJECT_DIR$/fireworks/core.py" />
     <entry file="file://$PROJECT_DIR$/workflow/vibrational.py" />
-    <entry file="file://$PROJECT_DIR$/fireworks/powerups.py" />
-    <entry file="file://$PROJECT_DIR$/workflow/converge.py" />
     <entry file="file://$PROJECT_DIR$/workflow/quench.py" />
     <entry file="file://$PROJECT_DIR$/firetasks/mdtasks.py" />
     <entry file="file://$PROJECT_DIR$/firetasks/vibtasks.py" />
+    <entry file="file://$PROJECT_DIR$/workflow/converge.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-242">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fireworks/powerups.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="19" column="27" lean-forward="false" selection-start-line="19" selection-start-column="27" selection-end-line="19" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/firetasks/glue_tasks.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="10" column="58" lean-forward="false" selection-start-line="10" selection-start-column="58" selection-end-line="10" selection-end-column="58" />
+        <state relative-caret-position="135">
+          <caret line="11" column="35" lean-forward="true" selection-start-line="11" selection-start-column="35" selection-end-line="11" selection-end-column="35" />
           <folding />
         </state>
       </provider>
