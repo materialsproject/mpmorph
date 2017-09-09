@@ -20,9 +20,14 @@ def add_converge_task(fw, **kwargs):
     fw.tasks.insert(insert_i, spawner_task)
     return fw
 
-def add_cont_structure(fw, position):
+def add_cont_structure(fw):
     prev_struct_task = PreviousStructureTask()
-    fw.tasks.insert(position, prev_struct_task)
+    insert_i = 2
+    for (i, task) in enumerate(fw.tasks):
+        if task.fw_name == "{{atomate.vasp.firetasks.run_calc.RunVaspCustodian}}":
+            insert_i = i - 1
+            break
+    fw.tasks.insert(insert_i, prev_struct_task)
     return fw
 
 def add_pass_structure(fw, velocity=True, **kwargs):

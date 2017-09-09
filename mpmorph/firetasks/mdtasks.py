@@ -93,7 +93,7 @@ class RescaleVolumeTask(FireTaskBase):
         target_pressure = self.get("target_pressure", 0.0)
         alpha = self.get("alpha", 10e-6)
         beta = self.get("beta", 10e-7)
-        corr_vol = RescaleVolume.of_poscar(poscar_path="./POSCAR", initial_temperature=initial_temperature,
+        corr_vol = RescaleVolume.of_poscar(poscar_path="./POSCAR.gz", initial_temperature=initial_temperature,
                                            initial_pressure=initial_pressure,
                                            target_pressure=target_pressure,
                                            target_temperature=target_temperature, alpha=alpha, beta=beta)

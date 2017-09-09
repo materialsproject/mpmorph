@@ -6,7 +6,7 @@ from mpmorph.util import recursive_update
 import numpy as np
 
 
-def get_quench(structures, temperatures, priority = None, type="simulated_anneal", cool_args = {}, hold_args = {}, unconverged=True, **kwargs):
+def get_quench(structures, temperatures={}, priority = None, type="simulated_anneal", cool_args = {}, hold_args = {}, unconverged=True, **kwargs):
     fw_list = []
     if temperatures == {}:
         temperatures = {"start_temp": 3000, "end_temp": 500, "temp_step":500}
