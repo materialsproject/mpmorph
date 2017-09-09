@@ -607,7 +607,7 @@ def get_smooth_rdfs(RDFs, passes=1):
         return get_smooth_rdfs(RDFs, passes=passes)
 
 
-def get_sample_structures(xdatcar_path, n=10, steps_skip_first=1000):
+def get_sample_structures(structures, n=10, steps_skip_first=1000):
     """
     Helper method to extract n unique structures from an MD output
     Args:
@@ -615,7 +615,10 @@ def get_sample_structures(xdatcar_path, n=10, steps_skip_first=1000):
     Returns:
         A list of Structure objects
     """
-    input_structures = Xdatcar(xdatcar_path).structures
+    if type(structures) == type("asdf"):
+        input_structures = Xdatcar(xdatcar_path).structures
+    else:
+        input_structures = structures
     output_structures = []
     t = len(input_structures)-steps_skip_first
     for i in range(n):

@@ -1,6 +1,5 @@
 from fireworks import Firework, Workflow
 from pymatgen import Structure, Composition
-from mpmorph.fireworks.core import ConvergeFW, DiffusionFW
 from mpmorph.fireworks import powerups
 from atomate.vasp.fireworks.core import MDFW, StaticFW, OptimizeFW
 from mpmorph.util import recursive_update
