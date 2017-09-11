@@ -1,7 +1,7 @@
 from fireworks import explicit_serialize, Firework, Workflow, FireTaskBase, FWAction
 from mpmorph.runners.rescale_volume import RescaleVolume
 from pymatgen.io.vasp import Poscar
-from atomate.vasp.fireworks.core import MDFW
+from mpmorph.fireworks.core import MDFW
 from mpmorph.analysis import md_data
 import numpy as np
 
@@ -67,7 +67,7 @@ class ConvergeTask(FireTaskBase):
                 rescale_args.update(self.get("rescale_params", {}))
 
                 #Spawn fw
-                fw = MDFW(structure, name="run"+ str(spawn_count+1), **run_specs, **md_params, **optional_params)
+                fw = MDFW(structure, name="run"+ str(spawn_count+1), previous_structure=True, insert_db=False, **run_specs, **md_params, **optional_params)
                 converge_params["spawn_count"] += 1
                 _spawner_args = {"converge_params":converge_params, "run_specs":run_specs, "md_params":md_params, "optional_fw_params": optional_params}
                 fw = powerups.add_rescale_volume(fw, **rescale_args)
@@ -93,7 +93,7 @@ class RescaleVolumeTask(FireTaskBase):
         target_pressure = self.get("target_pressure", 0.0)
         alpha = self.get("alpha", 10e-6)
         beta = self.get("beta", 10e-7)
-        corr_vol = RescaleVolume.of_poscar(poscar_path="./POSCAR.gz", initial_temperature=initial_temperature,
+        corr_vol = RescaleVolume.of_poscar(poscar_path="./POSCAR", initial_temperature=initial_temperature,
                                            initial_pressure=initial_pressure,
                                            target_pressure=target_pressure,
                                            target_temperature=target_temperature, alpha=alpha, beta=beta)
