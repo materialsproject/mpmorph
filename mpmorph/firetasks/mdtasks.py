@@ -66,7 +66,7 @@ class ConvergeTask(FireTaskBase):
                 rescale_args.update(self.get("rescale_params", {}))
 
                 #Spawn fw
-                fw = MDFW(structure, name="run"+ str(spawn_count+1), previous_structure=True, insert_db=False, **run_specs, **md_params, **optional_params)
+                fw = MDFW(structure, name="run"+ str(spawn_count+1), previous_structure=False, insert_db=False, **run_specs, **md_params, **optional_params)
                 converge_params["spawn_count"] += 1
                 _spawner_args = {"converge_params":converge_params, "run_specs":run_specs, "md_params":md_params, "optional_fw_params": optional_params}
                 fw = powerups.add_rescale_volume(fw, **rescale_args)

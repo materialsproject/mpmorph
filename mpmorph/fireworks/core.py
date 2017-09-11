@@ -3,6 +3,7 @@ from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.vasp.fireworks.core import StaticFW
+from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from mpmorph.firetasks.mdtasks import ConvergeTask
 from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask
 from mpmorph.sets import FrozenPhononSet
@@ -52,6 +53,7 @@ class MDFW(Firework):
             t.append(PreviousStructureTask())
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time))
+        t.append(PassCalcLocs(name=name))
         t.append(SaveStructureTask())
         if insert_db:
             t.append(VaspMDToDb(db_file=db_file,
