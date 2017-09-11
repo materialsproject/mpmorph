@@ -1,7 +1,6 @@
 from fireworks import explicit_serialize, Firework, Workflow, FireTaskBase, FWAction
 from mpmorph.runners.rescale_volume import RescaleVolume
 from pymatgen.io.vasp import Poscar
-from mpmorph.fireworks.core import MDFW
 from mpmorph.analysis import md_data
 import numpy as np
 
@@ -108,3 +107,4 @@ class RescaleVolumeTask(FireTaskBase):
         return FWAction(stored_data=corr_vol.structure.as_dict())
 
 from mpmorph.fireworks import powerups
+from mpmorph.fireworks.core import MDFW
