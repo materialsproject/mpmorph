@@ -37,25 +37,25 @@ def get_quench(structures, temperatures={}, priority = None, type="simulated_ann
                 _fw = powerups.add_cont_structure(_fw)
                 _fw_list.append(_fw)
 
-            # Relax OptimizeFW and StaticFW
-            run_args = {"run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
-                                      "spec": {}},
-                        "optional_fw_params": {"override_default_vasp_params": {}, "copy_vasp_outputs": False}}
-            _name = str(structure.composition.reduced_formula) + "_snap_" + str(i)
+        # Relax OptimizeFW and StaticFW
+        run_args = {"run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
+                                  "spec": {}},
+                    "optional_fw_params": {"override_default_vasp_params": {}, "copy_vasp_outputs": False}}
+        _name = str(structure.composition.reduced_formula) + "_snap_" + str(i)
 
-            fw1 = OptimizeFW(structure=structure, name=_name + "_optimize",
-                             parents=_fw_list[-1] if len(_fw_list) > 0 else [], **run_args["run_specs"])
-            if len(_fw_list) > 0:
-                fw1 = powerups.add_cont_structure(fw1)
-            fw1 = powerups.add_pass_structure(fw1)
+        fw1 = OptimizeFW(structure=structure, name=_name + "_optimize",
+                         parents=_fw_list[-1] if len(_fw_list) > 0 else [], **run_args["run_specs"])
+        if len(_fw_list) > 0:
+            fw1 = powerups.add_cont_structure(fw1)
+        fw1 = powerups.add_pass_structure(fw1)
 
-            fw2 = StaticFW(structure=structure, name=_name + "_static", parents=[fw1], **run_args["run_specs"])
-            fw2 = powerups.add_cont_structure(fw2)
-            fw2 = powerups.add_pass_structure(fw2)
+        fw2 = StaticFW(structure=structure, name=_name + "_static", parents=[fw1], **run_args["run_specs"])
+        fw2 = powerups.add_cont_structure(fw2)
+        fw2 = powerups.add_pass_structure(fw2)
 
-            _fw_list.extend([fw1, fw2])
+        _fw_list.extend([fw1, fw2])
 
-            fw_list.extend(_fw_list)
+        fw_list.extend(_fw_list)
 
     name = structure.composition.reduced_formula
     wf = Workflow(fw_list, name=name)
