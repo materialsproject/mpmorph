@@ -62,7 +62,7 @@ class ConvergeTask(FireTaskBase):
                 md_params = self["md_params"]
                 optional_params = self["optional_fw_params"]
 
-                rescale_args = {"initial_pressure": pressure, "initial_temperature": 1, "beta": 0.000002}
+                rescale_args = {"initial_pressure": pressure*1000, "initial_temperature": 1, "beta": 0.000002}
                 rescale_args.update(self.get("rescale_params", {}))
 
                 #Spawn fw

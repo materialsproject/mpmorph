@@ -23,6 +23,8 @@ class SaveStructureTask(FireTaskBase):
     def run_task(self, fw_spec):
         _poscar = Poscar.from_file(filename="CONTCAR.gz", check_for_POTCAR=True, read_velocities=True)
         _structure = _poscar.structure.as_dict()
-
+        with open("sst_out", 'w') as f:
+            f.write(str(_structure))
+            f.close()
         return FWAction(update_spec={"structure": _structure})
         #return FWAction(mod_spec=[{ "_push" : {"structure": _structure}}])

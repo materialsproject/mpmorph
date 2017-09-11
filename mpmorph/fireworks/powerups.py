@@ -17,7 +17,8 @@ def add_converge_task(fw, **kwargs):
             insert_i = i+1
             break
 
-    fw.tasks.insert(insert_i, spawner_task)
+    #fw.tasks.insert(insert_i, spawner_task)
+    fw.tasks.append(spawner_task)
     return fw
 
 def add_cont_structure(fw):
@@ -25,7 +26,7 @@ def add_cont_structure(fw):
     insert_i = 2
     for (i, task) in enumerate(fw.tasks):
         if task.fw_name == "{{atomate.vasp.firetasks.run_calc.RunVaspCustodian}}":
-            insert_i = i - 1
+            insert_i = i
             break
     fw.tasks.insert(insert_i, prev_struct_task)
     return fw
@@ -41,7 +42,7 @@ def add_rescale_volume(fw, **kwargs):
     insert_i = 2
     for (i, task) in enumerate(fw.tasks):
         if task.fw_name == "{{atomate.vasp.firetasks.run_calc.RunVaspCustodian}}":
-            insert_i = i-1
+            insert_i = i
             break
 
     fw.tasks.insert(insert_i, rsv_task)

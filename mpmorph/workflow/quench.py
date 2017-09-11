@@ -24,7 +24,6 @@ def get_quench(structures, temperatures={}, priority=None, quench_type="simulate
                 _fw = get_MDFW(structure, temp, temp - temperatures["temp_step"],
                                name="snap_" + str(i) + "_cool_" + str(temp - temperatures["temp_step"]),
                                args=cool_args, parents=[_fw_list[-1]] if len(_fw_list) > 0 else [])
-                _fw = powerups.replace_vaspmdtodb(_fw)
                 _fw = powerups.add_pass_structure(_fw)
                 if len(_fw_list) > 0:
                     _fw = powerups.add_cont_structure(_fw)
@@ -33,7 +32,6 @@ def get_quench(structures, temperatures={}, priority=None, quench_type="simulate
                 _fw = get_MDFW(structure, temp - temperatures["temp_step"], temp - temperatures["temp_step"],
                                name="snap_" + str(i) + "_hold_" + str(temp - temperatures["temp_step"]),
                                args=hold_args, parents=[_fw_list[-1]])
-                _fw = powerups.replace_vaspmdtodb(_fw)
                 _fw = powerups.add_pass_structure(_fw)
                 _fw = powerups.add_cont_structure(_fw)
                 _fw_list.append(_fw)
