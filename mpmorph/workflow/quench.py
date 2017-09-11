@@ -61,7 +61,7 @@ def get_quench(structures, temperatures={}, priority = None, type="simulated_ann
     wf = Workflow(fw_list, name=name)
     return wf
 
-def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics" priority=None, args={}, **kwargs):
+def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics", priority=None, args={}, **kwargs):
     run_args = {"md_params": {"nsteps": 500},
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                               "wall_time": 40000},
