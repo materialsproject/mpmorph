@@ -14,11 +14,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="glue_tasks.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="glue_tasks.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/firetasks/glue_tasks.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="360">
-              <caret line="26" column="62" lean-forward="true" selection-start-line="26" selection-start-column="62" selection-end-line="26" selection-end-column="62" />
+            <state relative-caret-position="375">
+              <caret line="27" column="46" lean-forward="false" selection-start-line="27" selection-start-column="46" selection-end-line="27" selection-end-column="46" />
               <folding />
             </state>
           </provider>
@@ -46,11 +46,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="quench.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="quench.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/workflow/quench.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-183">
-              <caret line="36" column="0" lean-forward="true" selection-start-line="36" selection-start-column="0" selection-end-line="36" selection-end-column="0" />
+            <state relative-caret-position="206">
+              <caret line="53" column="8" lean-forward="false" selection-start-line="53" selection-start-column="8" selection-end-line="53" selection-end-column="8" />
               <folding>
                 <element signature="e#0#40#0" expanded="true" />
               </folding>
@@ -195,10 +195,10 @@
         <option value="$PROJECT_DIR$/analysis/structural_analysis.py" />
         <option value="$PROJECT_DIR$/fireworks/powerups.py" />
         <option value="$PROJECT_DIR$/workflow/converge.py" />
-        <option value="$PROJECT_DIR$/workflow/quench.py" />
         <option value="$PROJECT_DIR$/firetasks/mdtasks.py" />
         <option value="$PROJECT_DIR$/fireworks/core.py" />
         <option value="$PROJECT_DIR$/firetasks/glue_tasks.py" />
+        <option value="$PROJECT_DIR$/workflow/quench.py" />
       </list>
     </option>
   </component>
@@ -706,16 +706,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/workflow/quench.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-183">
-          <caret line="36" column="0" lean-forward="true" selection-start-line="36" selection-start-column="0" selection-end-line="36" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#40#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/firetasks/mdtasks.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-165">
@@ -728,9 +718,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/firetasks/glue_tasks.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="26" column="62" lean-forward="true" selection-start-line="26" selection-start-column="62" selection-end-line="26" selection-end-column="62" />
+        <state relative-caret-position="375">
+          <caret line="27" column="46" lean-forward="false" selection-start-line="27" selection-start-column="46" selection-end-line="27" selection-end-column="46" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/workflow/quench.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="206">
+          <caret line="53" column="8" lean-forward="false" selection-start-line="53" selection-start-column="8" selection-end-line="53" selection-end-column="8" />
+          <folding>
+            <element signature="e#0#40#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
