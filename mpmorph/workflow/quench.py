@@ -18,11 +18,11 @@ def get_quench(structures, temperatures={}, priority = None, type="simulated_ann
     for (i, structure) in enumerate(structures):
         _fw_list=[]
         if type == "simulated_anneal":
-            for temp in np.arange(temperatures["start_temp"], temperatures["end_temp"]-temperatures["temp_step"], -temperatures["temp_step"]):
+            for temp in np.arange(temperatures["start_temp"], temperatures["end_temp"], -temperatures["temp_step"]):
                 # get fw for cool step
                 _fw = get_MDFW(structure, temp, temp-temperatures["temp_step"],
                                name= "snap_"+str(i)+"_cool_"+str(temp-temperatures["temp_step"]),
-                               args=cool_args, parents=_fw_list[-1] if len(_fw_list) > 0 else [])
+                               args=cool_args, parents=[_fw_list[-1]] if len(_fw_list) > 0 else [])
                 _fw = powerups.replace_vaspmdtodb(_fw)
                 _fw = powerups.add_pass_structure(_fw)
                 if len(_fw_list) > 0:
@@ -31,7 +31,7 @@ def get_quench(structures, temperatures={}, priority = None, type="simulated_ann
                 # get fw for hold step
                 _fw = get_MDFW(structure, temp-temperatures["temp_step"], temp-temperatures["temp_step"],
                                name= "snap_"+str(i)+"_cool_"+str(temp-temperatures["temp_step"]),
-                                     args=hold_args, parents=_fw_list[-1])
+                                     args=hold_args, parents=[_fw_list[-1]])
                 _fw = powerups.replace_vaspmdtodb(_fw)
                 _fw = powerups.add_pass_structure(_fw)
                 _fw = powerups.add_cont_structure(_fw)
@@ -44,7 +44,7 @@ def get_quench(structures, temperatures={}, priority = None, type="simulated_ann
         _name = str(structure.composition.reduced_formula) + "_snap_" + str(i)
 
         fw1 = OptimizeFW(structure=structure, name=_name + "_optimize",
-                         parents=_fw_list[-1] if len(_fw_list) > 0 else [], **run_args["run_specs"])
+                         parents=[_fw_list[-1]] if len(_fw_list) > 0 else [], **run_args["run_specs"])
         if len(_fw_list) > 0:
             fw1 = powerups.add_cont_structure(fw1)
         fw1 = powerups.add_pass_structure(fw1)
