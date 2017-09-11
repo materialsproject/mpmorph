@@ -38,7 +38,7 @@ def get_quench(structures, temperatures={}, priority = None, type="simulated_ann
             fw_list.extend(_fw_list)
 
         # Relax OptimizeFW and StaticFW
-        run_args = {"run_specs":{"vasp_input_set": None ,"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<", "wall_time": 86400, "spec":{}},
+        run_args = {"run_specs":{"vasp_input_set": None ,"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<", "spec":{}},
                     "optional_fw_params":{"override_default_vasp_params":{}, "copy_vasp_outputs": False}}
         _name = str(structure.composition.reduced_formula)+"_"+str(i)
 
