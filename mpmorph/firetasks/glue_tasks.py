@@ -24,4 +24,5 @@ class SaveStructureTask(FireTaskBase):
         _poscar = Poscar.from_file(filename="CONTCAR.gz", check_for_POTCAR=True, read_velocities=True)
         _structure = _poscar.structure.as_dict()
 
-        return FWAction(mod_spec=[{ "_push" : {"structure": _structure}}])
+        return FWAction(update_spec={"structure": _structure})
+        #return FWAction(mod_spec=[{ "_push" : {"structure": _structure}}])
