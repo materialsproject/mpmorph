@@ -52,7 +52,9 @@ def get_quench(structures, temperatures={}, priority = None, type="simulated_ann
         fw2 = powerups.add_pass_structure(fw2)
 
         _fw_list.extend([fw1, fw2])
-    wf = Workflow(fw_list, "")
+    name = structure.composition.reduced_formula
+    wf = Workflow(fw_list, name=name)
+    return wf
 
 def get_MDFW(structure, start_temp, end_temp, priority=None, args={}, **kwargs):
     run_args = {"md_params": {"nsteps": 500},
