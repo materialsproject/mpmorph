@@ -12,8 +12,7 @@ class PreviousStructureTask(FireTaskBase):
         print(type(structure_dict))
         print(type(structure_dict[-1]))
         print(structure_dict)
-        #_structure = Structure.from_dict(structure_dict[-1])
-        _poscar = Poscar(structure_dict[0])
+        _poscar = Poscar(structure_dict)
         _poscar.write_file("POSCAR")
         return FWAction()
 
