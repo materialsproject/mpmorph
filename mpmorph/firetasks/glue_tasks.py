@@ -1,6 +1,7 @@
 from fireworks import explicit_serialize, Firework, Workflow, FireTaskBase, FWAction
 from pymatgen.io.vasp import Poscar
 from pymatgen import Structure
+import os
 
 @explicit_serialize
 class PreviousStructureTask(FireTaskBase):
@@ -20,7 +21,12 @@ class PreviousStructureTask(FireTaskBase):
 class SaveStructureTask(FireTaskBase):
 
     def run_task(self, fw_spec):
-        _poscar = Poscar.from_file(filename="CONTCAR.gz", check_for_POTCAR=True, read_velocities=True)
+        osw = list(os.walk("."))[0]
+        files = []
+        for file_name in osw[2]:
+            if "CONTCAR" in file_name:
+                files.append(file_name)
+        _poscar = Poscar.from_file(filename=files[-1], check_for_POTCAR=True, read_velocities=True)
         _structure = _poscar.structure.as_dict()
         with open("sst_out", 'w') as f:
             f.write(str(_structure))
