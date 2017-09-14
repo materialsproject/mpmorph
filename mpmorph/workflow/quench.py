@@ -32,7 +32,7 @@ def get_quench(structures, temperatures={}, priority=None, quench_type="simulate
                 # get fw for hold step
                 _fw = get_MDFW(structure, temp - temperatures["temp_step"], temp - temperatures["temp_step"],
                                name="snap_" + str(i) + "_hold_" + str(temp - temperatures["temp_step"]),
-                               args=hold_args, parents=[_fw_list[-1]])
+                               args=hold_args, parents=[_fw_list[-1]], **kwargs)
                 _fw = powerups.add_pass_structure(_fw)
                 _fw = powerups.add_cont_structure(_fw)
                 _fw_list.append(_fw)
@@ -63,7 +63,7 @@ def get_quench(structures, temperatures={}, priority=None, quench_type="simulate
     return wf
 
 
-def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics", priority=None, args={}, **kwargs):
+def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics", priority=None, job_time=None, args={}, **kwargs):
     run_args = {"md_params": {"nsteps": 500},
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                               "wall_time": 40000},
@@ -75,6 +75,7 @@ def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics", priorit
     run_args["md_params"]["start_temp"] = start_temp
     run_args["md_params"]["end_temp"] = end_temp
     run_args["optional_fw_params"]["spec"]["_priority"] = priority
+    run_args["optional_fw_params"]["spec"]["_queueadapter"] = {"walltime": job_time}
     _mdfw = MDFW(structure=structure, name=name, **run_args["md_params"], **run_args["run_specs"],
                  **run_args["optional_fw_params"], **kwargs)
     return _mdfw
