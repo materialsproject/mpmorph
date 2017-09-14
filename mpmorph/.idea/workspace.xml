@@ -92,14 +92,12 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Misc.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/Misc.py">
+      <file leaf-file-name="misc.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/misc.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="341">
-              <caret line="23" column="0" lean-forward="true" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
-              <folding>
-                <element signature="e#0#41#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="116">
+              <caret line="8" column="17" lean-forward="true" selection-start-line="8" selection-start-column="17" selection-end-line="8" selection-end-column="17" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -198,6 +196,7 @@
         <option value="$PROJECT_DIR$/workflow/quench.py" />
         <option value="$PROJECT_DIR$/fireworks/core.py" />
         <option value="$PROJECT_DIR$/Misc.py" />
+        <option value="$PROJECT_DIR$/misc.py" />
       </list>
     </option>
   </component>
@@ -716,13 +715,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Misc.py">
+    <entry file="file://$PROJECT_DIR$/misc.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="341">
-          <caret line="23" column="0" lean-forward="true" selection-start-line="23" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#41#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="116">
+          <caret line="8" column="17" lean-forward="true" selection-start-line="8" selection-start-column="17" selection-end-line="8" selection-end-column="17" />
+          <folding />
         </state>
       </provider>
     </entry>
