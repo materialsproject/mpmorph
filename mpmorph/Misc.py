@@ -72,9 +72,10 @@ def archive_system(directory):
             task_doc["ionic_steps_fs_id"] = gfs_id
             task_doc["ionic_steps_compression"] = compression_type
         print("inserting " + get_label(_dir))
-        insert(task_doc, db)
-        print("deleting " + get_label(_dir))
-        shutil.rmtree(_dir)
+        inserted = insert(task_doc, db)
+        if inserted:
+            print("deleting " + get_label(_dir))
+            shutil.rmtree(_dir)
     print("-" * 100)
     prune_dirs(directory)
 
@@ -100,8 +101,11 @@ def doc_exists(task_doc, db):
 
 def insert(task_doc, db):
     collection = db["previous_runs"]
-    if not collection.find_one({"POSCAR": task_doc["POSCAR"], "INCAR": task_doc["INCAR"]}):
+    if not collection.find_one({"POSCAR": task_doc["POSCAR"], "INCAR": task_doc["INCAR"],
+                                "task_label": task_doc["task_label"]}):
         collection.insert_one(task_doc)
+        return True
+    return False
 
 def insert_gridfs(d, collection="fs", compress=True, oid=None):
         """
