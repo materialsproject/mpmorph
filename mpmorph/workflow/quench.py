@@ -45,7 +45,7 @@ def get_quench(structures, temperatures={}, priority=None, quench_type="simulate
             _name = str(structure.composition.reduced_formula) + "_snap_" + str(i)
 
             fw1 = OptimizeFW(structure=structure, name=_name + "_optimize",
-                             parents=[_fw_list[-1]] if len(_fw_list) > 0 else [], **run_args["run_specs"])
+                             parents=[_fw_list[-1]] if len(_fw_list) > 0 else [], **run_args["run_specs"], max_force_threshold=None)
             if len(_fw_list) > 0:
                 fw1 = powerups.add_cont_structure(fw1)
             fw1 = powerups.add_pass_structure(fw1)
