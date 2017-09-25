@@ -49,14 +49,15 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
     while prod_steps <= prod_quants["target"] - prod_quants["nsteps"]:
         run_args = {"md_params": {"start_temp": run_args["md_params"]["end_temp"], "end_temp": run_args["md_params"]["end_temp"], "nsteps":5000},
                     "run_specs":{"vasp_input_set": None ,"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<", "wall_time": 86400},
-                    "optional_fw_params":{"override_default_vasp_params":{}, "copy_vasp_outputs": False, "spec":{}}}
+                    "optional_fw_params":{"override_default_vasp_params":{}, "copy_vasp_outputs": False, "spec":{}}
+                    "label": "prod_run_"}
 
         run_args["optional_fw_params"]["override_default_vasp_params"].update(
             {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
         run_args = recursive_update(run_args, prod_args)
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
         parents = fw_list[-1] if len(fw_list) > 0 else []
-        fw = MDFW(structure=structure, name = "prod_run_" + str(i), previous_structure=True, insert_db=True, **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
+        fw = MDFW(structure=structure, name = run_args["label"] + str(i), previous_structure=True, insert_db=True, **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
         fw_list.append(fw)
 
         prod_steps += prod_quants["nsteps"]
