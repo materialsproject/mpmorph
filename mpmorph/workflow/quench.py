@@ -58,7 +58,7 @@ def get_quench(structures, temperatures={}, priority=None, quench_type="simulate
 
         fw_list.extend(_fw_list)
 
-    name = structure.composition.reduced_formula
+    name = structure.composition.reduced_formula + descriptor + "_quench"
     wf = Workflow(fw_list, name=name)
     return wf
 
