@@ -8,7 +8,7 @@ import numpy as np
 
 
 def get_quench(structures, temperatures={}, priority=None, quench_type="simulated_anneal", cool_args={}, hold_args={},
-               unconverged=True, **kwargs):
+               descriptor = "", **kwargs):
     fw_list = []
     if temperatures == {}:
         temperatures = {"start_temp": 3000, "end_temp": 500, "temp_step": 500}
@@ -44,13 +44,13 @@ def get_quench(structures, temperatures={}, priority=None, quench_type="simulate
                         "optional_fw_params": {"override_default_vasp_params": {}, "copy_vasp_outputs": False}}
             _name = str(structure.composition.reduced_formula) + "_snap_" + str(i)
 
-            fw1 = OptimizeFW(structure=structure, name=_name + "_optimize",
+            fw1 = OptimizeFW(structure=structure, name=_name + descriptor + "_optimize",
                              parents=[_fw_list[-1]] if len(_fw_list) > 0 else [], **run_args["run_specs"], max_force_threshold=None)
             if len(_fw_list) > 0:
                 fw1 = powerups.add_cont_structure(fw1)
             fw1 = powerups.add_pass_structure(fw1)
 
-            fw2 = StaticFW(structure=structure, name=_name + "_static", parents=[fw1], **run_args["run_specs"])
+            fw2 = StaticFW(structure=structure, name=_name + descriptor + "_static", parents=[fw1], **run_args["run_specs"])
             fw2 = powerups.add_cont_structure(fw2)
             fw2 = powerups.add_pass_structure(fw2)
 
