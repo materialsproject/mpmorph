@@ -43,7 +43,7 @@ class ConvergeTask(FireTaskBase):
             # Pressure Convergence
             if key_map[converge_key] == 'external':
                 pressure = avg_val
-                if avg_val <= threshold:
+                if np.abs(avg_val) <= threshold:
                     converged = True
                 else:
                     converged = False
