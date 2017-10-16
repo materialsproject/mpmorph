@@ -24,7 +24,7 @@ class ConvergeTask(FireTaskBase):
 
         #Check convergence of all values in converge_params
         converge_params = self["converge_params"]
-        rescale_params = self["rescale_args"]
+        rescale_params = self["rescale_params"]
         data_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
         key_map = {'density': 'external', 'kinetic energy': 'kinetic energy EKIN', 'ionic': '% ion-electron', 'total energy': 'ETOTAL'}
         outcar_data = md_data.get_MD_data("./OUTCAR.gz", search_keys=data_keys)
