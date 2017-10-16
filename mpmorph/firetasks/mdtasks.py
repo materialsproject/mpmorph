@@ -3,6 +3,7 @@ from mpmorph.runners.rescale_volume import RescaleVolume
 from pymatgen.io.vasp import Poscar
 from mpmorph.analysis import md_data
 import numpy as np
+from mpmorph.util import recursive_update
 
 @explicit_serialize
 class ConvergeTask(FireTaskBase):
@@ -12,8 +13,8 @@ class ConvergeTask(FireTaskBase):
 
     """
 
-    required_params = ["converge_params", "run_specs", "md_params"]
-    optional_params = ["rescale_params"]
+    required_params = ["converge_params", "run_specs", "md_params", "rescale_params"]
+    optional_params = []
 
     def run_task(self, fw_spec):
         # Load Structure from Poscar
@@ -23,6 +24,7 @@ class ConvergeTask(FireTaskBase):
 
         #Check convergence of all values in converge_params
         converge_params = self["converge_params"]
+        rescale_params = self["rescale_args"]
         data_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
         key_map = {'density': 'external', 'kinetic energy': 'kinetic energy EKIN', 'ionic': '% ion-electron', 'total energy': 'ETOTAL'}
         outcar_data = md_data.get_MD_data("./OUTCAR.gz", search_keys=data_keys)
@@ -62,13 +64,13 @@ class ConvergeTask(FireTaskBase):
                 md_params = self["md_params"]
                 optional_params = self["optional_fw_params"]
 
-                rescale_args = {"initial_pressure": pressure*1000, "initial_temperature": 1, "beta": 0.000002}
-                rescale_args.update(self.get("rescale_params", {}))
+                rescale_args = {"initial_pressure": pressure*1000, "initial_temperature": 1, "beta": 0.0000001}
+                rescale_args = recursive_update(rescale_args, rescale_params)
 
                 #Spawn fw
                 fw = MDFW(structure, name="run"+ str(spawn_count+1), previous_structure=False, insert_db=False, **run_specs, **md_params, **optional_params)
                 converge_params["spawn_count"] += 1
-                _spawner_args = {"converge_params":converge_params, "run_specs":run_specs, "md_params":md_params, "optional_fw_params": optional_params}
+                _spawner_args = {"converge_params": converge_params, "rescale_params": rescale_params, "run_specs": run_specs, "md_params":md_params, "optional_fw_params": optional_params}
                 fw = powerups.add_rescale_volume(fw, **rescale_args)
                 fw = powerups.add_converge_task(fw, **_spawner_args)
                 wf = Workflow([fw])
