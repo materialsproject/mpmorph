@@ -64,7 +64,7 @@ class ConvergeTask(FireTaskBase):
                 md_params = self["md_params"]
                 optional_params = self["optional_fw_params"]
 
-                rescale_args = {"initial_pressure": pressure*1000, "initial_temperature": 1, "beta": 0.0000001}
+                rescale_args = {"initial_pressure": pressure*1000, "initial_temperature": 1, "beta": 0.0000004}
                 rescale_args = recursive_update(rescale_args, rescale_params)
 
                 #Spawn fw
