@@ -3,7 +3,7 @@ from mpmorph.fireworks import powerups
 from mpmorph.fireworks.core import MDFW
 from mpmorph.util import recursive_update
 
-def get_converge(structure, priority = None, preconverged=False, prod_quants={"nsteps":5000,"target": 40000}, spawner_args={}, converge_args={}, prod_args={}, converge_type="density", **kwargs):
+def get_converge(structure, priority = None, preconverged=False, prod_quants={"nsteps":5000,"target": 40000}, spawner_args={}, converge_args={}, prod_args={}, converge_type=("density", 5), **kwargs):
     """
 
     :param structure:
@@ -32,7 +32,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
 
         fw = MDFW(structure=structure, name = "run0", previous_structure=False, insert_db=False, **run_args["md_params"],**run_args["run_specs"], **run_args["optional_fw_params"])
 
-        _spawner_args = {"converge_params":{"converge_type": [("density", 5)], "max_rescales": 10, "spawn_count": 0},
+        _spawner_args = {"converge_params":{"converge_type": [converge_type], "max_rescales": 10, "spawn_count": 0},
                          "rescale_args":{"beta": 0.0000004},
                          "run_specs": run_args["run_specs"], "md_params": run_args["md_params"],
                          "optional_fw_params":run_args["optional_fw_params"]}

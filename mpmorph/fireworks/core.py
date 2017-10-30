@@ -9,7 +9,7 @@ from mpmorph.firetasks.mdtasks import ConvergeTask
 from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask
 from mpmorph.sets import FrozenPhononSet
 from mpmorph.firetasks.dbtasks import VaspMDToDb
-from pymatgen.io.vasp.sets import MITMDSet, MPStaticSet
+from pymatgen.io.vasp.sets import MITMDSet, MPStaticSet, MPRelaxSet
 
 
 class MDFW(Firework):
@@ -79,8 +79,63 @@ class VibrationalFW(Firework):
         super(StaticFW, self).__init__(t, parents=parents, name="{}-{}".format(
             structure.composition.reduced_formula, name), **kwargs)
 
+class OptimizeFW(Firework):
+    def __init__(self, structure, name="structure optimization",
+                 vasp_input_set=None,
+                 vasp_cmd="vasp", override_default_vasp_params=None,
+                 ediffg=None, db_file=None,
+                 force_gamma=True, job_type="double_relaxation_run",
+                 max_force_threshold=None,
+                 previous_structure=False,
+                 auto_npar=">>auto_npar<<",
+                 half_kpts_first_relax=False, parents=None,
+                 **kwargs):
+        """
+        Optimize the given structure.
+        Args:
+            structure (Structure): Input structure.
+            name (str): Name for the Firework.
+            vasp_input_set (VaspInputSet): input set to use. Defaults to MPRelaxSet() if None.
+            override_default_vasp_params (dict): If this is not None, these params are passed to
+                the default vasp_input_set, i.e., MPRelaxSet. This allows one to easily override
+                some settings, e.g., user_incar_settings, etc.
+            vasp_cmd (str): Command to run vasp.
+            ediffg (float): Shortcut to set ediffg in certain jobs
+            db_file (str): Path to file specifying db credentials to place output parsing.
+            force_gamma (bool): Force gamma centered kpoint generation
+            job_type (str): custodian job type (default "double_relaxation_run")
+            max_force_threshold (float): max force on a site allowed at end; otherwise, reject job
+            auto_npar (bool or str): whether to set auto_npar. defaults to env_chk: ">>auto_npar<<"
+            half_kpts_first_relax (bool): whether to use half the kpoints for the first relaxation
+            parents ([Firework]): Parents of this particular Firework.
+            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+        override_default_vasp_params = override_default_vasp_params or {}
+        vasp_input_set = vasp_input_set or MPRelaxSet(structure,
+                                                      force_gamma=force_gamma,
+                                                      **override_default_vasp_params)
+
+        t = []
+        t.append(WriteVaspFromIOSet(structure=structure,
+                                    vasp_input_set=vasp_input_set))
+        if previous_structure:
+            t.append(PreviousStructureTask())
+        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type=job_type,
+                                  max_force_threshold=max_force_threshold,
+                                  ediffg=ediffg,
+                                  auto_npar=auto_npar,
+                                  half_kpts_first_relax=half_kpts_first_relax))
+        t.append(PassCalcLocs(name=name))
+        t.append(SaveStructureTask())
+        t.append(
+            VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+        super(OptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
+                                         format(
+            structure.composition.reduced_formula, name),
+                                         **kwargs)
+
 class StaticFW(Firework):
-    def __init__(self, structure, name="static", vasp_input_set=None, vasp_cmd="vasp",
+    def __init__(self, structure, name="static", previous_structure=False, vasp_input_set=None, vasp_cmd="vasp",
                  db_file=None, parents=None, **kwargs):
         """
         This Firework is modified from atomate.vasp.fireworks.core.StaticFW to fit the needs of mpmorph
@@ -104,8 +159,10 @@ class StaticFW(Firework):
         t = []
         vasp_input_set = vasp_input_set or MPStaticSet(structure)
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
-
+        if previous_structure:
+            t.append(PreviousStructureTask())
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
+        t.append(SaveStructureTask())
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
         super(StaticFW, self).__init__(t, parents=parents, name="{}-{}".format(

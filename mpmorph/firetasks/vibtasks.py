@@ -5,6 +5,9 @@ from pymatgen.io.vasp import Poscar
 from pymatgen import Structure
 
 from pymatgen.analysis.adsorption import AdsorbateSiteFinder
+from mpmorph.fireworks.core import VibrationalFW
+
+import os
 
 
 @explicit_serialize
@@ -18,7 +21,10 @@ class AdsorbateGeneratorTask(FireTaskBase):
         adsorbate_gen_args = self.get("adsorbate_gen_args", {"find_args": {"distance": 2.0}, "repeat": [1, 1, 1]})
 
         # Load structure from file
-        _poscar = Poscar.from_file("CONTCAR.gz")
+        if os.path.exists("CONTCAR.gz"):
+            _poscar = Poscar.from_file("CONTCAR.gz")
+        elif os.path.exists("CONTCAR"):
+            _poscar = Poscar.from_file("CONTCAR")
         structure = _poscar.structure
 
         adsorb_finder = AdsorbateSiteFinder(slab=structure, selective_dynamics=True)
@@ -72,5 +78,3 @@ class SpawnVibrationalFWTask(FireTaskBase):
         fw = VibrationalFW(structure, incar_updates=incar_updates)
         wf = Workflow(fw)
         return FWAction(additions=wf)
-
-from mpmorph.fireworks.core import VibrationalFW
