@@ -1,9 +1,7 @@
 from fireworks import Workflow
-#from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
 from mpmorph.fireworks.core import MDFW, OptimizeFW, StaticFW
 from mpmorph.fireworks import powerups
 from pymatgen.core.surface import SlabGenerator
-from mpmorph.firetasks.vibtasks import AdsorbateGeneratorTask
 from mpmorph.fireworks.powerups import add_adsorbate_task
 from mpmorph.util import recursive_update
 
