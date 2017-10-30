@@ -5,7 +5,6 @@ from pymatgen.io.vasp import Poscar
 from pymatgen import Structure
 
 from pymatgen.analysis.adsorption import AdsorbateSiteFinder
-from mpmorph.fireworks.core import VibrationalFW
 
 import os
 
@@ -78,3 +77,5 @@ class SpawnVibrationalFWTask(FireTaskBase):
         fw = VibrationalFW(structure, incar_updates=incar_updates)
         wf = Workflow(fw)
         return FWAction(additions=wf)
+
+from mpmorph.fireworks.core import VibrationalFW
