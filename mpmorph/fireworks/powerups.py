@@ -1,7 +1,6 @@
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 from atomate.common.firetasks.glue_tasks import PassResult
 from mpmorph.firetasks.mdtasks import RescaleVolumeTask
-from mpmorph.firetasks.vibtasks import AdsorbateGeneratorTask
 from pymatgen.io.vasp.inputs import Poscar
 from fireworks import Firework
 
@@ -71,3 +70,5 @@ def add_adsorbate_task(fw, **kwargs):
     asd_task = AdsorbateGeneratorTask(**kwargs)
     fw.tasks.append(asd_task)
     return fw
+
+from mpmorph.firetasks.vibtasks import AdsorbateGeneratorTask
