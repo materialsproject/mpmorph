@@ -45,7 +45,8 @@ def get_phonon_frequency_wf(structure, molecule, slab_gen_args, adsorbate_gen_ar
         fw_list.append(fw)
 
     #Create fireworks to relax slab
-    run_specs = {"vasp_cmd":vasp_cmd, "db_file":db_file, "spec":spec}
+    run_specs = {"vasp_cmd":vasp_cmd, "db_file":db_file, "spec":spec,
+                 "optional_fw_params": {"override_default_vasp_params": {}, "copy_vasp_outputs": False, "spec": {}}}
     run_specs["optional_fw_params"]["spec"]["_priority"] = priority
     fw1 = OptimizeFW(structure=structure, name=structure.composition.reduced_formula + "_slab_optimize",
                      previous_structure=converge, **run_specs)
