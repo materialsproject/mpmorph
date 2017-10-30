@@ -5,7 +5,6 @@ from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.vasp.fireworks.core import StaticFW
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.vasp.firetasks.parse_outputs import VaspToDb
-from mpmorph.firetasks.mdtasks import ConvergeTask
 from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask
 from mpmorph.sets import FrozenPhononSet
 from mpmorph.firetasks.dbtasks import VaspMDToDb
