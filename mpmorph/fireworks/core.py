@@ -222,7 +222,7 @@ class OptimizeSlabFW(Firework):
         t.append(SaveStructureTask())
         t.append(
             VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-        super(OptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
+        super(OptimizeSlabFW, self).__init__(t, parents=parents, name="{}-{}".
                                          format(
             structure.composition.reduced_formula, name),
                                          **kwargs)
