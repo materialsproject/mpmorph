@@ -181,6 +181,7 @@ class OptimizeSlabFW(Firework):
              auto_npar=">>auto_npar<<",
              half_kpts_first_relax=False, parents=None,
              handler_group="default",
+             max_errors=5,
              **kwargs):
         """
         Optimize the given structure.
@@ -217,7 +218,8 @@ class OptimizeSlabFW(Firework):
                                   ediffg=ediffg,
                                   auto_npar=auto_npar,
                                   half_kpts_first_relax=half_kpts_first_relax,
-                                  handler_group=handler_group, **kwargs))
+                                  handler_group=handler_group,
+                                  max_errors=max_errors, **kwargs))
         t.append(PassCalcLocs(name=name))
         t.append(SaveStructureTask())
         t.append(
