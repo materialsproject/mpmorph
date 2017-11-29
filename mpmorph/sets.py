@@ -11,5 +11,5 @@ class FrozenPhononSet(MPRelaxSet):
 
         incar_updates = {"IBRION": 5, "NFREE": 4, "NSW": 100, "EDIFF": 1e-6,
                          "ISMEAR": 2, "SIGMA": 0.2, "ALGO": "FAST", "MAXMIN": 60}
-        self.config_dict["INCAR"].update(incar_updates)
-        self.config_dict["INCAR"].update(incar_changes)
+        self._config_dict["INCAR"].update(incar_updates)
+        self._config_dict["INCAR"].update(incar_changes)
