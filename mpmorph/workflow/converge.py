@@ -9,7 +9,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
     :param structure:
     :param temperatures:
     :param priority:
-    :param preconverged:
+    :param preconverged: Is the structure already converged (i.e. Pressure 0bar) or volume rescaling not desired?
     :param prod_quants:
     :param spawner_args:
     :param converge_args:

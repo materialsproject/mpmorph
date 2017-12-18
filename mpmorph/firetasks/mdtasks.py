@@ -28,7 +28,6 @@ class ConvergeTask(FireTaskBase):
         data_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
         key_map = {'density': 'external', 'kinetic energy': 'kinetic energy EKIN', 'ionic': '% ion-electron', 'total energy': 'ETOTAL'}
         outcar_data = md_data.get_MD_data("./OUTCAR.gz", search_keys=data_keys)
-        print(outcar_data)
         convergence_vars = converge_params["converge_type"]
         converged = False
         pressure = 0
@@ -41,14 +40,11 @@ class ConvergeTask(FireTaskBase):
             _index = data_keys.index(key_map[converge_key])
             _data = np.transpose(outcar_data)[_index]
             avg_val = np.mean(_data[int(avg_fraction*(len(_data)-1)):])
+            pressure = avg_val
 
             # Pressure Convergence
             if key_map[converge_key] == 'external':
-                pressure = avg_val
-                if np.abs(avg_val) <= threshold:
-                    converged = True
-                else:
-                    converged = False
+                converged = True if np.abs(avg_val) <= threshold else False
 
             # Energy Convergence
             if key_map[converge_key] in ['kinetic energy EKIN', 'ETOTAL']:
