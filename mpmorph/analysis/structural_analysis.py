@@ -4,7 +4,7 @@ from multiprocessing import Pool
 from scipy.spatial import Voronoi
 from copy import deepcopy
 from pymatgen.analysis import structure_analyzer
-from pymatgen.util.coord_utils import get_angle
+from pymatgen.util.coord import get_angle
 from pymatgen.io.vasp.outputs import Xdatcar
 
 
