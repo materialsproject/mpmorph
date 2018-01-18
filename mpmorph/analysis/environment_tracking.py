@@ -31,7 +31,7 @@ class EnvironmentTracker():
             frames = len(structures)
         bond_lens = self.get_bond_distance(structures)
 
-        pool = Pool(16)
+        pool = Pool(multiprocessing.cpu_count())
         inputs = [(i, structure, bond_lens, prune_els) for (i, structure) in enumerate(structures)]
         results = pool.map(process_frame, inputs)
         sort_key = lambda result: result[0]
