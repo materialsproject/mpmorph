@@ -1,5 +1,7 @@
 from pymatgen import Site, Structure, Element
+import itertools
 import numpy as np
+
 
 class ClusteringAnalyzer(object):
     """
@@ -16,7 +18,7 @@ class ClusteringAnalyzer(object):
         self.cluster_distance_matrix = []
         self.neighbors = []
 
-    def get_clusters(self, cluster_els=[Element("Si")], track_els=[Element("Li")], prune_els = None):
+    def get_clusters(self, cluster_els=[Element("Si")], track_els=[Element("Li")], cluster_bonds=None, prune_els=None):
         '''
         TODO: Add functionality to remove elements other than the desired
               RDF's of Cluster
@@ -24,13 +26,13 @@ class ClusteringAnalyzer(object):
         :param prune_els: List of Elements to exclude from cluster analysis
         :return: clusters
         '''
-        #Remove all elements that are not tracked or part of the clusters
+        # Remove all elements that are not tracked or part of the clusters
+        pruned_structure = self.input_structure.copy()
         if prune_els != None:
-            pruned_structure = self.input_structure.copy()
             pruned_structure.remove_species(prune_els)
         self.radius = self.bond_lengths[(cluster_els[0].name, cluster_els[0].name)]
 
-        #Get structure with only cluster elements
+        # Get structure with only cluster elements
         cluster_structure = self.input_structure.copy()
         els_in_structure = cluster_structure.composition.elements
         for el in els_in_structure:
@@ -38,30 +40,38 @@ class ClusteringAnalyzer(object):
                 cluster_structure.remove_species([el])
 
         self.track_distance_matrix = self.get_track_distance_matrix(structure=pruned_structure, track_els=track_els)
-        self.cluster_distance_matrix = self.get_distance_matrix(structure=cluster_structure)
-        self.track_neighbors = self.get_neighbors(distance_matrix = self.track_distance_matrix, radius=self.bond_lengths[('Li', 'Si')])
-        self.cluster_neighbors = self.get_neighbors(distance_matrix = self.cluster_distance_matrix, radius=self.bond_lengths[('Si', 'Si')])
+        self.cluster_distance_matrix, species_list = self.get_distance_matrix(structure=cluster_structure)
+        # self.track_neighbors = self.get_neighbors(distance_matrix = self.track_distance_matrix, radius=self.bond_lengths[('Li', 'Si')])
+
+        if cluster_bonds == None:
+            cluster_bonds = (cluster_els[0], cluster_els[0])
+        self.cluster_neighbors = self.get_neighbors(distance_matrix=self.cluster_distance_matrix,
+                                                    cluster_bonds=cluster_bonds, species_list=species_list)
 
         clusters = self.find_clusters()
         clusters.sort(key=len)
         self.clusters = clusters
-        #avg_distance = self.get_mean_distance(clusters)
+        # avg_distance = self.get_mean_distance(clusters)
 
         return clusters
 
     def get_distance_matrix(self, structure):
+        species_list = []
+
         distance_matrix = [[0 for x in structure.sites] for y in structure.sites]
         for i in range(len(structure.sites)):
+            species_name = structure.sites[i].specie.name
+            species_list.append(species_name)
             for j in range(i):
                 _distance = structure.sites[i].distance(structure.sites[j])
                 distance_matrix[j][i] = _distance
                 distance_matrix[i][j] = _distance
 
-        return distance_matrix
+        return distance_matrix, species_list
 
     def get_track_distance_matrix(self, structure, track_els):
-        track_positions=[]
-        cluster_positions=[]
+        track_positions = []
+        cluster_positions = []
         for i in range(len(structure.species)):
             if structure.species[i] in track_els:
                 track_positions.append(i)
@@ -75,12 +85,15 @@ class ClusteringAnalyzer(object):
                 distance_matrix[i][j] = _distance
         return distance_matrix
 
-    def get_neighbors(self, distance_matrix, radius):
+    def get_neighbors(self, distance_matrix, cluster_bonds, species_list):
+
         neighbors = [[] for x in range(len(distance_matrix))]
         for i in range(len(distance_matrix)):
             for j in range(len(distance_matrix[i])):
-                if distance_matrix[i][j] <= radius:
-                    neighbors[i].append(j)
+                pair = tuple(sorted([species_list[i], species_list[j]]))
+                if pair in cluster_bonds:
+                    if distance_matrix[i][j] <= self.bond_lengths[pair]:
+                        neighbors[i].append(j)
         return neighbors
 
     def get_mean_distance(self, clusters):
@@ -97,7 +110,6 @@ class ClusteringAnalyzer(object):
                         bonds += 1
             avg_dist[n] = 0 if bonds == 0 else total_distance / bonds
         return avg_dist
-
 
     def find_clusters(self):
         _sites = set(np.arange(len(self.cluster_neighbors)))

@@ -6,35 +6,55 @@ import matplotlib.pyplot as plt
 import numpy as np
 import multiprocessing
 
+
+def process_frame(data):
+    frame_num, structure, bond_lengths, prune_els = data[0], data[1], data[2], data[3]
+
+    cluster_els = [Element('Si'), Element('O')]
+    cluster_bonds = [('O', 'Si'), ('Si', 'Si')]
+    ca = ClusteringAnalyzer(structure, bond_lengths=bond_lengths)
+    clusters = ca.get_clusters(prune_els=prune_els, cluster_els=cluster_els, cluster_bonds=cluster_bonds)
+    neighbors = ca.cluster_neighbors
+    # track_neighbors = ca.track_neighbors
+    track_neighbors = []
+    return frame_num, neighbors, clusters, track_neighbors
+
+
 class EnvironmentTracker():
     # TODO: Add functionality for multielemental clusters
     def __init__(self):
         pass
 
     def run(self, structures, frames=None, prune_els=[]):
-        if frames==None:
+        if frames == None:
             frames = len(structures)
-        bond_lengths = self.get_bond_distance(structures)
+        bond_lens = self.get_bond_distance(structures)
 
-        neighbor_array = (frames)*[None] #Predeclare 3d array of length of xdatcar
-        cluster_array = (frames)*[None]
-        track_neighbor_array = (frames)*[None]
-        for i in range(frames):
-            neighbors, clusters, track_neighbors = self.process_frame(structure=structures[len(structures)-frames+i], bond_lengths=bond_lengths, prune_els=prune_els)
-            track_neighbor_array[i] = track_neighbors
-            neighbor_array[i] = neighbors
-            cluster_array[i] = clusters
-        return neighbor_array, cluster_array, track_neighbor_array
+        pool = Pool(16)
+        inputs = [(i, structure, bond_lens, prune_els) for (i, structure) in enumerate(structures)]
+        results = pool.map(process_frame, inputs)
+        sort_key = lambda result: result[0]
+        sorted(results, key=sort_key)
+        neighbor_array = []
+        cluster_array = []
+        track_neighbors_array = []
+        for result in results:
+            neighbor_array.append(result[1])
+            cluster_array.append(result[2])
+            track_neighbors_array.append(result[3])
 
-    def process_frame(self, structure, bond_lengths, prune_els=[]):
-        ca = ClusteringAnalyzer(structure, bond_lengths=bond_lengths)
-        clusters = ca.get_clusters(prune_els=prune_els)
-        neighbors = ca.cluster_neighbors
-        track_neighbors = ca.track_neighbors
-        return neighbors, clusters, track_neighbors
+        # neighbor_array = (frames)*[None] #Predeclare 3d array of length of xdatcar
+        #         cluster_array = (frames)*[None]
+        #         track_neighbor_array = (frames)*[None]
+        #         for i in range(frames):
+        #             neighbors, clusters, track_neighbors = self.process_frame(structure=structures[len(structures)-frames+i], bond_lengths=bond_lengths, prune_els=prune_els)
+        #             track_neighbor_array[i] = track_neighbors
+        #             neighbor_array[i] = neighbors
+        #             cluster_array[i] = clusters
+        return neighbor_array, cluster_array, track_neighbors_array
 
     def get_bond_distance(self, structures):
-        bin_size = 0.1
+        bin_size = 0.01
         cutoff = 5
         rdf = RadialDistributionFunction(structures, step_freq=1, bin_size=bin_size, cutoff=cutoff, smooth=1)
         a = rdf.get_radial_distribution_functions(nproc=multiprocessing.cpu_count())
@@ -49,14 +69,14 @@ class EnvironmentTracker():
             maximum = y[0:int(4 / bin_size)].argmax() * bin_size
             min_past = maximum
             integration_cutoff_i = int(min_past / bin_size) + y[int(min_past / bin_size):].argmin()
-            bond_lengths[pair] = integration_cutoff_i*bin_size
+            bond_lengths[tuple(sorted(pair))] = integration_cutoff_i * bin_size
         return bond_lengths
 
     def get_statistics(self, track_el, neighbor_array, structure):
-        #How long does it stay near one cluster
-        #How many Si does the Li visit?
-        #Do Li stick to a cluster or one Si?
-        #Do more Si neighbors cause Li to stay longer?
+        # How long does it stay near one cluster
+        # How many Si does the Li visit?
+        # Do Li stick to a cluster or one Si?
+        # Do more Si neighbors cause Li to stay longer?
         struct_sites = structure.sites
         track_positions = []
         cluster_positions = []
@@ -70,6 +90,6 @@ class EnvironmentTracker():
         for frame in neighbor_array:
             for i in range(len(track_positions)):
                 for j in frame[i]:
-                    tracking_list[i][j]+=1
+                    tracking_list[i][j] += 1
 
         return tracking_list
