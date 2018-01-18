@@ -4,6 +4,7 @@ from mpmorph.analysis.clustering_analysis import ClusteringAnalyzer
 from mpmorph.analysis.structural_analysis import RadialDistributionFunction
 import matplotlib.pyplot as plt
 import numpy as np
+from multiprocessing import Pool
 import multiprocessing
 
 
