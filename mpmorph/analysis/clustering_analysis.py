@@ -125,7 +125,7 @@ class ClusteringAnalyzer(object):
                 _sites.difference_update(_neighbors)
                 _cluster.update(_neighbors)
                 queue.extend(_neighbors)
-            clusters.append(_cluster)
+            clusters.append(list(_cluster))
         return clusters
 
     def get_clusters_as_structures(self):
