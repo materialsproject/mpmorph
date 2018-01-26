@@ -112,7 +112,7 @@ class ClusteringAnalyzer(object):
         return avg_dist
 
     def find_clusters(self):
-        _sites = set(np.arange(len(self.cluster_neighbors), dtype=int))
+        _sites = set(range(len(self.cluster_neighbors)))
         clusters = []
         while _sites:
             site = _sites.pop()
