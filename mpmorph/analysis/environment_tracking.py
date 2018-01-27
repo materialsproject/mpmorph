@@ -18,6 +18,7 @@ def process_frame(data):
     neighbors = ca.cluster_neighbors
     # track_neighbors = ca.track_neighbors
     track_neighbors = []
+    del structure, bond_lengths, prune_els
     return frame_num, neighbors, clusters, track_neighbors
 
 
@@ -31,7 +32,7 @@ class EnvironmentTracker():
             frames = len(structures)
         bond_lens = self.get_bond_distance(structures)
 
-        pool = Pool(multiprocessing.cpu_count())
+        pool = Pool(multiprocessing.cpu_count(), maxtasksperchild=1000)
         inputs = [(i, structure, bond_lens, prune_els) for (i, structure) in enumerate(structures)]
         results = pool.map(process_frame, inputs)
         sort_key = lambda result: result[0]
@@ -44,6 +45,8 @@ class EnvironmentTracker():
             cluster_array.append(result[2])
             track_neighbors_array.append(result[3])
 
+        pool.close()
+        pool.join()
         # neighbor_array = (frames)*[None] #Predeclare 3d array of length of xdatcar
         #         cluster_array = (frames)*[None]
         #         track_neighbor_array = (frames)*[None]

@@ -52,7 +52,6 @@ class ClusteringAnalyzer(object):
         clusters.sort(key=len)
         self.clusters = clusters
         # avg_distance = self.get_mean_distance(clusters)
-
         return clusters
 
     def get_distance_matrix(self, structure):
