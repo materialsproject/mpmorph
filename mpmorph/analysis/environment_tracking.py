@@ -59,8 +59,6 @@ class EnvironmentTracker():
         cutoff = 5
         rdf = RadialDistributionFunction(structures, step_freq=1, bin_size=bin_size, cutoff=cutoff, smooth=1)
         a = rdf.get_radial_distribution_functions(nproc=multiprocessing.cpu_count())
-        rdf.plot_radial_distribution_functions()
-        plt.show()
 
         coord_nums = []
         bond_lengths = {}

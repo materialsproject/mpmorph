@@ -138,9 +138,4 @@ class ClusteringAnalyzer(object):
         cluster_structs = [Structure.from_sites(cluster_sites) for cluster_sites in clusters_sites]
         return cluster_structs
 
-    def get_rdfs(self):
-        rdfs = []
-        return rdfs
 
-    def plot_clusterSize(self):
-        return
