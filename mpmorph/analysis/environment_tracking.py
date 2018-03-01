@@ -9,10 +9,10 @@ import multiprocessing
 
 
 def process_frame(data):
-    frame_num, structure, bond_lengths, prune_els = data[0], data[1], data[2], data[3]
+    frame_num, structure, bond_lengths, prune_els, cluster_els, cluster_bonds = data[0], data[1], data[2], data[3], data[4], data[5]
 
-    cluster_els = [Element('Si'), Element('O')]
-    cluster_bonds = [('O', 'Si'), ('Si', 'Si')]
+    # cluster_els = [Element('Si'), Element('O')]
+    # cluster_bonds = [('O', 'Si'), ('Si', 'Si')]
     ca = ClusteringAnalyzer(structure, bond_lengths=bond_lengths)
     clusters = ca.get_clusters(prune_els=prune_els, cluster_els=cluster_els, cluster_bonds=cluster_bonds)
     neighbors = ca.cluster_neighbors
@@ -27,13 +27,13 @@ class EnvironmentTracker():
     def __init__(self):
         pass
 
-    def run(self, structures, frames=None, prune_els=[]):
+    def run(self, structures, cluster_els, cluster_bonds, frames=None, prune_els=[]):
         if frames == None:
             frames = len(structures)
         bond_lens = self.get_bond_distance(structures)
 
         pool = Pool(multiprocessing.cpu_count(), maxtasksperchild=1000)
-        inputs = [(i, structure, bond_lens, prune_els) for (i, structure) in enumerate(structures)]
+        inputs = [(i, structure, bond_lens, prune_els, cluster_els, cluster_bonds) for (i, structure) in enumerate(structures)]
         results = pool.map(process_frame, inputs)
         sort_key = lambda result: result[0]
         sorted(results, key=sort_key)
