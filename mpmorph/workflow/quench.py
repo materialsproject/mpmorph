@@ -7,7 +7,7 @@ from mpmorph.util import recursive_update
 import numpy as np
 
 
-def get_quench(structures, temperatures={}, priority=None, quench_type="simulated_anneal", cool_args={}, hold_args={},
+def get_quench(structures, temperatures={}, priority=None, quench_type="simulated_anneal", cool_args={}, hold_args={}, quench_args={},
                descriptor = "", **kwargs):
     fw_list = []
     if temperatures == {}:
@@ -41,16 +41,17 @@ def get_quench(structures, temperatures={}, priority=None, quench_type="simulate
             # Relax OptimizeFW and StaticFW
             run_args = {"run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                                       "spec": {"_priority": priority}},
-                        "optional_fw_params": {"override_default_vasp_params": {}, "copy_vasp_outputs": False}}
+                        "optional_fw_params": {"override_default_vasp_params": {}}}
+            run_args = recursive_update(run_args, quench_args)
             _name = str(structure.composition.reduced_formula) + "_snap_" + str(i)
 
             fw1 = OptimizeFW(structure=structure, name=_name + descriptor + "_optimize",
-                             parents=[_fw_list[-1]] if len(_fw_list) > 0 else [], **run_args["run_specs"], max_force_threshold=None)
+                             parents=[_fw_list[-1]] if len(_fw_list) > 0 else [], **run_args["run_specs"], **run_args["optional_fw_params"], max_force_threshold=None)
             if len(_fw_list) > 0:
                 fw1 = powerups.add_cont_structure(fw1)
             fw1 = powerups.add_pass_structure(fw1)
 
-            fw2 = StaticFW(structure=structure, name=_name + descriptor + "_static", parents=[fw1], **run_args["run_specs"])
+            fw2 = StaticFW(structure=structure, name=_name + descriptor + "_static", parents=[fw1], **run_args["run_specs"], **run_args["optional_fw_params"])
             fw2 = powerups.add_cont_structure(fw2)
             fw2 = powerups.add_pass_structure(fw2)
 
