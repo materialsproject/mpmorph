@@ -21,10 +21,11 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
     fw_list = []
     #Initial Run and convergence of structure
 
+    run_args = {"md_params": {"start_temp": 3000, "end_temp": 3000, "nsteps": 2000},
+                "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
+                              "wall_time": 86400},
+                "optional_fw_params": {"override_default_vasp_params": {}, "copy_vasp_outputs": False, "spec": {}}}
     if not preconverged:
-        run_args = {"md_params": {"start_temp": 3000, "end_temp": 3000, "nsteps":2000},
-                    "run_specs":{"vasp_input_set": None ,"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<", "wall_time": 86400},
-                    "optional_fw_params":{"override_default_vasp_params":{}, "copy_vasp_outputs": False, "spec":{}}}
 
         run_args["optional_fw_params"]["override_default_vasp_params"].update({'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
         run_args = recursive_update(run_args, converge_args)
