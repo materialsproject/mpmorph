@@ -25,11 +25,12 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                               "wall_time": 86400},
                 "optional_fw_params": {"override_default_vasp_params": {}, "copy_vasp_outputs": False, "spec": {}}}
-    if not preconverged:
 
-        run_args["optional_fw_params"]["override_default_vasp_params"].update({'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
-        run_args = recursive_update(run_args, converge_args)
-        run_args["optional_fw_params"]["spec"]["_priority"] = priority
+    run_args["optional_fw_params"]["override_default_vasp_params"].update(
+        {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
+    run_args = recursive_update(run_args, converge_args)
+    run_args["optional_fw_params"]["spec"]["_priority"] = priority
+    if not preconverged:
 
         fw = MDFW(structure=structure, name = "run0", previous_structure=False, insert_db=False, **run_args["md_params"],**run_args["run_specs"], **run_args["optional_fw_params"])
 
