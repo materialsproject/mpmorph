@@ -5,7 +5,7 @@ from mpmorph.analysis import md_data
 from pymatgen.io.vasp import Poscar
 from pymatgen import Structure
 import numpy as np
-from pymatgen.structure_prediction.volume_predictor import DLSVolumePredictor
+from pymatgen.analysis.structure_prediction.volume_predictor import DLSVolumePredictor
 
 @explicit_serialize
 class DLSVPRescaling(FireTaskBase):
