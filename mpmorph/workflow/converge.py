@@ -48,7 +48,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         # OptimizeFW does not take wall_time
 
         del run_args["run_specs"]["wall_time"]
-        del run_args["override_default_vasp_params"]["copy_vasp_outputs"]
+        del run_args["optional_fw_params"]["copy_vasp_outputs"]
         fw2 = OptimizeFW(structure=structure, name="rescale_optimize", insert_db=False,
                          parents=[fw1], **run_args["run_specs"],
                          **run_args["optional_fw_params"], max_force_threshold=None)
