@@ -36,7 +36,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         fw1 = MDFW(structure=structure, name = "run0", previous_structure=False, insert_db=False, **run_args["md_params"],**run_args["run_specs"], **run_args["optional_fw_params"])
 
         _spawner_args = {"converge_params":{"converge_type": [converge_type], "max_rescales": 10, "spawn_count": 0},
-                         "rescale_args":{"beta": 0.0000005},
+                         "rescale_params":{"beta": 0.0000005},
                          "run_specs": run_args["run_specs"], "md_params": run_args["md_params"],
                          "optional_fw_params":run_args["optional_fw_params"]}
         _spawner_args["md_params"].update({"start_temp":run_args["md_params"]["end_temp"]})
