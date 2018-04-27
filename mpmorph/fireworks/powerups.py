@@ -54,12 +54,3 @@ def replace_vaspmdtodb(fw):
         return
 
     return fw
-
-
-def add_adsorbate_task(fw, **kwargs):
-    asd_task = AdsorbateGeneratorTask(**kwargs)
-    fw.tasks.append(asd_task)
-    return fw
-
-
-from mpmorph.firetasks.vibtasks import AdsorbateGeneratorTask
