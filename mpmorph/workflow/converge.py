@@ -56,7 +56,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         fw2 = powerups.add_cont_structure(fw2)
         fw2 = powerups.add_pass_structure(fw2, rescale_volume=True)
 
-        fw_list.append(fw1, fw2)
+        fw_list.extend([fw1, fw2])
 
 
     #Production length MD runs
