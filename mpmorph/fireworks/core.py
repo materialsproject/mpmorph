@@ -83,7 +83,7 @@ class VibrationalFW(Firework):
 
 class OptimizeFW(Firework):
     def __init__(self, structure, name="structure optimization",
-                 vasp_input_set=None,
+                 vasp_input_set=None, insert_db=True,
                  vasp_cmd="vasp", override_default_vasp_params=None,
                  ediffg=None, db_file=None,
                  force_gamma=True, job_type="double_relaxation_run",
@@ -129,8 +129,9 @@ class OptimizeFW(Firework):
                                   half_kpts_first_relax=half_kpts_first_relax))
         t.append(PassCalcLocs(name=name))
         t.append(SaveStructureTask())
-        t.append(
-            VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
+
+        if insert_db:
+            t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
         super(OptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
                                          format(
             structure.composition.reduced_formula, name),
