@@ -29,6 +29,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
 
     run_args["optional_fw_params"]["override_default_vasp_params"].update(
         {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
+    run_args["optional_fw_params"]["spec"]["_queueadapter"] = {"walltime": run_args["run_specs"]["wall_time"]}
     run_args = recursive_update(run_args, converge_args)
     run_args["optional_fw_params"]["spec"]["_priority"] = priority
     if not preconverged:
@@ -44,6 +45,10 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
 
         fw1 = powerups.add_converge_task(fw1, **_spawner_args)
 
+        # OptimizeFW does not take wall_time
+
+        del run_args["run_specs"]["wall_time"]
+        del run_args["override_default_vasp_params"]["copy_vasp_outputs"]
         fw2 = OptimizeFW(structure=structure, name="rescale_optimize", insert_db=False,
                          parents=[fw1], **run_args["run_specs"],
                          **run_args["optional_fw_params"], max_force_threshold=None)
