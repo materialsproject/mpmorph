@@ -1,9 +1,28 @@
 from fireworks import explicit_serialize, Firework, Workflow, FireTaskBase, FWAction
 from mpmorph.runners.rescale_volume import RescaleVolume
-from pymatgen.io.vasp import Poscar
-from mpmorph.analysis import md_data
-import numpy as np
 from mpmorph.util import recursive_update
+from mpmorph.analysis import md_data
+from pymatgen.io.vasp import Poscar
+from pymatgen import Structure
+import numpy as np
+from pymatgen.structure_prediction.volume_predictor import DLSVolumePredictor
+
+@explicit_serialize
+class DLSVPRescaling(FireTaskBase):
+    """
+    After First MD run, manipulate the final structure according to:
+    1) Rescale according to DSLVolumePredictor
+    2) Run an optimize FW.
+    3) Pass Structure
+    """
+    required_params = []
+    optional_params = []
+
+    def run_task(self, fw_spec):
+        structure = Structure.from_dict(fw_spec["structure"])
+        dlsvp = DLSVolumePredictor()
+        dlsvp_structure = dlsvp.predict(structure)
+        return FWAction(update_spec={"structure": dlsvp_structure})
 
 @explicit_serialize
 class ConvergeTask(FireTaskBase):
@@ -25,9 +44,9 @@ class ConvergeTask(FireTaskBase):
         #Check convergence of all values in converge_params
         converge_params = self["converge_params"]
         rescale_params = self.get("rescale_params", {})
-        data_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
+        # data_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
         key_map = {'density': 'external', 'kinetic energy': 'kinetic energy EKIN', 'ionic': '% ion-electron', 'total energy': 'ETOTAL'}
-        outcar_data = md_data.get_MD_data("./OUTCAR.gz", search_keys=data_keys)
+        outcar_data = md_data.get_MD_data("./OUTCAR.gz", search_keys=list(key_map.values()))
         convergence_vars = converge_params["converge_type"]
         converged = False
         pressure = 0
@@ -37,7 +56,7 @@ class ConvergeTask(FireTaskBase):
 
             avg_fraction = converge_params.get("avg_fraction", 0.5)
 
-            _index = data_keys.index(key_map[converge_key])
+            _index = list(key_map.values()).index(key_map[converge_key])
             _data = np.transpose(outcar_data)[_index]
             avg_val = np.mean(_data[int(avg_fraction*(len(_data)-1)):])
             pressure = avg_val
@@ -60,7 +79,7 @@ class ConvergeTask(FireTaskBase):
                 md_params = self["md_params"]
                 optional_params = self["optional_fw_params"]
 
-                rescale_args = {"initial_pressure": pressure*1000, "initial_temperature": 1, "beta": 0.000002}
+                rescale_args = {"initial_pressure": pressure*1000, "initial_temperature": 1, "beta": 0.000001}
                 rescale_args = recursive_update(rescale_args, rescale_params)
 
                 #Spawn fw

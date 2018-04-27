@@ -1,7 +1,8 @@
 from fireworks import Firework, Workflow
 from mpmorph.fireworks import powerups
-from mpmorph.fireworks.core import MDFW
+from mpmorph.fireworks.core import MDFW, OptimizeFW
 from mpmorph.util import recursive_update
+from mpmorph.firetasks.mdtasks import DLSVPRescaling
 
 def get_converge(structure, priority = None, preconverged=False, prod_quants={"nsteps":5000,"target": 40000}, spawner_args={}, converge_args={}, prod_args={}, converge_type=("density", 5), **kwargs):
     """
@@ -32,18 +33,26 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
     run_args["optional_fw_params"]["spec"]["_priority"] = priority
     if not preconverged:
 
-        fw = MDFW(structure=structure, name = "run0", previous_structure=False, insert_db=False, **run_args["md_params"],**run_args["run_specs"], **run_args["optional_fw_params"])
+        fw1 = MDFW(structure=structure, name = "run0", previous_structure=False, insert_db=False, **run_args["md_params"],**run_args["run_specs"], **run_args["optional_fw_params"])
 
         _spawner_args = {"converge_params":{"converge_type": [converge_type], "max_rescales": 10, "spawn_count": 0},
-                         "rescale_args":{"beta": 0.0000008},
+                         "rescale_args":{"beta": 0.0000005},
                          "run_specs": run_args["run_specs"], "md_params": run_args["md_params"],
                          "optional_fw_params":run_args["optional_fw_params"]}
         _spawner_args["md_params"].update({"start_temp":run_args["md_params"]["end_temp"]})
         _spawner_args = recursive_update(_spawner_args, spawner_args)
 
-        fw = powerups.add_converge_task(fw, **_spawner_args)
+        fw1 = powerups.add_converge_task(fw1, **_spawner_args)
 
-        fw_list.append(fw)
+        fw2 = OptimizeFW(structure=structure, name="rescale_optimize",
+                         parents=[fw1], **run_args["run_specs"],
+                         **run_args["optional_fw_params"], max_force_threshold=None)
+        fw2.tasks.insert(0, DLSVPRescaling())
+        fw2 = powerups.add_cont_structure(fw2)
+        fw2 = powerups.add_pass_structure(fw2)
+
+        fw_list.append(fw1, fw2)
+
 
     #Production length MD runs
     #TODO Build continuation of MD on FIZZLED(from walltime) firework
