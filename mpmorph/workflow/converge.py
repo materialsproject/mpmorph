@@ -42,7 +42,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         fw2 = OptimizeFW(structure=structure, name="rescale_optimize", insert_db=False, job_type="normal",
                          parents=[fw1], **run_args["run_specs"],
                          **run_args["optional_fw_params"], max_force_threshold=None)
-        fw2.tasks.insert(0, DLSVPRescaling())
+        # fw2.tasks.insert(0, DLSVPRescaling())
         fw2 = powerups.add_cont_structure(fw2)
         fw2 = powerups.add_pass_structure(fw2, rescale_volume=True)
 
