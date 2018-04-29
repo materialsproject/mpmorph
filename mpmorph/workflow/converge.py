@@ -36,17 +36,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
 
         fw1 = MDFW(structure=structure, name = "run0", previous_structure=False, insert_db=False, **run_args["md_params"],**run_args["run_specs"], **run_args["optional_fw_params"])
 
-        _spawner_args = {"converge_params":{"converge_type": [converge_type], "max_rescales": 10, "spawn_count": 0},
-                         "rescale_params":{"beta": 0.0000005},
-                         "run_specs": run_args["run_specs"], "md_params": run_args["md_params"],
-                         "optional_fw_params":run_args["optional_fw_params"]}
-        _spawner_args["md_params"].update({"start_temp":run_args["md_params"]["end_temp"]})
-        _spawner_args = recursive_update(_spawner_args, spawner_args)
-
-        fw1 = powerups.add_converge_task(fw1, **_spawner_args)
-
         # OptimizeFW does not take wall_time
-
         del run_args["run_specs"]["wall_time"]
         del run_args["optional_fw_params"]["copy_vasp_outputs"]
         fw2 = OptimizeFW(structure=structure, name="rescale_optimize", insert_db=False, job_type="normal",
@@ -56,7 +46,18 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         fw2 = powerups.add_cont_structure(fw2)
         fw2 = powerups.add_pass_structure(fw2, rescale_volume=True)
 
-        fw_list.extend([fw1, fw2])
+        fw3 = MDFW(structure=structure, name="run0", previous_structure=True, insert_db=False, **run_args["md_params"],
+                   parents=[fw2], **run_args["run_specs"], **run_args["optional_fw_params"])
+
+        _spawner_args = {"converge_params":{"converge_type": [converge_type], "max_rescales": 10, "spawn_count": 0},
+                         "rescale_params":{"beta": 0.0000005},
+                         "run_specs": run_args["run_specs"], "md_params": run_args["md_params"],
+                         "optional_fw_params":run_args["optional_fw_params"]}
+        _spawner_args["md_params"].update({"start_temp":run_args["md_params"]["end_temp"]})
+        _spawner_args = recursive_update(_spawner_args, spawner_args)
+        fw3 = powerups.add_converge_task(fw3, **_spawner_args)
+
+        fw_list.extend([fw1, fw2, fw3])
 
 
     #Production length MD runs
