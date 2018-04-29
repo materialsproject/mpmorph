@@ -19,10 +19,15 @@ class DLSVPRescaling(FireTaskBase):
     optional_params = []
 
     def run_task(self, fw_spec):
-        structure = Structure.from_dict(fw_spec["structure"])
+        with open("sst_out", 'w') as f:
+            f.write(str(fw_spec["structure"]))
+            f.close()
+        structure_dict = fw_spec["structure"]
+        structure = Structure.from_dict(structure_dict)
         dlsvp = DLSVolumePredictor()
-        dlsvp_structure = dlsvp.predict(structure)
-        return FWAction(update_spec={"structure": dlsvp_structure})
+        dlsvp_volume = dlsvp.predict(structure)
+        structure.scale_lattice(dlsvp_volume)
+        return FWAction(update_spec={"structure": structure})
 
 @explicit_serialize
 class ConvergeTask(FireTaskBase):
