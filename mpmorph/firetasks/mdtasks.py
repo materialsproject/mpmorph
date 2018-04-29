@@ -22,8 +22,7 @@ class DLSVPRescaling(FireTaskBase):
         with open("sst_out", 'w') as f:
             f.write(str(fw_spec["structure"]))
             f.close()
-        structure_dict = fw_spec["structure"]
-        structure = Structure.from_dict(structure_dict)
+        structure = fw_spec["structure"]
         dlsvp = DLSVolumePredictor()
         dlsvp_volume = dlsvp.predict(structure)
         structure.scale_lattice(dlsvp_volume)
