@@ -34,7 +34,7 @@ class SaveStructureTask(FireTaskBase):
 
         if self.get("rescale_volume", False):
             spec_structure = Structure.from_dict(fw_spec["structure"])
-            scaling_volume = _poscar.structure.volume()
+            scaling_volume = _poscar.structure.volume
             spec_structure.scale_lattice(scaling_volume)
             _structure = spec_structure.as_dict()
 
