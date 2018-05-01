@@ -49,11 +49,12 @@ class ConvergeTask(FireTaskBase):
         avg_fraction = converge_params.get("avg_fraction", 0.5)
         convergence_vars = dict(converge_params["converge_type"])
         if "total energy" not in convergence_vars.keys():
-            convergence_vars["total_energy"]=0.0005
+            convergence_vars["total energy"]=0.0005
         rescale_params = self.get("rescale_params", {})
 
         #Load Data from OUTCAR
-        key_map = {'density': 'external', 'kinetic energy': 'kinetic energy EKIN', 'ionic': '% ion-electron', 'total energy': 'ETOTAL'}
+        key_map = {'density': 'external', 'kinetic energy': 'kinetic energy EKIN', 'ionic': '% ion-electron',
+                   'total energy': 'ETOTAL'}
         outcar_data = md_data.get_MD_data("./OUTCAR.gz", search_keys=list(key_map.values()))
 
 
