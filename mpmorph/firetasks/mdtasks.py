@@ -70,21 +70,21 @@ class ConvergeTask(FireTaskBase):
 
 
         if "kinetic energy" in convergence_vars.keys():
-            _index = list(key_map.values()).index(key_map["kinetic_energy"])
+            _index = list(key_map.values()).index(key_map["kinetic energy"])
             energy = np.transpose(outcar_data)[_index].copy()
             norm_energy = (energy / structure.num_sites) / np.mean(energy / structure.num_sites) - 1
             if np.abs(np.mean(norm_energy[-500:])-np.mean(norm_energy)) > convergence_vars["kinetic energy"]:
-                converged["kinetic_energy"] = False
+                converged["kinetic energy"] = False
             else:
-                converged["kinetic_energy"] = True
+                converged["kinetic energy"] = True
 
-        _index = list(key_map.values()).index(key_map["total_energy"])
+        _index = list(key_map.values()).index(key_map["total energy"])
         energy = np.transpose(outcar_data)[_index].copy()
         norm_energy = (energy / structure.num_sites) / np.mean(energy / structure.num_sites) - 1
-        if np.abs(np.mean(norm_energy[-500:]) - np.mean(norm_energy)) > convergence_vars["total_energy"]:
-            converged["total_energy"] = False
+        if np.abs(np.mean(norm_energy[-500:]) - np.mean(norm_energy)) > convergence_vars["total energy"]:
+            converged["total energy"] = False
         else:
-            converged["total_energy"] = True
+            converged["total energy"] = True
 
         # Spawn Additional Fireworks
         if not all([item[1] for item in converged.items()]):
