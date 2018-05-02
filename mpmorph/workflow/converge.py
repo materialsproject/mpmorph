@@ -48,7 +48,8 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         fw2 = powerups.add_cont_structure(fw2)
         fw2 = powerups.add_pass_structure(fw2, rescale_volume=True)
 
-        run_args["md_params"]["start_temp"] = run_args["md_params"]["end_temp"]
+        if len(spawner_args["md_params"].keys())>0:
+            run_args["md_params"].update(spawner_args["md_params"])
         fw3 = MDFW(structure=structure, name="run1", previous_structure=True, insert_db=False, **run_args["md_params"],
                    parents=[fw2], **run_args["run_specs"], **run_args["optional_fw_params"])
 
