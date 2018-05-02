@@ -53,7 +53,8 @@ class MDFW(Firework):
             t.append(PreviousStructureTask())
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time))
-        t.append(PassCalcLocs(name=name))
+        if copy_vasp_outputs:
+            t.append(PassCalcLocs(name=name))
         t.append(SaveStructureTask())
         if insert_db:
             t.append(VaspMDToDb(db_file=db_file,
@@ -73,7 +74,7 @@ class OptimizeFW(Firework):
                  previous_structure=False,
                  auto_npar=">>auto_npar<<",
                  half_kpts_first_relax=False, parents=None,
-                 **kwargs):
+                 copy_vasp_outputs=False, **kwargs):
         """
         Optimize the given structure.
         Args:
@@ -109,7 +110,8 @@ class OptimizeFW(Firework):
                                   ediffg=ediffg,
                                   auto_npar=auto_npar,
                                   half_kpts_first_relax=half_kpts_first_relax))
-        t.append(PassCalcLocs(name=name))
+        if copy_vasp_outputs:
+            t.append(PassCalcLocs(name=name))
         t.append(SaveStructureTask())
 
         if insert_db:
