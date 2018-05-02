@@ -35,7 +35,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
     if not preconverged:
 
         fw1 = MDFW(structure=structure, name = "run0", previous_structure=False, insert_db=False,
-                   copy_vasp_outputs=False, **run_args["md_params"],**run_args["run_specs"],
+                   **run_args["md_params"],**run_args["run_specs"],
                    **run_args["optional_fw_params"])
 
         # OptimizeFW does not take wall_time
@@ -49,7 +49,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         fw2 = powerups.add_pass_structure(fw2, rescale_volume=True)
 
         fw3 = MDFW(structure=structure, name="run1", previous_structure=True, insert_db=False, **run_args["md_params"],
-                   parents=[fw2], copy_vasp_outputs=False, **run_args["run_specs"], **run_args["optional_fw_params"])
+                   parents=[fw2], **run_args["run_specs"], **run_args["optional_fw_params"])
 
         _spawner_args = {"converge_params":{"converge_type": [converge_type], "max_rescales": 15, "spawn_count": 1},
                          "rescale_params":{"beta": 0.0000005},

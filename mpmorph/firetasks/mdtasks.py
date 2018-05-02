@@ -103,7 +103,7 @@ class ConvergeTask(FireTaskBase):
 
                     # Spawn fw
                     fw = MDFW(structure, name="density_run" + str(spawn_count + 1), previous_structure=True,
-                              insert_db=False, copy_vasp_outputs=False, **run_specs, **md_params, **optional_params)
+                              insert_db=False, **run_specs, **md_params, **optional_params)
                     converge_params["spawn_count"] += 1
                     _spawner_args = {"converge_params": converge_params, "rescale_params": rescale_params,
                                      "run_specs": run_specs, "md_params": md_params,
@@ -112,7 +112,7 @@ class ConvergeTask(FireTaskBase):
                     fw = powerups.add_converge_task(fw, **_spawner_args)
                 else:
                     fw = MDFW(structure, name="energy_run" + str(spawn_count + 1), previous_structure=True,
-                              insert_db=False, copy_vasp_outputs=False, **run_specs, **md_params, **optional_params)
+                              insert_db=False, **run_specs, **md_params, **optional_params)
                     converge_params["spawn_count"] += 1
                     _spawner_args = {"converge_params": converge_params, "rescale_params": rescale_params,
                                      "run_specs": run_specs, "md_params": md_params,
