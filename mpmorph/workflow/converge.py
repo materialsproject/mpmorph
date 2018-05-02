@@ -2,7 +2,7 @@ from fireworks import Firework, Workflow
 from mpmorph.fireworks import powerups
 from mpmorph.fireworks.core import MDFW, OptimizeFW
 from mpmorph.util import recursive_update
-from mpmorph.firetasks.mdtasks import DLSVPRescaling
+import uuid
 
 def get_converge(structure, priority = None, preconverged=False, prod_quants={"nsteps":5000,"target": 40000}, spawner_args={}, converge_args={}, prod_args={}, converge_type=("density", 5), **kwargs):
     """
@@ -68,6 +68,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
     #TODO Build continuation of MD on FIZZLED(from walltime) firework
     prod_steps = 0
     i = 0
+    tag_id = uuid.uuid4()
     while prod_steps <= prod_quants["target"] - prod_quants["nsteps"]:
         run_args = {"md_params": {"start_temp": run_args["md_params"]["end_temp"], "end_temp": run_args["md_params"]["end_temp"], "nsteps":5000},
                     "run_specs":{"vasp_input_set": None ,"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<", "wall_time": 86400},
@@ -80,7 +81,7 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
         parents = fw_list[-1] if len(fw_list) > 0 else []
         previous_structure = False if preconverged and i==0 else True
-        fw = MDFW(structure=structure, name = run_args["label"] + str(i), previous_structure=previous_structure, insert_db=True, **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
+        fw = MDFW(structure=structure, name = run_args["label"] + str(i) + tag_id, previous_structure=previous_structure, insert_db=True, **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
         fw_list.append(fw)
 
         prod_steps += prod_quants["nsteps"]
