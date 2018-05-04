@@ -53,14 +53,15 @@ class ConvergeTask(FireTaskBase):
         rescale_params = self.get("rescale_params", {})
 
         #Load Data from OUTCAR
+        search_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
         key_map = {'density': 'external', 'kinetic energy': 'kinetic energy EKIN', 'ionic': '% ion-electron',
                    'total energy': 'ETOTAL'}
-        outcar_data = md_data.get_MD_data("./OUTCAR.gz", search_keys=list(key_map.values()))
+        outcar_data = md_data.get_MD_data("./OUTCAR.gz", search_keys=search_keys)
 
 
         # Check for convergence
         converged={}
-        _index = list(key_map.values()).index(key_map["density"])
+        _index = search_keys.index(key_map["density"])
         _data = np.transpose(outcar_data)[_index].copy()
         pressure = np.mean(_data[int(avg_fraction * (len(_data) - 1)):])
         if "density" in convergence_vars.keys():
@@ -71,7 +72,7 @@ class ConvergeTask(FireTaskBase):
 
 
         if "kinetic energy" in convergence_vars.keys():
-            _index = list(key_map.values()).index(key_map["kinetic energy"])
+            _index = search_keys.index(key_map["kinetic energy"])
             energy = np.transpose(outcar_data)[_index].copy()
             norm_energy = (energy / structure.num_sites) / np.mean(energy / structure.num_sites) - 1
             if np.abs(np.mean(norm_energy[-500:])-np.mean(norm_energy)) > convergence_vars["kinetic energy"]:
@@ -79,7 +80,7 @@ class ConvergeTask(FireTaskBase):
             else:
                 converged["kinetic energy"] = True
 
-        _index = list(key_map.values()).index(key_map["total energy"])
+        _index = search_keys.index(key_map["total energy"])
         energy = np.transpose(outcar_data)[_index].copy()
         norm_energy = (energy / structure.num_sites) / np.mean(energy / structure.num_sites) - 1
         if np.abs(np.mean(norm_energy[-500:]) - np.mean(norm_energy)) > convergence_vars["total energy"]:
