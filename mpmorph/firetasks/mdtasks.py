@@ -92,18 +92,19 @@ class ConvergeTask(FireTaskBase):
         if not all([item[1] for item in converged.items()]):
             spawn_count = converge_params["spawn_count"]
             max_spawns = converge_params["max_rescales"]
-            if spawn_count >= max_spawns:
-                return FWAction(defuse_children=True)
-            else:
-                run_specs = self["run_specs"]
-                md_params = self["md_params"]
-                optional_params = self["optional_fw_params"]
-                if not converged["density"]:
+
+            run_specs = self["run_specs"]
+            md_params = self["md_params"]
+            optional_params = self["optional_fw_params"]
+            if not converged["density"]:
+                if spawn_count >= max_spawns:
+                    return FWAction(defuse_children=True)
+                else:
                     rescale_args = {"initial_pressure": pressure * 1000, "initial_temperature": 1, "beta": 0.0000005}
                     rescale_args = recursive_update(rescale_args, rescale_params)
 
                     # Spawn fw
-                    fw = MDFW(structure, name="density_run" + str(spawn_count + 1), previous_structure=True,
+                    fw = MDFW(structure, name="density_run" + str(spawn_count + 1), previous_structure=False,
                               insert_db=False, **run_specs, **md_params, **optional_params)
                     converge_params["spawn_count"] += 1
                     _spawner_args = {"converge_params": converge_params, "rescale_params": rescale_params,
@@ -111,16 +112,16 @@ class ConvergeTask(FireTaskBase):
                                      "optional_fw_params": optional_params}
                     fw = powerups.add_rescale_volume(fw, **rescale_args)
                     fw = powerups.add_converge_task(fw, **_spawner_args)
-                else:
-                    fw = MDFW(structure, name="energy_run" + str(spawn_count + 1), previous_structure=True,
-                              insert_db=False, **run_specs, **md_params, **optional_params)
-                    converge_params["spawn_count"] += 1
-                    _spawner_args = {"converge_params": converge_params, "rescale_params": rescale_params,
-                                     "run_specs": run_specs, "md_params": md_params,
-                                     "optional_fw_params": optional_params}
-                    fw = powerups.add_converge_task(fw, **_spawner_args)
-                wf = Workflow([fw])
-                return FWAction(detours=wf, stored_data={'pressure': pressure})
+            else:
+                fw = MDFW(structure, name="energy_run" + str(spawn_count + 1), previous_structure=False,
+                          insert_db=False, **run_specs, **md_params, **optional_params)
+                converge_params["spawn_count"] += 1
+                _spawner_args = {"converge_params": converge_params, "rescale_params": rescale_params,
+                                 "run_specs": run_specs, "md_params": md_params,
+                                 "optional_fw_params": optional_params}
+                fw = powerups.add_converge_task(fw, **_spawner_args)
+            wf = Workflow([fw])
+            return FWAction(detours=wf, stored_data={'pressure': pressure})
         else:
             return FWAction(stored_data={'pressure': pressure, 'density_calculated': True})
 
