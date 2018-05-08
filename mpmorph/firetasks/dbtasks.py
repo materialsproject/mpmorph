@@ -53,8 +53,8 @@ class VaspMDToDb(FiretaskBase):
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
 
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
-                          parse_dos=self.get("parse_dos", False), compress_dos=1,
-                          bandstructure_mode=self.get("bandstructure_mode", False), compress_bs=1)
+                          parse_dos=self.get("parse_dos", False),
+                          bandstructure_mode=self.get("bandstructure_mode", False))
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
