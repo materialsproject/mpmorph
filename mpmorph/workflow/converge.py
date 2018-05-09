@@ -39,12 +39,10 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
                    **run_args["optional_fw_params"])
 
         # OptimizeFW does not take wall_time
-        del run_args["run_specs"]["wall_time"]
-        del run_args["optional_fw_params"]["copy_vasp_outputs"]
-        fw2 = OptimizeFW(structure=structure, name="rescale_optimize", insert_db=False, job_type="normal",
-                         parents=[fw1], **run_args["run_specs"],
-                         **run_args["optional_fw_params"], max_force_threshold=None)
-        # fw2.tasks.insert(0, DLSVPRescaling())
+        optimize_args = {"run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
+                                  "spec": {"_priority": priority}}}
+        fw2 = OptimizeFW(structure=structure, name="rescale_optimize", insert_db=False, job_type="double_relaxation_run",
+                         parents=[fw1], **optimize_args["run_specs"], max_force_threshold=None)
         fw2 = powerups.add_cont_structure(fw2)
         fw2 = powerups.add_pass_structure(fw2, rescale_volume=True)
 
