@@ -1,6 +1,6 @@
 from mpmorph.firetasks.mdtasks import RescaleVolumeTask, ConvergeTask
 from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask
-from mpmorph.firetasks.dbtasks import VaspMDToDb
+from mpmorph.firetasks.dbtasks import VaspMDToDb, TrajectoryDBTask
 
 
 def add_converge_task(fw, **kwargs):
@@ -8,6 +8,9 @@ def add_converge_task(fw, **kwargs):
     fw.tasks.append(spawner_task)
     return fw
 
+def aggregate_trajectory(fw, **kwargs):
+    fw.tasks.append(TrajectoryDBTask(**kwargs))
+    return fw
 
 def add_cont_structure(fw):
     prev_struct_task = PreviousStructureTask()

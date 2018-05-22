@@ -1,15 +1,28 @@
 from fireworks import explicit_serialize, Firework, Workflow, FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
+from multiprocessing import Pool
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
 from mpmorph.database.database import VaspMDCalcDb
 from atomate.vasp.drones import VaspDrone
-from pymatgen.io.vasp import Vasprun
-import numpy as np
+from pymatgen.core.trajectory import Trajectory
+import re
 import os
 import json
+import gridfs
+
+from tqdm import tqdm
+from monty.json import MontyEncoder
+import json
+import zlib
+from BatteryAnalysis.Tools.QueryMongo import MongoObject
+import gridfs
+from multiprocessing import Pool
+from pymatgen.core.trajectory import Trajectory
+from bson import ObjectId
+
 
 logger = get_logger(__name__)
 
@@ -85,3 +98,109 @@ class VaspMDToDb(FiretaskBase):
         return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
                         defuse_children=defuse_children)
 
+
+@explicit_serialize
+class TrajectoryDBTask(FiretaskBase):
+    """
+    Obtain all production runs and insert them into the db. This is done by searching for a tag
+    """
+    required_params = ["run_tag", "db_file"]
+    optional_params = []
+
+    def run_task(self, fw_spec):
+        # get the database connection
+        db_file = env_chk(self.get('db_file'), fw_spec)
+        mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
+        runs = mmdb.find({"task_label": {"$regex": re.compile(".*" + fw_spec["run_tag"] + ".*")}})
+        runs_sorted = sorted(runs, key=lambda x: int(x["task_label"].split("_")[-1].split("-")[0]))
+
+        trajectory_doc = self.runs_to_trajectory_doc(runs_sorted, db_file, fw_spec["run_tag"])
+
+        mmdb.db.trajectories.insert_one(trajectory_doc)
+
+    def runs_to_trajectory_doc(self, runs, db_file, runs_label):
+        trajectory = self.load_trajectories_from_gfs(runs, db_file)
+
+        mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
+        traj_dict = json.dumps(trajectory.as_dict(), cls=MontyEncoder)
+        gfs_id, compression_type = insert_gridfs(traj_dict, mmdb.db, "trajectories_fs")
+
+        traj_doc = {}
+        traj_doc['formula_pretty'] = trajectory.composition.reduced_formula
+        traj_doc['temperature'] = runs[0]["input"]["incar"]["TEBEG"]
+        traj_doc['runs_label'] = runs_label
+        traj_doc['compression'] = compression_type
+        traj_doc['fs_id'] = gfs_id
+        traj_doc['structure'] = trajectory.structure.as_dict()
+        traj_doc['length'] = len(trajectory.displacements)
+        traj_doc['time_step'] = 0.002
+        return traj_doc
+
+    def load_trajectories_from_gfs(self, runs, db_file):
+        fs_id = []
+        fs = []
+        for run in runs:
+            if "INCAR" in run.keys():
+                fs_id.append(run["ionic_steps_fs_id"])
+                fs.append('previous_runs_gfs')
+            elif "input" in run.keys():
+                fs_id.append(run["calcs_reversed"][0]["output"]["ionic_steps_fs_id"])
+                fs.append('structures_fs')
+        chunk_data = [(i, fs_id, fs[i], db_file) for i, fs_id in enumerate(fs_id)]
+        pool = Pool(16)
+        results = pool.map(process_traj, chunk_data)
+        trajectory = None
+        for result in sorted(results, key=lambda x: x[0]):
+            #         print(result[0])
+            if not trajectory:
+                trajectory = Trajectory.from_dict(result[1])
+            else:
+                trajectory.combine(Trajectory.from_dict(result[1]))
+        pool.close()
+        pool.join()
+        return trajectory
+
+
+def process_traj(data):
+    i, fs_id, fs, db_file = data[0], data[1], data[2], data[3]
+    mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
+    ionic_steps_dict = load_ionic_steps(fs_id, mmdb.db, fs)
+    return i, Trajectory.from_ionic_steps(ionic_steps_dict).as_dict()
+
+
+def load_ionic_steps(fs_id, db, fs):
+    fs = gridfs.GridFS(db, fs)
+    ionic_steps_json = zlib.decompress(fs.get(fs_id).read())
+    ionic_steps_dict = json.loads(ionic_steps_json.decode())
+    del ionic_steps_json
+    return ionic_steps_dict
+
+
+def insert_gridfs(d, db, collection="fs", compress=True, oid=None, task_id=None):
+    """
+    Insert the given document into GridFS.
+    Args:
+        d (dict): the document
+        collection (string): the GridFS collection name
+        compress (bool): Whether to compress the data or not
+        oid (ObjectId()): the _id of the file; if specified, it must not already exist in GridFS
+        task_id(int or str): the task_id to store into the gridfs metadata
+    Returns:
+        file id, the type of compression used.
+    """
+    oid = oid or ObjectId()
+    compression_type = None
+
+    if compress:
+        d = zlib.compress(d.encode(), compress)
+        compression_type = "zlib"
+
+    fs = gridfs.GridFS(db, collection)
+    if task_id:
+        # Putting task id in the metadata subdocument as per mongo specs:
+        # https://github.com/mongodb/specifications/blob/master/source/gridfs/gridfs-spec.rst#terms
+        fs_id = fs.put(d, _id=oid, metadata={"task_id": task_id, "compression": compression_type})
+    else:
+        fs_id = fs.put(d, _id=oid, metadata={"compression": compression_type})
+
+    return fs_id, compression_type
