@@ -8,7 +8,7 @@ import shutil
 
 
 class AmorphousMaker(object):
-    def __init__(self, el_num_dict, box_scale, tol=2.0, packmol_path="packmol", clean=True, xyz_paths=None):
+    def __init__(self, el_num_dict, box_scale, tol=2.0, packmol_path="packmol", clean=True, xyz_paths=None, time_seed=False):
         """
         Class for generating initial constrained-random packed structures for the
         simulation of amorphous or liquid structures. This is a wrapper for "packmol" package.
@@ -27,6 +27,7 @@ class AmorphousMaker(object):
             clean (bool): whether the intermedite files generated are deleted.
             xyz_paths (list): list of paths (str) to xyz files correpsonding to molecules, if given so in el_num_dict.
                 file names must match the molecule formula.
+            time_seed (bool): whether to generate a random seed based on system time
         """
         self.el_num_dict = el_num_dict
         self.box_scale = box_scale
@@ -37,6 +38,7 @@ class AmorphousMaker(object):
         self.packmol_path = packmol_path
         self.clean = clean
         self.xyz_paths = xyz_paths
+        self.time_seed = time_seed
         if self.xyz_paths:
             assert len(self.xyz_paths)==len(self.el_num_dict.keys())
             self.clean = False
@@ -83,6 +85,9 @@ class AmorphousMaker(object):
                           + "\n  inside box" + 3*(" " + str(pm_l))
                           + (" " + str(pm_h[0])) + (" " + str(pm_h[1])) + (" " + str(pm_h[2]))
                           + "\nend structure\n\n")
+
+            if self.time_seed:
+                f.write("seed -1\n")
 
             if self.xyz_paths:
                 for path in self.xyz_paths:
