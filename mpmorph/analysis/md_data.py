@@ -44,16 +44,17 @@ def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
     for line in outcar:
         line = line.rstrip()
         for key_index in range(len(search_keys)):
-            if re.search(search_keys[key_index],line):
+            if re.search(search_keys[key_index], line):
                 if key_index == 0:
-                    data_list.append([float(line.split()[search_data_column[key_index]])])
+                    data_list.append([[]] * len(search_keys))
+                    data_list[md_step][0] = float(line.split()[search_data_column[key_index]])
                 else:
                     try:
-                        data_list[md_step].append(float(line.split()[search_data_column[key_index]]))
+                        data_list[md_step][key_index] = float(line.split()[search_data_column[key_index]])
                     except IndexError:
                         break
-                if key_index == len(search_keys)-1:
-                    md_step +=1
+                if key_index == len(search_keys) - 1:
+                    md_step += 1
     print("Requested information parsed.")
     outcar.close()
     return data_list
