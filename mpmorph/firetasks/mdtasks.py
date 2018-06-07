@@ -48,8 +48,8 @@ class ConvergeTask(FireTaskBase):
         converge_params = self["converge_params"]
         avg_fraction = converge_params.get("avg_fraction", 0.5)
         convergence_vars = dict(converge_params["converge_type"])
-        if "total energy" not in convergence_vars.keys():
-            convergence_vars["total energy"]=0.0005
+        if "ionic" not in convergence_vars.keys():
+            convergence_vars["ionic"]=0.0005
         rescale_params = self.get("rescale_params", {})
 
         #Load Data from OUTCAR
@@ -80,13 +80,13 @@ class ConvergeTask(FireTaskBase):
             else:
                 converged["kinetic energy"] = True
 
-        _index = search_keys.index(key_map["total energy"])
+        _index = search_keys.index(key_map["ionic"])
         energy = np.transpose(outcar_data)[_index].copy()
         norm_energy = (energy / structure.num_sites) / np.mean(energy / structure.num_sites) - 1
-        if np.abs(np.mean(norm_energy[-500:]) - np.mean(norm_energy)) > convergence_vars["total energy"]:
-            converged["total energy"] = False
+        if np.abs(np.mean(norm_energy[-500:]) - np.mean(norm_energy)) > convergence_vars["ionic"]:
+            converged["ionic"] = False
         else:
-            converged["total energy"] = True
+            converged["ionic"] = True
 
         # Spawn Additional Fireworks
         if not all([item[1] for item in converged.items()]):
