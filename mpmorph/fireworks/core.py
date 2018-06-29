@@ -74,7 +74,7 @@ class OptimizeFW(Firework):
                  previous_structure=False,
                  auto_npar=">>auto_npar<<",
                  half_kpts_first_relax=False, parents=None,
-                 copy_vasp_outputs=False, **kwargs):
+                 copy_vasp_outputs=False, pass_structure=True, **kwargs):
         """
         Optimize the given structure.
         Args:
@@ -112,7 +112,8 @@ class OptimizeFW(Firework):
                                   half_kpts_first_relax=half_kpts_first_relax))
         if copy_vasp_outputs:
             t.append(PassCalcLocs(name=name))
-        t.append(SaveStructureTask())
+        if pass_structure:
+            t.append(SaveStructureTask())
 
         if insert_db:
             t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))

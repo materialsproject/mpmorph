@@ -104,7 +104,7 @@ class TrajectoryDBTask(FiretaskBase):
     """
     Obtain all production runs and insert them into the db. This is done by searching for a tag
     """
-    required_params = ["run_tag", "db_file"]
+    required_params = ["tag_id", "db_file"]
     optional_params = []
 
     def run_task(self, fw_spec):
@@ -134,6 +134,7 @@ class TrajectoryDBTask(FiretaskBase):
         traj_doc['structure'] = trajectory.structure.as_dict()
         traj_doc['length'] = len(trajectory.displacements)
         traj_doc['time_step'] = 0.002
+        traj_doc['tag'] = self.get('tag_id')
         return traj_doc
 
     def load_trajectories_from_gfs(self, runs, db_file):
