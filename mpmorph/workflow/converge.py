@@ -78,13 +78,15 @@ def get_converge(structure, priority = None, preconverged=False, prod_quants={"n
         run_args = recursive_update(run_args, prod_args)
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
         parents = fw_list[-1] if len(fw_list) > 0 else []
-        previous_structure = False if preconverged and i==0 else True
-        fw = MDFW(structure=structure, name = run_args["label"] + str(i) + "-"+ str(tag_id), previous_structure=previous_structure, insert_db=True, **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
+        previous_structure = False if preconverged and i == 0 else True
+        fw = MDFW(structure=structure, name=run_args["label"] + str(i) + "-" + str(tag_id),
+                  previous_structure=previous_structure, insert_db=True, **run_args["md_params"],
+                  **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
         fw_list.append(fw)
 
-        prod_steps += prod_quants["nsteps"]
-        i+=1
+        prod_steps += max_steps
+        i += 1
 
-    pretty_name=structure.composition.reduced_formula
-    wf = Workflow(fireworks=fw_list, name = pretty_name + "_diffusion")
+    pretty_name = structure.composition.reduced_formula
+    wf = Workflow(fireworks=fw_list, name=pretty_name + "_diffusion")
     return wf
