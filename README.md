@@ -20,3 +20,9 @@ MPmorph provides:
   * Diffusion coefficients:  
     * Robust calculation of diffusion coefficients (D) and activation energies (Q).
     * Rigorous error analysis for D and Q.
+    
+# Citation
+
+If you use mpmorph, please cite the following papers:
+ * Aykol, M., Dwaraknath, S.S., Sun, W. and Persson, K.A., 2018. Thermodynamic limit for synthesis of metastable inorganic materials. Science advances, 4(4), p.eaaq0148.
+ * Aykol, M. and Persson, K.A., 2018. Oxidation Protection with Amorphous Surface Oxides: Thermodynamic Insights from Ab Initio Simulations on Aluminum. ACS applied materials & interfaces, 10(3), pp.3039-3045.
