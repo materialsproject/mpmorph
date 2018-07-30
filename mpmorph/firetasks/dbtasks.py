@@ -1,23 +1,15 @@
-from fireworks import explicit_serialize, Firework, Workflow, FiretaskBase, FWAction
+from fireworks import explicit_serialize, FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
-
-from multiprocessing import Pool
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk
 from atomate.utils.utils import get_logger
 from mpmorph.database.database import VaspMDCalcDb
 from atomate.vasp.drones import VaspDrone
-from pymatgen.core.trajectory import Trajectory
 import re
 import os
-import json
-import gridfs
-
-from tqdm import tqdm
 from monty.json import MontyEncoder
 import json
 import zlib
-from BatteryAnalysis.Tools.QueryMongo import MongoObject
 import gridfs
 from multiprocessing import Pool
 from pymatgen.core.trajectory import Trajectory
