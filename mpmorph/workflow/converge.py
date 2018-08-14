@@ -54,7 +54,7 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
             fw2 = OptimizeFW(structure=structure, name="rescale_optimize", insert_db=False, job_type="normal",
                              parents=[fw1], **optimize_args["run_specs"], max_force_threshold=None)
             fw2 = powerups.add_cont_structure(fw2)
-            fw2 = powerups.add_pass_structure(fw2, rescale_volume=True)
+            fw2 = powerups.replace_rescale_volume(fw2, rescale_volume=True)
 
             if len(spawner_args["md_params"].keys()) > 0:
                 run_args["md_params"].update(spawner_args["md_params"])

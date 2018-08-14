@@ -40,6 +40,22 @@ def add_rescale_volume(fw, **kwargs):
     fw.tasks.insert(insert_i, rsv_task)
     return fw
 
+def replace_rescale_volume(fw, **kwargs):
+    # look for rescale_volume task
+    replaced = False
+    fw_dict = fw.to_dict()
+    for i in range(len(fw_dict['spec']['_tasks'])):
+        if fw_dict['spec']['_tasks'][i]["_fw_name"] == '{{mpmorph.firetasks.glue_tasks.SaveStructureTask}}':
+            del fw_dict['spec']['_tasks'][i]["_fw_name"]
+            fw.tasks[i] = RescaleVolumeTask(**kwargs)
+            replaced = True
+            break
+    # TODO: Replace with real error handling
+    if replaced == False:
+        print("error, no RescaleVolumeTask to replace")
+        return
+
+    return fw
 
 def replace_vaspmdtodb(fw):
     # look for vaspdb task
