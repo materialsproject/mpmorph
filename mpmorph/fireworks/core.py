@@ -7,7 +7,7 @@ from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.vasp.firetasks.parse_outputs import VaspToDb
 from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask
 from mpmorph.firetasks.dbtasks import VaspMDToDb
-from pymatgen.io.vasp.sets import MITMDSet, MPStaticSet, MPRelaxSet
+from pymatgen.io.vasp.sets import MPMDSet, MPStaticSet, MPRelaxSet
 
 
 class MDFW(Firework):
@@ -39,7 +39,7 @@ class MDFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
-        vasp_input_set = vasp_input_set or MITMDSet(structure, start_temp=start_temp,
+        vasp_input_set = vasp_input_set or MPMDSet(structure, start_temp=start_temp,
                                                     end_temp=end_temp, nsteps=nsteps,
                                                     **override_default_vasp_params)
 
