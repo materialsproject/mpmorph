@@ -151,8 +151,8 @@ def get_converge_by_fit(structure, temperature, images=[0.8, 1, 1.2], preconverg
     if not preconverged:
         # Create structures for varying volumes
         structures = [structure.copy() for i in images]
-        for i in images:
-            structures[i].scale_lattice(structure.volume * images)
+        for i, factor in enumerate(images):
+            structures[i].scale_lattice(structure.volume * factor)
 
         volume_fws = []
         for i, vol_structure in zip(images, structures):
