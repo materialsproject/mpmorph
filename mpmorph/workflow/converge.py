@@ -6,7 +6,8 @@ import uuid
 
 
 def get_converge(structure, priority=None, preconverged=False, max_steps=5000, target_steps=40000,
-                 spawner_args={}, converge_args={}, prod_args={}, converge_type=("density", 5), vasp_opt=True, **kwargs):
+                 spawner_args={}, converge_args={}, prod_args={}, converge_type=("density", 5), vasp_opt=True,
+                 **kwargs):
     """
 
     :param structure:
@@ -58,7 +59,8 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
 
             if len(spawner_args["md_params"].keys()) > 0:
                 run_args["md_params"].update(spawner_args["md_params"])
-            fw3 = MDFW(structure=structure, name="run1", previous_structure=True, insert_db=False, **run_args["md_params"],
+            fw3 = MDFW(structure=structure, name="run1", previous_structure=True, insert_db=False,
+                       **run_args["md_params"],
                        parents=[fw2], **run_args["run_specs"], **run_args["optional_fw_params"])
 
             fw3 = powerups.add_converge_task(fw3, **_spawner_args)
@@ -100,6 +102,102 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
 
     # if to_trajectory:
     #     fw_list[-1] = powerups.aggregate_trajectory(fw_list[-1], tag_id)
+
+    pretty_name = structure.composition.reduced_formula
+    wf = Workflow(fireworks=fw_list, name=pretty_name + "_diffusion")
+    return wf
+
+
+def get_converge_by_fit(structure, temperature, images=[0.8, 1, 1.2], preconverged=False, max_steps=5000,
+                        target_steps=40000,
+                        spawner_args={}, converge_args={}, prod_args={}, converge_type=("density", 5), vasp_opt=True,
+                        **kwargs):
+    """
+
+    :param structure: Starting structure for the run
+    :param images: Perturbations to the volume for the fit (fraction of input structure)
+    :param priority: Priority of the workflow
+    :param preconverged: Is the structure already converged (i.e. Pressure 0bar) or volume rescaling not desired?
+    :param prod_quants:
+    :param spawner_args:
+    :param converge_args:
+    :param prod_args:
+    :param converge_type:
+    :param vasp_opt:
+    :param kwargs:
+    :return:
+    """
+    fw_list = []
+
+    # Setup initial Run and convergence of structure
+    run_args = {"md_params": {"start_temp": 4000, "end_temp": 4000, "nsteps": 5000},
+                "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
+                              "wall_time": 86400},
+                "optional_fw_params": {
+                    "override_default_vasp_params": {'user_incar_settings': {'ISIF': 1, 'LWAVE': False},
+                                                     'spec': {'_priority'}},
+                    "copy_vasp_outputs": False, "spec": {}}}
+    run_args["optional_fw_params"]["spec"]["_queueadapter"] = {"walltime": run_args["run_specs"]["wall_time"]}
+    run_args = recursive_update(run_args, converge_args)
+
+    _spawner_args = {"converge_params": {"converge_type": [converge_type], "max_rescales": 15, "spawn_count": 1},
+                     "rescale_params": {"beta": 0.0000005},
+                     "run_specs": run_args["run_specs"], "md_params": run_args["md_params"],
+                     "optional_fw_params": run_args["optional_fw_params"]}
+    _spawner_args["md_params"].update({"start_temp": run_args["md_params"]["end_temp"]})
+    _spawner_args = recursive_update(_spawner_args, spawner_args)
+
+    # Converge the pressure (volume) of the system
+    if not preconverged:
+        # Create structures for varying volumes
+        structures = [structure.copy() for i in images]
+        for i in images:
+            structures[i].scale_lattice(structure.volume * images)
+
+        volume_fws = []
+        for i, vol_structure in zip(images, structures):
+            _fw = MDFW(structure=vol_structure, name="volume_" + str(i), previous_structure=False, insert_db=False,
+                       **run_args["md_params"], **run_args["run_specs"],
+                       **run_args["optional_fw_params"])
+
+            # TODO: Need to pass previous volume and pressure
+            _fw = powerups.add_pass_pv(_fw)
+            volume_fws.append(_fw)
+        fw_list.extend(volume_fws)
+
+        spawner_fw = MDFW(structure=structure, name="run1", previous_structure=True, insert_db=False,
+                          parents=volume_fws,
+                          **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"])
+
+        # TODO: Grab volumes and pressures and fit
+        spawner_fw = powerups.add_EOS_volume(spawner_fw)
+        spawner_fw = powerups.add_converge_task(spawner_fw, **_spawner_args)
+        fw_list.extend(spawner_fw)
+
+    # Production length MD runs
+    prod_steps = 0
+    i = 0
+    tag_id = uuid.uuid4()
+    while prod_steps <= target_steps - max_steps:
+        run_args = {"md_params": {"start_temp": temperature,
+                                  "end_temp": temperature, "nsteps": max_steps},
+                    "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
+                                  "wall_time": 86400},
+                    "optional_fw_params": {"override_default_vasp_params": {}, "copy_vasp_outputs": False, "spec": {}},
+                    "label": "prod_run_"}
+
+        run_args["optional_fw_params"]["override_default_vasp_params"].update(
+            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
+        run_args = recursive_update(run_args, prod_args)
+        parents = fw_list[-1] if len(fw_list) > 0 else []
+        previous_structure = False if preconverged and i == 0 else True
+        fw = MDFW(structure=structure, name=run_args["label"] + str(i) + "-" + str(tag_id),
+                  previous_structure=previous_structure, insert_db=True, **run_args["md_params"],
+                  **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
+        fw_list.append(fw)
+
+        prod_steps += max_steps
+        i += 1
 
     pretty_name = structure.composition.reduced_formula
     wf = Workflow(fireworks=fw_list, name=pretty_name + "_diffusion")

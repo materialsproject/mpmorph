@@ -4,6 +4,7 @@ from mpmorph.util import recursive_update
 from mpmorph.analysis import md_data
 from pymatgen.io.vasp import Poscar
 from pymatgen import Structure
+from scipy import stats
 import numpy as np
 from pymatgen.analysis.structure_prediction.volume_predictor import DLSVolumePredictor
 
@@ -155,6 +156,30 @@ class RescaleVolumeTask(FireTaskBase):
         corr_vol.poscar.write_file("./POSCAR")
         # Pass the rescaled volume to Poscar
         return FWAction(stored_data=corr_vol.structure.as_dict())
+
+
+@explicit_serialize
+class PVRescaleTask(FireTaskBase):
+    """
+    Rescale based on fitting pressure vs volume
+    """
+
+    required_params = []
+    optional_params = []
+
+    def run_task(self, fw_spec):
+        pvs = fw_spec["pressure_volume"]
+
+        p = [item[1] for item in pvs]
+        v = [item[0] for item in pvs]
+
+        slope, intercept, r_value, p_value, std_err = stats.linregress(v, p)
+
+        equil_volume = -intercept/slope
+        poscar = Poscar.from_file("./POSCAR")
+        poscar.structure.scale_lattice(equil_volume)
+        poscar.write_file("./POSCAR")
+        return FWAction()
 
 from mpmorph.fireworks import powerups
 from mpmorph.fireworks.core import MDFW
