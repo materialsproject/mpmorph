@@ -1,4 +1,4 @@
-from mpmorph.firetasks.mdtasks import RescaleVolumeTask, ConvergeTask
+from mpmorph.firetasks.mdtasks import RescaleVolumeTask, ConvergeTask, PVRescaleTask
 from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask, PassPVTask
 from mpmorph.firetasks.dbtasks import VaspMDToDb, TrajectoryDBTask
 
@@ -34,6 +34,9 @@ def add_pass_pv(fw, **kwargs):
     fw.tasks.append(pass_pv_task)
     return fw
 
+def add_PV_volume_rescale(fw):
+    fw.tasks.append(PVRescaleTask())
+    return fw
 
 def add_rescale_volume(fw, **kwargs):
     rsv_task = RescaleVolumeTask(**kwargs)
