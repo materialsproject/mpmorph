@@ -110,7 +110,7 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
 
 def get_converge_by_fit(structure, temperature, images=[0.8, 1, 1.2], preconverged=False, max_steps=5000,
                         target_steps=40000,
-                        spawner_args={}, converge_args={}, prod_args={}, converge_type=("density", 5), vasp_opt=True,
+                        spawner_args={}, converge_args={}, prod_args={}, converge_type=("density", 5),
                         **kwargs):
     """
 

@@ -67,7 +67,7 @@ class PassPVTask(FireTaskBase):
         search_keys = ['external']
         outcar_data = md_data.get_MD_data("./OUTCAR.gz", search_keys=search_keys)
 
-        _data = np.transpose(outcar_data)['external']
+        _data = np.transpose(outcar_data)[0]
         pressure = np.mean(_data[int(0.5 * (len(_data) - 1)):])
 
         pressure_volume.append((volume, pressure))
