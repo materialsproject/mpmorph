@@ -178,11 +178,15 @@ class PVRescaleTask(FireTaskBase):
         v = [item[0] for item in pvs]
 
         slope, intercept, r_value, p_value, std_err = stats.linregress(v, p)
-
         equil_volume = -intercept/slope
         poscar = Poscar.from_file("./POSCAR")
         poscar.structure.scale_lattice(equil_volume)
         poscar.write_file("./POSCAR")
+
+        with open('rescale_debug', 'w') as f:
+            f.write({'slope': slope, 'intercept': intercept, 'volume': equil_volume})
+            f.close()
+
         return FWAction()
 
 from mpmorph.fireworks import powerups
