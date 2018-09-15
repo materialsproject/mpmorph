@@ -184,7 +184,9 @@ class PVRescaleTask(FireTaskBase):
         poscar.write_file("./POSCAR")
 
         with open('rescale_debug', 'w') as f:
-            f.write({'slope': slope, 'intercept': intercept, 'volume': equil_volume})
+            f.write('slope: ' + str(slope))
+            f.write('intercept: ' + str(intercept))
+            f.write('volume: ' + str(equil_volume))
             f.close()
 
         return FWAction()
