@@ -8,7 +8,7 @@ import numpy as np
 
 
 def get_quench(structures, temperatures={}, priority=None, quench_type="simulated_anneal", cool_args={}, hold_args={}, quench_args={},
-               descriptor = "", **kwargs):
+               descriptor="", **kwargs):
     fw_list = []
     if temperatures == {}:
         temperatures = {"start_temp": 3000, "end_temp": 500, "temp_step": 500}

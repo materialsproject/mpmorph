@@ -70,7 +70,6 @@ class ConvergeTask(FireTaskBase):
             else:
                 converged["density"] = True
 
-
         if "kinetic energy" in convergence_vars.keys():
             _index = search_keys.index(key_map["kinetic energy"])
             energy = np.transpose(outcar_data)[_index].copy()
@@ -83,7 +82,8 @@ class ConvergeTask(FireTaskBase):
         _index = search_keys.index(key_map["ionic"])
         energy = np.transpose(outcar_data)[_index].copy()
         norm_energy = (energy / structure.num_sites) / np.mean(energy / structure.num_sites) - 1
-        if np.abs(np.mean(norm_energy[-500:]) - np.mean(norm_energy)) > convergence_vars["ionic"]:
+        norm_energy_change = np.abs(np.mean(norm_energy[-500:]) - np.mean(norm_energy))
+        if norm_energy_change > convergence_vars["ionic"]:
             converged["ionic"] = False
         else:
             converged["ionic"] = True
@@ -121,9 +121,12 @@ class ConvergeTask(FireTaskBase):
                                  "optional_fw_params": optional_params}
                 fw = powerups.add_converge_task(fw, **_spawner_args)
             wf = Workflow([fw])
-            return FWAction(detours=wf, stored_data={'pressure': pressure})
+            return FWAction(detours=wf, stored_data={'pressure': pressure,
+                                                     'energy': norm_energy_change})
         else:
-            return FWAction(stored_data={'pressure': pressure, 'density_calculated': True})
+            return FWAction(stored_data={'pressure': pressure,
+                                         'energy': norm_energy_change,
+                                         'density_calculated': True})
 
 
 @explicit_serialize
