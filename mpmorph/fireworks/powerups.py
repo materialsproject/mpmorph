@@ -4,11 +4,25 @@ from mpmorph.firetasks.dbtasks import VaspMDToDb, TrajectoryDBTask
 
 
 def add_converge_task(fw, **kwargs):
+    """
+    This powerup adds the convergence task onto a MD firework, which turns a workflow into a dynamic workflow.
+    This firetask will check to ensure the specified parameters (Usually pressure and Energy) are converged within the
+    specified thresholds.
+    :param fw:
+    :param kwargs:
+    :return:
+    """
     spawner_task = ConvergeTask(**kwargs)
     fw.tasks.append(spawner_task)
     return fw
 
 def aggregate_trajectory(fw, **kwargs):
+    """
+    This firetask will add a task which converts a series of MD runs into a trajectory object
+    :param fw:
+    :param kwargs:
+    :return:
+    """
     fw.tasks.append(TrajectoryDBTask(**kwargs))
     return fw
 
@@ -35,7 +49,13 @@ def add_pass_pv(fw, **kwargs):
     return fw
 
 def add_PV_volume_rescale(fw):
-    fw.tasks.append(PVRescaleTask())
+    insert_i = 2
+    for (i, task) in enumerate(fw.tasks):
+        if task.fw_name == "{{atomate.vasp.firetasks.run_calc.RunVaspCustodian}}":
+            insert_i = i
+            break
+
+    fw.tasks.insert(insert_i, PVRescaleTask())
     return fw
 
 def add_rescale_volume(fw, **kwargs):

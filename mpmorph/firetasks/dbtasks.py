@@ -94,19 +94,19 @@ class VaspMDToDb(FiretaskBase):
 @explicit_serialize
 class TrajectoryDBTask(FiretaskBase):
     """
-    Obtain all production runs and insert them into the db. This is done by searching for a tag
+    Obtain all production runs and insert them into the db. This is done by searching for a unique tag
     """
-    required_params = ["tag_id", "db_file"]
+    required_params = ["identifier", "db_file"]
     optional_params = []
 
     def run_task(self, fw_spec):
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
         mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
-        runs = mmdb.find({"task_label": {"$regex": re.compile(".*" + fw_spec["run_tag"] + ".*")}})
+        runs = mmdb.find({"task_label": {"$regex": re.compile(".*" + fw_spec["identifier"] + ".*")}})
         runs_sorted = sorted(runs, key=lambda x: int(x["task_label"].split("_")[-1].split("-")[0]))
 
-        trajectory_doc = self.runs_to_trajectory_doc(runs_sorted, db_file, fw_spec["run_tag"])
+        trajectory_doc = self.runs_to_trajectory_doc(runs_sorted, db_file, fw_spec["identifier"])
 
         mmdb.db.trajectories.insert_one(trajectory_doc)
 
