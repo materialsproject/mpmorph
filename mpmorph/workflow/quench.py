@@ -7,15 +7,14 @@ from mpmorph.util import recursive_update
 import numpy as np
 
 
-def get_quench(structures, temperatures={}, priority=None, quench_type="simulated_anneal",
-               cool_args={}, hold_args={}, quench_args={}, descriptor="", **kwargs):
+def get_quench(structures, temperatures=None, priority=None, quench_type="simulated_anneal",
+               cool_args=None, hold_args=None, quench_args=None, descriptor="", **kwargs):
     fw_list = []
-    if temperatures == {}:
-        temperatures = {"start_temp": 3000, "end_temp": 500, "temp_step": 500}
-    if cool_args == {}:
-        cool_args = {"md_params": {"nsteps": 200}}
-    if hold_args == {}:
-        hold_args = {"md_params": {"nsteps": 500}}
+    temperatures = {"start_temp": 3000, "end_temp": 500, "temp_step": 500} \
+        if temperatures is None else temperatures
+    cool_args = {"md_params": {"nsteps": 200}} if cool_args is None else cool_args
+    hold_args = {"md_params": {"nsteps": 500}} if hold_args is None else hold_args
+    quench_args = {} if quench_args is None else quench_args
 
     for (i, structure) in enumerate(structures):
         _fw_list = []
@@ -70,6 +69,63 @@ def get_quench(structures, temperatures={}, priority=None, quench_type="simulate
     name = structure.composition.reduced_formula + descriptor + "_quench"
     wf = Workflow(fw_list, name=name)
     return wf
+
+
+def get_single_quench(structure, temperatures=None, priority=None, cool_args=None,
+                      hold_args=None, quench_args=None, parents=None, descriptor="",
+                      quench_type="simulated_anneal", **kwargs):
+    temperatures = {"start_temp": 3000, "end_temp": 500, "temp_step": 500} \
+        if temperatures is None else temperatures
+    cool_args = {"md_params": {"nsteps": 200}} if cool_args is None else cool_args
+    hold_args = {"md_params": {"nsteps": 500}} if hold_args is None else hold_args
+    quench_args = {} if quench_args is None else quench_args
+
+    fws = []
+    if quench_type == "simulated_anneal":
+        for temp in np.arange(temperatures["start_temp"], temperatures["end_temp"],
+                              -temperatures["temp_step"]):
+            # get fw for cool step
+            previous_structure = True if parents or fws else False
+            parents = [fws[-1]] if len(fws) > 0 else parents
+            fw = get_MDFW(structure, temp, temp - temperatures["temp_step"],
+                          name="_cool_" + str(temp - temperatures["temp_step"]),
+                          args=cool_args, parents=parents, priority=priority,
+                          previous_structure=previous_structure,
+                          insert_db=False, **kwargs)
+            fws.append(fw)
+            # get fw for hold step
+            fw = get_MDFW(structure, temp - temperatures["temp_step"],
+                          temp - temperatures["temp_step"],
+                          name="_hold_" + str(temp - temperatures["temp_step"]),
+                          args=hold_args, parents=[fws[-1]], priority=priority,
+                          previous_structure=True, insert_db=False, **kwargs)
+            fws.append(fw)
+
+    if quench_type in ["simulated_anneal", "mp_quench"]:
+        # Relax OptimizeFW and StaticFW
+        run_args = {"run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
+                                  "db_file": ">>db_file<<",
+                                  "spec": {"_priority": priority}
+                                  },
+                    "optional_fw_params": {"override_default_vasp_params": {}}
+                    }
+        run_args = recursive_update(run_args, quench_args)
+        parents = [fws[-1]] if len(fws) > 0 else parents
+        fw = OptimizeFW(structure=structure, name=descriptor + "_optimize", parents=parents,
+                        **run_args["run_specs"], **run_args["optional_fw_params"],
+                        max_force_threshold=None)
+        if len(fws) > 0:
+            fw = powerups.add_cont_structure(fw)
+        fw = powerups.add_pass_structure(fw)
+        fws.append(fw)
+
+        fw = StaticFW(structure=structure, name=descriptor + "_static", parents=[fw],
+                      **run_args["run_specs"], **run_args["optional_fw_params"])
+        fw = powerups.add_cont_structure(fw)
+        fw = powerups.add_pass_structure(fw)
+        fws.append(fw)
+
+    return fws
 
 
 def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics", priority=None,

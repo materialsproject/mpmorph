@@ -96,9 +96,8 @@ class OptimizeFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
-        vasp_input_set = vasp_input_set or MPRelaxSet(structure,
-                                                      force_gamma=force_gamma,
-                                                      **override_default_vasp_params)
+        vasp_input_set = vasp_input_set or MPRelaxSet(
+            structure, force_gamma=force_gamma, **override_default_vasp_params)
 
         t = []
         t.append(WriteVaspFromIOSet(structure=structure,
@@ -117,10 +116,9 @@ class OptimizeFW(Firework):
 
         if insert_db:
             t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-        super(OptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
-                                         format(
-            structure.composition.reduced_formula, name),
-                                         **kwargs)
+        super(OptimizeFW, self).__init__(
+            t, parents=parents,
+            name="{}-{}".format(structure.composition.reduced_formula, name), **kwargs)
 
 
 class StaticFW(Firework):
