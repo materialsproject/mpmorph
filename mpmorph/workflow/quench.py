@@ -73,7 +73,7 @@ def get_quench(structures, temperatures=None, priority=None, quench_type="simula
 
 def get_single_quench(structure, temperatures=None, priority=None, cool_args=None,
                       hold_args=None, quench_args=None, parents=None, descriptor="",
-                      quench_type="simulated_anneal", **kwargs):
+                      quench_type="simulated_anneal", add_static=False, **kwargs):
     temperatures = {"start_temp": 3000, "end_temp": 500, "temp_step": 500} \
         if temperatures is None else temperatures
     cool_args = {"md_params": {"nsteps": 200}} if cool_args is None else cool_args
@@ -119,11 +119,12 @@ def get_single_quench(structure, temperatures=None, priority=None, cool_args=Non
         fw = powerups.add_pass_structure(fw)
         fws.append(fw)
 
-        fw = StaticFW(structure=structure, name=descriptor + "_static", parents=[fw],
-                      **run_args["run_specs"], **run_args["optional_fw_params"])
-        fw = powerups.add_cont_structure(fw)
-        fw = powerups.add_pass_structure(fw)
-        fws.append(fw)
+        if add_static:
+            fw = StaticFW(structure=structure, name=descriptor + "_static", parents=[fw],
+                          **run_args["run_specs"], **run_args["optional_fw_params"])
+            fw = powerups.add_cont_structure(fw)
+            fw = powerups.add_pass_structure(fw)
+            fws.append(fw)
 
     return fws
 
