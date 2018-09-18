@@ -7,7 +7,7 @@ import uuid
 
 def get_converge(structure, priority=None, preconverged=False, max_steps=5000, target_steps=40000,
                  spawner_args={}, converge_args={}, prod_args={}, converge_type=("density", 5),
-                 vasp_opt=True, **kwargs):
+                 vasp_opt=True, parents=None, **kwargs):
     fw_list = []
     # Initial Run and convergence of structure
 
@@ -38,8 +38,8 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
             pressure is 0.
             """
             fw1 = MDFW(structure=structure, name="run0", previous_structure=False,
-                       insert_db=False, **run_args["md_params"], **run_args["run_specs"],
-                       **run_args["optional_fw_params"])
+                       insert_db=False, parents=parents, **run_args["md_params"],
+                       **run_args["run_specs"], **run_args["optional_fw_params"])
 
             # OptimizeFW does not take wall_time
             optimize_args = {"run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
@@ -62,8 +62,8 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
             fw_list.extend([fw1, fw2, fw3])
         else:
             fw1 = MDFW(structure=structure, name="run0", previous_structure=False,
-                       insert_db=False, **run_args["md_params"], **run_args["run_specs"],
-                       **run_args["optional_fw_params"])
+                       insert_db=False, parents=parents, **run_args["md_params"],
+                       **run_args["run_specs"], **run_args["optional_fw_params"])
             fw1 = powerups.add_converge_task(fw1, **_spawner_args)
             fw_list.extend([fw1])
 
@@ -87,12 +87,13 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
             {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'PREC': 'Normal'}})
         run_args = recursive_update(run_args, prod_args)
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
-        parents = fw_list[-1] if len(fw_list) > 0 else []
+        parents = fw_list[-1] if len(fw_list) > 0 else parents
         previous_structure = False if preconverged and i == 0 else True
 
-        fw = MDFW(structure=structure, name=run_args["label"] + str(i) + "-" + str(tag_id),
-                  previous_structure=previous_structure, insert_db=True, **run_args["md_params"],
-                  **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
+        name = '%s%s-%s' % (run_args["label"], str(i), str(tag_id))
+        fw = MDFW(structure=structure, name=name, previous_structure=previous_structure,
+                  insert_db=True, parents=parents, **run_args["md_params"],
+                  **run_args["run_specs"], **run_args["optional_fw_params"])
         fw_list.append(fw)
         prod_steps += max_steps
         i += 1
