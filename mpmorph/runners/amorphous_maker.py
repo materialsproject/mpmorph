@@ -1,10 +1,12 @@
 from __future__ import division
-from pymatgen.io.vasp.inputs import Poscar
-from pymatgen.core.structure import Structure
+
 from collections import OrderedDict
 import numpy as np
 import os
 import shutil
+
+from pymatgen.io.vasp.inputs import Poscar
+from pymatgen import Structure, MPRester, Composition
 
 
 class AmorphousMaker(object):
@@ -181,3 +183,58 @@ class AmorphousMaker(object):
             for key in el_dict.keys():
                 for atom in el_dict[key]:
                     f.write( " ".join( [ str(i) for i in atom ]) + "\n")
+
+
+def get_random_packed(composition, add_specie=None, target_atoms=100,
+                     vol_per_atom=None, vol_exp=1.0):
+    mpr = MPRester()
+
+    if type(composition) == str:
+        composition = Composition(composition)
+    if type(add_specie) == str:
+        add_specie = Composition(add_specie)
+
+    comp_entries = mpr.get_entries(composition.reduced_formula,
+                                   inc_structure=True)
+    if vol_per_atom is None:
+        if len(comp_entries) > 0:
+            vols = np.min([entry.structure.volume / entry.structure.num_sites
+                           for entry in comp_entries])
+        else:
+            # Find all Materials project entries containing the elements in the
+            # desired composition to estimate starting volume.
+
+            _entries = mpr.get_entries_in_chemsys([str(el) for el in composition.elements],
+                                                  inc_structure=True)
+            entries = []
+            for entry in _entries:
+                if set(entry.structure.composition.elements) == set(composition.elements):
+                    entries.append(entry)
+                if len(entry.structure.composition.elements) >= 2:
+                    entries.append(entry)
+
+            vols = [entry.structure.volume / entry.structure.num_sites for entry in entries]
+        avg_vol = np.mean(vols)
+    else:
+        avg_vol = vol_per_atom
+
+    # Find total composition of atoms in the unit cell
+    formula, factor = composition.get_integer_formula_and_factor()
+    composition = Composition(formula)
+    comp = composition * np.ceil(target_atoms / composition.num_atoms)
+    if add_specie is not None:
+        comp += add_specie
+
+    # Generate dict of elements and amounts for AmorphousMaker
+    structure = {}
+    for el in comp:
+        structure[str(el)] = int(comp.element_composition.get(el))
+
+    # use packmol to get a random configured structure
+    packmol_path = os.environ['PACKMOL_EXE']
+    amorphous_maker_params = {'box_scale':(avg_vol * comp.num_atoms * vol_exp) ** (1/3),
+                              'packmol_path':packmol_path, 'xyz_paths': None}
+
+    glass = AmorphousMaker(structure, **amorphous_maker_params)
+    structure = glass.random_packed_structure
+    return structure
