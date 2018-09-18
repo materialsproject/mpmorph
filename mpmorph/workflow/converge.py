@@ -201,7 +201,7 @@ def get_converge_by_fit(structure, temperature, images=[0.8, 1, 1.2], preconverg
         prod_steps += max_steps
         i += 1
 
-    fw_list[-1] = powerups.aggregate_trajectory(fw_list[-1], identifier=tag_id)
+    fw_list[-1] = powerups.aggregate_trajectory(fw_list[-1], identifier=tag_id, db_file=run_args["run_specs"]["db_file"])
     pretty_name = structure.composition.reduced_formula
     wf = Workflow(fireworks=fw_list, name=pretty_name + "_diffusion")
     return wf
