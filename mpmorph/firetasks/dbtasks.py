@@ -103,10 +103,10 @@ class TrajectoryDBTask(FiretaskBase):
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
         mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
-        runs = mmdb.find({"task_label": {"$regex": re.compile(".*" + fw_spec["identifier"] + ".*")}})
+        runs = mmdb.db['tasks'].find({"task_label": {"$regex": re.compile(".*" + self["identifier"] + ".*")}})
         runs_sorted = sorted(runs, key=lambda x: int(x["task_label"].split("_")[-1].split("-")[0]))
 
-        trajectory_doc = self.runs_to_trajectory_doc(runs_sorted, db_file, fw_spec["identifier"])
+        trajectory_doc = self.runs_to_trajectory_doc(runs_sorted, db_file, self["identifier"])
 
         mmdb.db.trajectories.insert_one(trajectory_doc)
 
