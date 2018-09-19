@@ -232,8 +232,8 @@ def get_random_packed(composition, add_specie=None, target_atoms=100,
 
     # use packmol to get a random configured structure
     packmol_path = os.environ['PACKMOL_EXE']
-    amorphous_maker_params = {'box_scale':(avg_vol * comp.num_atoms * vol_exp) ** (1/3),
-                              'packmol_path':packmol_path, 'xyz_paths': None}
+    amorphous_maker_params = {'box_scale': (avg_vol * comp.num_atoms * vol_exp) ** (1/3),
+                              'packmol_path': packmol_path, 'xyz_paths': None}
 
     glass = AmorphousMaker(structure, **amorphous_maker_params)
     structure = glass.random_packed_structure
