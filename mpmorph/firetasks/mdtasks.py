@@ -110,6 +110,7 @@ class ConvergeTask(FireTaskBase):
                                  "run_specs": run_specs, "md_params": md_params,
                                  "optional_fw_params": optional_params}
                 fw = powerups.add_rescale_volume(fw, **rescale_args)
+                fw = powerups.add_pass_pv(fw)
                 fw = powerups.add_converge_task(fw, **_spawner_args)
 
 
@@ -124,6 +125,7 @@ class ConvergeTask(FireTaskBase):
                 _spawner_args = {"converge_params": converge_params, "rescale_params": rescale_params,
                                  "run_specs": run_specs, "md_params": md_params,
                                  "optional_fw_params": optional_params}
+                fw = powerups.add_pass_pv(fw)
                 fw = powerups.add_converge_task(fw, **_spawner_args)
             wf = Workflow([fw])
             return FWAction(detours=wf, stored_data={'pressure': pressure})

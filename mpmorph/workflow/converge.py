@@ -173,6 +173,7 @@ def get_converge_by_fit(structure, temperature, images=[0.8, 1, 1.2], preconverg
                           **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"])
 
         spawner_fw = powerups.add_PV_volume_rescale(spawner_fw)
+        spawner_fw = powerups.add_pass_pv(spawner_fw)
         spawner_fw = powerups.add_converge_task(spawner_fw, **_spawner_args)
         fw_list.append(spawner_fw)
 
