@@ -162,10 +162,11 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
 
             # Create firework for each structure
             volume_fws = []
-            for i, vol_structure in zip(images, structures):
+            for n, (i, vol_structure) in enumerate(zip(images, structures)):
+                save_structure = True if n == len(images)-1 else False
                 _fw = MDFW(structure=vol_structure, name="volume_" + str(i), previous_structure=False, insert_db=False,
                            **run_args["md_params"], **run_args["run_specs"],
-                           **run_args["optional_fw_params"])
+                           **run_args["optional_fw_params"], save_structure=save_structure)
 
                 _fw = powerups.add_pass_pv(_fw)
                 volume_fws.append(_fw)
