@@ -13,7 +13,7 @@ from pymatgen.io.vasp.sets import MPMDSet, MPStaticSet, MPRelaxSet
 class MDFW(Firework):
     def __init__(self, structure, start_temp, end_temp, nsteps, name="molecular dynamics",
                  vasp_input_set=None, vasp_cmd="vasp", override_default_vasp_params=None,
-                 wall_time=19200, db_file=None, parents=None, copy_vasp_outputs=False,
+                 wall_time=19200, db_file=None, parents=None, save_structure=True,
                  previous_structure=False, insert_db=False, **kwargs):
         """
         This Firework is modified from atomate.vasp.fireworks.core.MDFW to fit the needs of mpmorph
@@ -44,18 +44,14 @@ class MDFW(Firework):
                                                     **override_default_vasp_params)
 
         t = []
-        if copy_vasp_outputs:
-            t.append(CopyVaspOutputs(calc_loc=True, additional_files=["CHGCAR"],
-                                     contcar_to_poscar=True))
 
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         if previous_structure:
             t.append(PreviousStructureTask())
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time))
-        if copy_vasp_outputs:
-            t.append(PassCalcLocs(name=name))
-        t.append(SaveStructureTask())
+        if save_structure:
+            t.append(SaveStructureTask())
         if insert_db:
             t.append(VaspMDToDb(db_file=db_file,
                               additional_fields={"task_label": name}, defuse_unsuccessful=False))
