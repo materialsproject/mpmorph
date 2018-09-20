@@ -123,6 +123,8 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
     :param kwargs: arguments such as spawner_args, converge_args, convergence_criteria, etc.
     :return:
     """
+    #Generate a unique identifier for the fireworks belonging to this workflow
+    tag_id = uuid.uuid4()
 
     fw_list = []
 
@@ -212,19 +214,19 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
     # Production length MD runs
     prod_steps = 0
     i = 0
-    tag_id = uuid.uuid4()
     while prod_steps <= target_steps - max_steps:
+        # Create Dictionary with production run parameters
         run_args = {"md_params": {"start_temp": temperature,
                                   "end_temp": temperature, "nsteps": max_steps},
                     "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                                   "wall_time": 86400},
                     "optional_fw_params": {"override_default_vasp_params": {}, "copy_vasp_outputs": False, "spec": {}},
                     "label": str(temperature) + "_prod_run_"}
-
         run_args["optional_fw_params"]["override_default_vasp_params"].update(
             {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
         run_args = recursive_update(run_args, kwargs.get('prod_args', {}))
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
+
         parents = fw_list[-1] if len(fw_list) > 0 else []
         previous_structure = False if preconverged and i == 0 else True
         fw = MDFW(structure=structure, name=run_args["label"] + str(i) + "-" + str(tag_id),
