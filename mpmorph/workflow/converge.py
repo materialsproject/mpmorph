@@ -144,7 +144,8 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
         "converge_params": {"max_rescales": 15, "density_spawn_count": 1, "energy_spawn_count": 0},
         "rescale_params": {"beta": 0.0000005},
         "run_specs": run_args["run_specs"], "md_params": run_args["md_params"],
-        "optional_fw_params": run_args["optional_fw_params"]}
+        "optional_fw_params": run_args["optional_fw_params"],
+        "unique_identifier": tag_id}
     _spawner_args['converge_params']['converge_type'] = kwargs.get('convergence_criteria',
                                                                    [("density", 5), ('ionic', '0.001')])
     _spawner_args["md_params"].update({"start_temp": run_args["md_params"]["end_temp"]})
@@ -164,7 +165,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
             volume_fws = []
             for n, (i, vol_structure) in enumerate(zip(images, structures)):
                 save_structure = True if n == len(images)-1 else False
-                _fw = MDFW(structure=vol_structure, name="volume_" + str(i), previous_structure=False, insert_db=False,
+                _fw = MDFW(structure=vol_structure, name="volume_" + str(i) + "-" + str(tag_id), previous_structure=False, insert_db=False,
                            **run_args["md_params"], **run_args["run_specs"],
                            **run_args["optional_fw_params"], save_structure=save_structure)
 
@@ -174,7 +175,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
 
             # Create firework to converge pressure/volume
             _spawner_args['rescale_params']['beta'] = 0.000001
-            spawner_fw = MDFW(structure=structure, name="run1", previous_structure=True, insert_db=False,
+            spawner_fw = MDFW(structure=structure, name="run1" + "-" + str(tag_id), previous_structure=True, insert_db=False,
                               parents=volume_fws,
                               **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"])
 
@@ -183,14 +184,14 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
             spawner_fw = powerups.add_converge_task(spawner_fw, **_spawner_args)
             fw_list.append(spawner_fw)
         elif converge_scheme == 'vasp_opt':
-            fw1 = MDFW(structure=structure, name="run0", previous_structure=False, insert_db=False,
+            fw1 = MDFW(structure=structure, name="run0" + "-" + str(tag_id), previous_structure=False, insert_db=False,
                        **run_args["md_params"], **run_args["run_specs"],
                        **run_args["optional_fw_params"])
 
             #Create Vasp Optimization firework
             optimize_args = {"run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                                            "spec": {"_priority": priority}}}
-            fw2 = OptimizeFW(structure=structure, name="rescale_optimize", insert_db=False, job_type="normal",
+            fw2 = OptimizeFW(structure=structure, name="rescale_optimize" + "-" + str(tag_id), insert_db=False, job_type="normal",
                              parents=[fw1], **optimize_args["run_specs"], max_force_threshold=None)
             fw2 = powerups.add_cont_structure(fw2)
             fw2 = powerups.replace_pass_structure(fw2, rescale_volume=True)
@@ -198,7 +199,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
             # Create Convergence Firework
             if len(_spawner_args["md_params"].keys()) > 0:
                 run_args["md_params"].update(_spawner_args["md_params"])
-            fw3 = MDFW(structure=structure, name="run1", previous_structure=True, insert_db=False,
+            fw3 = MDFW(structure=structure, name="run1" + "-" + str(tag_id), previous_structure=True, insert_db=False,
                        **run_args["md_params"],
                        parents=[fw2], **run_args["run_specs"], **run_args["optional_fw_params"])
 
@@ -206,7 +207,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
 
             fw_list.extend([fw1, fw2, fw3])
         else:
-            fw1 = MDFW(structure=structure, name="run0", previous_structure=False, insert_db=False,
+            fw1 = MDFW(structure=structure, name="run0" + "-" + str(tag_id), previous_structure=False, insert_db=False,
                        **run_args["md_params"], **run_args["run_specs"],
                        **run_args["optional_fw_params"])
             fw1 = powerups.add_converge_task(fw1, **_spawner_args)
