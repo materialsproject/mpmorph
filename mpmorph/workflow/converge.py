@@ -147,7 +147,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
         "optional_fw_params": run_args["optional_fw_params"],
         "unique_identifier": tag_id}
     _spawner_args['converge_params']['converge_type'] = kwargs.get('convergence_criteria',
-                                                                   [("density", 5), ('ionic', '0.001')])
+                                                                   [("density", 5), ('ionic', 0.001)])
     _spawner_args["md_params"].update({"start_temp": run_args["md_params"]["end_temp"]})
     _spawner_args = recursive_update(_spawner_args, kwargs.get('spawner_args', {}))
     _spawner_args["optional_fw_params"]["spec"]["_priority"] = priority
@@ -225,7 +225,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
                     "optional_fw_params": {"override_default_vasp_params": {}, "spec": {}},
                     "label": str(temperature) + "_prod_run_"}
         run_args["optional_fw_params"]["override_default_vasp_params"].update(
-            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
+            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'PREC': 'Low'}})
         run_args = recursive_update(run_args, kwargs.get('prod_args', {}))
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
 
