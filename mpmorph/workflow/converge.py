@@ -3,6 +3,7 @@ from mpmorph.fireworks import powerups
 from mpmorph.fireworks.core import MDFW, OptimizeFW
 from mpmorph.util import recursive_update
 import uuid
+from copy import deepcopy
 
 
 def get_converge(structure, priority=None, preconverged=False, max_steps=5000, target_steps=40000,
@@ -123,7 +124,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
     :param kwargs: arguments such as spawner_args, converge_args, convergence_criteria, etc.
     :return:
     """
-    #Generate a unique identifier for the fireworks belonging to this workflow
+    # Generate a unique identifier for the fireworks belonging to this workflow
     tag_id = uuid.uuid4()
 
     fw_list = []
@@ -149,8 +150,8 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
     _spawner_args['converge_params']['converge_type'] = kwargs.get('convergence_criteria',
                                                                    [("density", 5), ('ionic', 0.001)])
     _spawner_args["md_params"].update({"start_temp": run_args["md_params"]["end_temp"]})
-    _spawner_args = recursive_update(_spawner_args, kwargs.get('spawner_args', {}))
     _spawner_args["optional_fw_params"]["spec"]["_priority"] = priority
+    _spawner_args = recursive_update(_spawner_args, kwargs.get('spawner_args', {}))
 
     # Converge the pressure (volume) of the system
     if not preconverged:
@@ -162,12 +163,16 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
                 structures[i].scale_lattice(structure.volume * factor)
 
             # Create firework for each structure
+            EOS_run_args = deepcopy(run_args)
+            EOS_run_args['md_params']['nsteps'] = 1500 #Use less steps... Pressure usually converges rapidly
+            EOS_run_args = recursive_update(EOS_run_args, kwargs.get('converge_args', {}))
             volume_fws = []
             for n, (i, vol_structure) in enumerate(zip(images, structures)):
-                save_structure = True if n == len(images)-1 else False
-                _fw = MDFW(structure=vol_structure, name="volume_" + str(i) + "-" + str(tag_id), previous_structure=False, insert_db=False,
-                           **run_args["md_params"], **run_args["run_specs"],
-                           **run_args["optional_fw_params"], save_structure=save_structure)
+                save_structure = True if n == len(images) - 1 else False
+                _fw = MDFW(structure=vol_structure, name="volume_" + str(i) + "-" + str(tag_id),
+                           previous_structure=False, insert_db=False,
+                           **EOS_run_args["md_params"], **EOS_run_args["run_specs"],
+                           **EOS_run_args["optional_fw_params"], save_structure=save_structure)
 
                 _fw = powerups.add_pass_pv(_fw)
                 volume_fws.append(_fw)
@@ -175,7 +180,9 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
 
             # Create firework to converge pressure/volume
             _spawner_args['rescale_params']['beta'] = 0.000001
-            spawner_fw = MDFW(structure=structure, name="run1" + "-" + str(tag_id), previous_structure=True, insert_db=False,
+            _spawner_args = recursive_update(_spawner_args, kwargs.get('spawner_args', {}))
+            spawner_fw = MDFW(structure=structure, name="run1" + "-" + str(tag_id), previous_structure=True,
+                              insert_db=False,
                               parents=volume_fws,
                               **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"])
 
@@ -188,10 +195,11 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
                        **run_args["md_params"], **run_args["run_specs"],
                        **run_args["optional_fw_params"])
 
-            #Create Vasp Optimization firework
+            # Create Vasp Optimization firework
             optimize_args = {"run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                                            "spec": {"_priority": priority}}}
-            fw2 = OptimizeFW(structure=structure, name="rescale_optimize" + "-" + str(tag_id), insert_db=False, job_type="normal",
+            fw2 = OptimizeFW(structure=structure, name="rescale_optimize" + "-" + str(tag_id), insert_db=False,
+                             job_type="normal",
                              parents=[fw1], **optimize_args["run_specs"], max_force_threshold=None)
             fw2 = powerups.add_cont_structure(fw2)
             fw2 = powerups.replace_pass_structure(fw2, rescale_volume=True)
@@ -239,7 +247,8 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
         prod_steps += max_steps
         i += 1
 
-    fw_list[-1] = powerups.aggregate_trajectory(fw_list[-1], identifier=tag_id, db_file=run_args["run_specs"]["db_file"])
+    fw_list[-1] = powerups.aggregate_trajectory(fw_list[-1], identifier=tag_id,
+                                                db_file=run_args["run_specs"]["db_file"])
     pretty_name = structure.composition.reduced_formula
     wf = Workflow(fireworks=fw_list, name=pretty_name + "_diffusion")
     return wf
