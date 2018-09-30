@@ -228,8 +228,9 @@ def get_random_packed(composition, add_specie=None, target_atoms=100,
     for el in comp:
         structure[str(el)] = int(comp.element_composition.get(el))
 
-    for i, v in modify_species.items():
-        structure[i] += v
+    if modify_species is not None:
+        for i, v in modify_species.items():
+            structure[i] += v
     # use packmol to get a random configured structure
     packmol_path = os.environ['PACKMOL_EXE']
     amorphous_maker_params = {'box_scale': (vol_per_atom * comp.num_atoms * vol_exp) ** (1/3),

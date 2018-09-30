@@ -88,7 +88,7 @@ def get_single_quench(structure, temperatures=None, priority=None, cool_args=Non
             previous_structure = True if parents or fws else False
             parents = [fws[-1]] if len(fws) > 0 else parents
             fw = get_MDFW(structure, temp, temp - temperatures["temp_step"],
-                          name="_cool_" + str(temp - temperatures["temp_step"]),
+                          name="cool_" + str(temp - temperatures["temp_step"]),
                           args=cool_args, parents=parents, priority=priority,
                           previous_structure=previous_structure,
                           insert_db=False, **kwargs)
@@ -96,7 +96,7 @@ def get_single_quench(structure, temperatures=None, priority=None, cool_args=Non
             # get fw for hold step
             fw = get_MDFW(structure, temp - temperatures["temp_step"],
                           temp - temperatures["temp_step"],
-                          name="_hold_" + str(temp - temperatures["temp_step"]),
+                          name="hold_" + str(temp - temperatures["temp_step"]),
                           args=hold_args, parents=[fws[-1]], priority=priority,
                           previous_structure=True, insert_db=False, **kwargs)
             fws.append(fw)
