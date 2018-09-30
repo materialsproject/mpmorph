@@ -186,7 +186,7 @@ class AmorphousMaker(object):
 
 
 def get_random_packed(composition, add_specie=None, target_atoms=100,
-                     vol_per_atom=None, vol_exp=1.0):
+                     vol_per_atom=None, vol_exp=1.0, modify_species=None):
     mpr = MPRester()
 
     if type(composition) == str:
@@ -203,9 +203,8 @@ def get_random_packed(composition, add_specie=None, target_atoms=100,
         else:
             # Find all Materials project entries containing the elements in the
             # desired composition to estimate starting volume.
-
-            _entries = mpr.get_entries_in_chemsys([str(el) for el in composition.elements],
-                                                  inc_structure=True)
+            _entries = mpr.get_entries_in_chemsys(
+                [str(el) for el in composition.elements], inc_structure=True)
             entries = []
             for entry in _entries:
                 if set(entry.structure.composition.elements) == set(composition.elements):
@@ -213,10 +212,9 @@ def get_random_packed(composition, add_specie=None, target_atoms=100,
                 if len(entry.structure.composition.elements) >= 2:
                     entries.append(entry)
 
-            vols = [entry.structure.volume / entry.structure.num_sites for entry in entries]
-        avg_vol = np.mean(vols)
-    else:
-        avg_vol = vol_per_atom
+            vols = [entry.structure.volume / entry.structure.num_sites
+                    for entry in entries]
+        vol_per_atom = np.mean(vols)
 
     # Find total composition of atoms in the unit cell
     formula, factor = composition.get_integer_formula_and_factor()
@@ -230,9 +228,11 @@ def get_random_packed(composition, add_specie=None, target_atoms=100,
     for el in comp:
         structure[str(el)] = int(comp.element_composition.get(el))
 
+    for i, v in modify_species.items():
+        structure[i] += v
     # use packmol to get a random configured structure
     packmol_path = os.environ['PACKMOL_EXE']
-    amorphous_maker_params = {'box_scale': (avg_vol * comp.num_atoms * vol_exp) ** (1/3),
+    amorphous_maker_params = {'box_scale': (vol_per_atom * comp.num_atoms * vol_exp) ** (1/3),
                               'packmol_path': packmol_path, 'xyz_paths': None}
 
     glass = AmorphousMaker(structure, **amorphous_maker_params)

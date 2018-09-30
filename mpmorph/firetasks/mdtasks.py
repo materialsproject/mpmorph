@@ -96,10 +96,9 @@ class ConvergeTask(FireTaskBase):
             run_specs = self["run_specs"]
             md_params = self["md_params"]
             optional_params = self["optional_fw_params"]
-            if not converged.get("density", True):
-                if spawn_count >= max_spawns:
-                    return FWAction(defuse_children=True)
-                else:
+            if spawn_count >= max_spawns:
+                return FWAction(defuse_children=True)
+            elif not converged.get("density", True):
                     rescale_args = {"initial_pressure": pressure * 1000, "initial_temperature": 1, "beta": 0.0000005}
                     rescale_args = recursive_update(rescale_args, rescale_params)
 

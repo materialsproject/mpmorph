@@ -28,13 +28,13 @@ def get_quench(structures, temperatures=None, priority=None, quench_type="simula
                                name="snap_" + str(i) + "_cool_" + str(temp - temperatures["temp_step"]),
                                args=cool_args, parents=[_fw_list[-1]] if len(_fw_list) > 0 else [],
                                priority=priority, previous_structure=use_prev_structure,
-                               insert_db=False, **kwargs)
+                               insert_db=True, **kwargs)
                 _fw_list.append(_fw)
                 # get fw for hold step
                 _fw = get_MDFW(structure, temp - temperatures["temp_step"], temp - temperatures["temp_step"],
                                name="snap_" + str(i) + "_hold_" + str(temp - temperatures["temp_step"]),
                                args=hold_args, parents=[_fw_list[-1]], priority=priority,
-                               previous_structure=True, insert_db=False, **kwargs)
+                               previous_structure=True, insert_db=True, **kwargs)
                 _fw_list.append(_fw)
 
         if quench_type in ["simulated_anneal", "mp_quench"]:
