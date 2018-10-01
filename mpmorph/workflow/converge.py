@@ -165,7 +165,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
             volume_fws = []
             for n, (i, vol_structure) in enumerate(zip(images, structures)):
                 save_structure = True if n == len(images) - 1 else False
-                _fw = MDFW(structure=vol_structure, name="volume_" + str(i) + "-" + str(tag_id),
+                _fw = MDFW(structure=vol_structure, name="volume_" + str(i),
                            previous_structure=False, insert_db=False,
                            **EOS_run_args["md_params"], **EOS_run_args["run_specs"],
                            **EOS_run_args["optional_fw_params"])
@@ -176,7 +176,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
 
             # Create firework to converge pressure/volume
             _spawner_args['rescale_params']['beta'] = 1e-6
-            spawner_fw = MDFW(structure=structure, name="run1" + "-" + str(tag_id),
+            spawner_fw = MDFW(structure=structure, name="run1",
                               previous_structure=True, insert_db=False,
                               parents=volume_fws, **run_args["md_params"],
                               **run_args["run_specs"],

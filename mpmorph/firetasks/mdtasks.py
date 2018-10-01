@@ -1,8 +1,6 @@
 from mpmorph.runners.rescale_volume import RescaleVolume, fit_BirchMurnaghanPV_EOS
 from mpmorph.util import recursive_update
 from mpmorph.analysis import md_data
-from mpmorph.fireworks import powerups
-from mpmorph.fireworks.core import MDFW
 from fireworks import explicit_serialize, Workflow, FireTaskBase, FWAction
 from pymatgen.io.vasp import Poscar
 from pymatgen import Structure
@@ -195,3 +193,6 @@ class PVRescaleTask(FireTaskBase):
         poscar.write_file("./POSCAR")
 
         return FWAction()
+
+from mpmorph.fireworks import powerups
+from mpmorph.fireworks.core import MDFW
