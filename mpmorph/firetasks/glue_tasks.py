@@ -3,6 +3,7 @@ import numpy as np
 from fireworks import explicit_serialize, FireTaskBase, FWAction
 from pymatgen.io.vasp import Poscar
 from pymatgen import Structure, Lattice
+from mpmorph.analysis import md_data
 
 
 @explicit_serialize
