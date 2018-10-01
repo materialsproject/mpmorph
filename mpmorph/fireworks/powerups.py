@@ -1,5 +1,6 @@
-from mpmorph.firetasks.mdtasks import RescaleVolumeTask, ConvergeTask
-from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask
+from mpmorph.firetasks.mdtasks import RescaleVolumeTask, ConvergeTask, PVRescaleTask
+from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask, \
+    PassPVTask
 from mpmorph.firetasks.dbtasks import VaspMDToDb, TrajectoryDBTask
 
 
@@ -8,9 +9,11 @@ def add_converge_task(fw, **kwargs):
     fw.tasks.append(spawner_task)
     return fw
 
+
 def aggregate_trajectory(fw, **kwargs):
     fw.tasks.append(TrajectoryDBTask(**kwargs))
     return fw
+
 
 def add_cont_structure(fw):
     prev_struct_task = PreviousStructureTask()
@@ -29,6 +32,23 @@ def add_pass_structure(fw, **kwargs):
     return fw
 
 
+def add_pass_pv(fw, **kwargs):
+    pass_pv_task = PassPVTask(**kwargs)
+    fw.tasks.append(pass_pv_task)
+    return fw
+
+
+def add_pv_volume_rescale(fw):
+    insert_i = 2
+    for (i, task) in enumerate(fw.tasks):
+        if task.fw_name == "{{atomate.vasp.firetasks.run_calc.RunVaspCustodian}}":
+            insert_i = i
+            break
+
+    fw.tasks.insert(insert_i, PVRescaleTask())
+    return fw
+
+
 def add_rescale_volume(fw, **kwargs):
     rsv_task = RescaleVolumeTask(**kwargs)
     insert_i = 2
@@ -39,6 +59,7 @@ def add_rescale_volume(fw, **kwargs):
 
     fw.tasks.insert(insert_i, rsv_task)
     return fw
+
 
 def replace_pass_structure(fw, **kwargs):
     # look for rescale_volume task
@@ -56,6 +77,7 @@ def replace_pass_structure(fw, **kwargs):
         return
 
     return fw
+
 
 def replace_vaspmdtodb(fw):
     # look for vaspdb task

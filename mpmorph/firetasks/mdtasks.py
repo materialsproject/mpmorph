@@ -1,9 +1,12 @@
-from fireworks import explicit_serialize, Workflow, FireTaskBase, FWAction
-from mpmorph.runners.rescale_volume import RescaleVolume
+from mpmorph.runners.rescale_volume import RescaleVolume, fit_BirchMurnaghanPV_EOS
 from mpmorph.util import recursive_update
 from mpmorph.analysis import md_data
+from mpmorph.fireworks import powerups
+from mpmorph.fireworks.core import MDFW
+from fireworks import explicit_serialize, Workflow, FireTaskBase, FWAction
 from pymatgen.io.vasp import Poscar
 from pymatgen import Structure
+from scipy import stats
 import numpy as np
 from pymatgen.analysis.structure_prediction.volume_predictor import DLSVolumePredictor
 
@@ -158,5 +161,37 @@ class RescaleVolumeTask(FireTaskBase):
         # Pass the rescaled volume to Poscar
         return FWAction(stored_data=corr_vol.structure.as_dict())
 
-from mpmorph.fireworks import powerups
-from mpmorph.fireworks.core import MDFW
+
+@explicit_serialize
+class PVRescaleTask(FireTaskBase):
+    """
+    Rescale based on fitting pressure vs volume to Birch-Murnaghan EOS
+    """
+
+    required_params = []
+    optional_params = ['rescale_type']
+
+    def run_task(self, fw_spec):
+        rescale_type = self.get('rescale_type', 'BirchMurnaghan_EOS')
+
+        if rescale_type == 'BirchMurnaghan_EOS':
+            pv_pairs = np.array(fw_spec["pressure_volume"])
+            pv_pairs = np.flip(pv_pairs, axis=1)
+            pv_pairs = np.flip(pv_pairs[pv_pairs[:, 1].argsort()], axis=0)
+
+            params = fit_BirchMurnaghanPV_EOS(pv_pairs)
+            equil_volume = params[0]
+        else:
+            pvs = fw_spec["pressure_volume"]
+
+            p = [item[1] for item in pvs]
+            v = [item[0] for item in pvs]
+
+            slope, intercept, r_value, p_value, std_err = stats.linregress(v, p)
+            equil_volume = -intercept/slope
+
+        poscar = Poscar.from_file("./POSCAR")
+        poscar.structure.scale_lattice(equil_volume)
+        poscar.write_file("./POSCAR")
+
+        return FWAction()
