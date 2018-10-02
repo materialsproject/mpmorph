@@ -111,7 +111,8 @@ def get_single_quench(structure, temperatures=None, priority=None, cool_args=Non
                     }
         run_args = recursive_update(run_args, quench_args)
         parents = [fws[-1]] if len(fws) > 0 else parents
-        fw = OptimizeFW(structure=structure, name=descriptor + "_optimize", parents=parents,
+        name = '%s_optimize' % descriptor if descriptor else 'optimize'
+        fw = OptimizeFW(structure=structure, name=name, parents=parents,
                         **run_args["run_specs"], **run_args["optional_fw_params"],
                         max_force_threshold=None)
         if len(fws) > 0:
@@ -120,7 +121,8 @@ def get_single_quench(structure, temperatures=None, priority=None, cool_args=Non
         fws.append(fw)
 
         if add_static:
-            fw = StaticFW(structure=structure, name=descriptor + "_static", parents=[fw],
+            name = '%s_static' % descriptor if descriptor else 'static'
+            fw = StaticFW(structure=structure, name=name, parents=[fw],
                           **run_args["run_specs"], **run_args["optional_fw_params"])
             fw = powerups.add_cont_structure(fw)
             fw = powerups.add_pass_structure(fw)
