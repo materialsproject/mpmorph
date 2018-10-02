@@ -1,5 +1,6 @@
 from monty.io import zopen
 import itertools
+import numpy as np
 
 class Xdatcar_Writer():
 
@@ -41,4 +42,52 @@ class Xdatcar_Writer():
         Similar to 7th line in vasp 5+ POSCAR or the 6th line in vasp 4 POSCAR.
         """
         syms = [site.specie.symbol for site in structure]
+        return [len(tuple(a[1])) for a in itertools.groupby(syms)]
+
+
+class Xdatcar_Writer_Trajectory():
+    def __init__(self, trajectory):
+        self.trajectory = trajectory
+
+    def write_xdatcar(self, filename, **kwargs):
+        """
+        Writes Xdatcar to a file. The supported kwargs are the same as those for
+        the Xdatcar_from_structs.get_string method and are passed through directly.
+        """
+        with zopen(filename, "wt") as f:
+            f.write(self.get_string(**kwargs))
+
+    def get_string(self, system="unknown system", significant_figures=6):
+        lines = [system, "1.0", str(self.trajectory.lattice)]
+        lines.append(" ".join(self.get_site_symbols()))
+        lines.append(" ".join([str(x) for x in self.get_natoms()]))
+
+        format_str = "{{:.{0}f}}".format(significant_figures)
+        #         positions = self.trajectory.positions
+        positions = np.add(self.trajectory.base_structure.frac_coords, self.trajectory.displacements)
+        atoms = [site.specie.symbol for site in self.trajectory.base_structure]
+
+        for (si, position_array) in enumerate(positions):
+            lines.append("Direct configuration=     " + str(si + 1))
+            for (i, coords) in enumerate(position_array):
+                line = " ".join([format_str.format(c) for c in coords])
+                line += " " + atoms[i]
+                lines.append(line)
+
+        return "\n".join(lines) + "\n"
+
+    def get_site_symbols(self):
+        """
+        Sequence of symbols associated with the Poscar. Similar to 6th line in
+        vasp 5+ POSCAR.
+        """
+        syms = [site.specie.symbol for site in self.trajectory.base_structure]
+        return [a[0] for a in itertools.groupby(syms)]
+
+    def get_natoms(self):
+        """
+        Sequence of number of sites of each type associated with the Poscar.
+        Similar to 7th line in vasp 5+ POSCAR or the 6th line in vasp 4 POSCAR.
+        """
+        syms = [site.specie.symbol for site in self.trajectory.base_structure]
         return [len(tuple(a[1])) for a in itertools.groupby(syms)]
