@@ -126,7 +126,6 @@ class TrajectoryDBTask(FiretaskBase):
         traj_doc['structure'] = trajectory.structure.as_dict()
         traj_doc['length'] = len(trajectory.displacements)
         traj_doc['time_step'] = 0.002
-        traj_doc['tag'] = self.get('tag_id')
         return traj_doc
 
     def load_trajectories_from_gfs(self, runs, db_file):
