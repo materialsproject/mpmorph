@@ -68,10 +68,10 @@ def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics", priorit
     run_args = {"md_params": {"nsteps": 500},
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                               "wall_time": 40000},
-                "optional_fw_params": {"override_default_vasp_params": {}, "copy_vasp_outputs": False, "spec": {}}}
+                "optional_fw_params": {"override_default_vasp_params": {}, "spec": {}}}
 
     run_args["optional_fw_params"]["override_default_vasp_params"].update(
-        {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
+        {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'PREC':'Low'}})
     run_args = recursive_update(run_args, args)
     run_args["md_params"]["start_temp"] = start_temp
     run_args["md_params"]["end_temp"] = end_temp
