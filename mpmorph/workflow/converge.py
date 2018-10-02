@@ -153,7 +153,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
     if not preconverged:
         if converge_scheme == 'EOS':
             # Create structures for varying volumes
-            images = kwargs.get('images', [0.8, 1, 1.2])
+            images = kwargs.get('images', [0.9, 1, 1.1])
             structures = [structure.copy() for i in images]
             for i, factor in enumerate(images):
                 structures[i].scale_lattice(structure.volume * factor)
@@ -175,7 +175,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
             fw_list.extend(volume_fws)
 
             # Create firework to converge pressure/volume
-            _spawner_args['rescale_params']['beta'] = 1e-6
+            _spawner_args['rescale_params']['beta'] = 5e-7
             spawner_fw = MDFW(structure=structure, name="run1",
                               previous_structure=True, insert_db=False,
                               parents=volume_fws, **run_args["md_params"],
