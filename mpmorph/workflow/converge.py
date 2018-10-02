@@ -228,7 +228,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
                                   "db_file": ">>db_file<<", "wall_time": 86400},
                     "optional_fw_params": {"override_default_vasp_params": {},
                                            "copy_vasp_outputs": False, "spec": {}},
-                    "label": "prod_run"
+                    "label": "%s_run" % str(temperature)
                     }
 
         run_args["optional_fw_params"]["override_default_vasp_params"].update(
