@@ -166,7 +166,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
             for n, (i, vol_structure) in enumerate(zip(images, structures)):
                 save_structure = True if n == len(images) - 1 else False
                 _fw = MDFW(structure=vol_structure, name="volume_" + str(i),
-                           previous_structure=False, insert_db=False,
+                           previous_structure=False, insert_db=False, parents=parents,
                            **EOS_run_args["md_params"], **EOS_run_args["run_specs"],
                            **EOS_run_args["optional_fw_params"])
 
