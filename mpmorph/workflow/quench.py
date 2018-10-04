@@ -7,11 +7,10 @@ from mpmorph.util import recursive_update
 import numpy as np
 
 
-def get_quench(structures, temperatures=None, priority=None, quench_type="simulated_anneal",
+def get_quench(structures, temp=None, priority=None, quench_type="simulated_anneal",
                cool_args=None, hold_args=None, quench_args=None, descriptor="", **kwargs):
     fw_list = []
-    temperatures = {"start_temp": 3000, "end_temp": 500, "temp_step": 500} \
-        if temperatures is None else temperatures
+    temp = {"start_temp": 3000, "end_temp": 500, "temp_step": 500} if temp is None else temp
     cool_args = {"md_params": {"nsteps": 200}} if cool_args is None else cool_args
     hold_args = {"md_params": {"nsteps": 500}} if hold_args is None else hold_args
     quench_args = {} if quench_args is None else quench_args
@@ -19,20 +18,20 @@ def get_quench(structures, temperatures=None, priority=None, quench_type="simula
     for (i, structure) in enumerate(structures):
         _fw_list = []
         if quench_type == "simulated_anneal":
-            for temp in np.arange(temperatures["start_temp"], temperatures["end_temp"], -temperatures["temp_step"]):
+            for t in np.arange(temp["start_temp"], temp["end_temp"], -temp["temp_step"]):
                 # get fw for cool step
                 use_prev_structure = False
                 if len(_fw_list) > 0:
                     use_prev_structure = True
-                _fw = get_MDFW(structure, temp, temp - temperatures["temp_step"],
-                               name="snap_" + str(i) + "_cool_" + str(temp - temperatures["temp_step"]),
+                _fw = get_MDFW(structure, t, t - temp["temp_step"],
+                               name="snap_" + str(i) + "_cool_" + str(t - temp["temp_step"]),
                                args=cool_args, parents=[_fw_list[-1]] if len(_fw_list) > 0 else [],
                                priority=priority, previous_structure=use_prev_structure,
                                insert_db=True, **kwargs)
                 _fw_list.append(_fw)
                 # get fw for hold step
-                _fw = get_MDFW(structure, temp - temperatures["temp_step"], temp - temperatures["temp_step"],
-                               name="snap_" + str(i) + "_hold_" + str(temp - temperatures["temp_step"]),
+                _fw = get_MDFW(structure, t - temp["temp_step"], t - temp["temp_step"],
+                               name="snap_" + str(i) + "_hold_" + str(t - temp["temp_step"]),
                                args=hold_args, parents=[_fw_list[-1]], priority=priority,
                                previous_structure=True, insert_db=True, **kwargs)
                 _fw_list.append(_fw)
@@ -71,32 +70,28 @@ def get_quench(structures, temperatures=None, priority=None, quench_type="simula
     return wf
 
 
-def get_single_quench(structure, temperatures=None, priority=None, cool_args=None,
+def get_single_quench(structure, temp=None, priority=None, cool_args=None,
                       hold_args=None, quench_args=None, parents=None, descriptor="",
                       quench_type="simulated_anneal", add_static=False, **kwargs):
-    temperatures = {"start_temp": 3000, "end_temp": 500, "temp_step": 500} \
-        if temperatures is None else temperatures
+    temp = {"start_temp": 3000, "end_temp": 500, "temp_step": 500} if temp is None else temp
     cool_args = {"md_params": {"nsteps": 200}} if cool_args is None else cool_args
     hold_args = {"md_params": {"nsteps": 500}} if hold_args is None else hold_args
     quench_args = {} if quench_args is None else quench_args
 
     fws = []
     if quench_type == "simulated_anneal":
-        for temp in np.arange(temperatures["start_temp"], temperatures["end_temp"],
-                              -temperatures["temp_step"]):
+        for t in np.arange(temp["start_temp"], temp["end_temp"], -temp["temp_step"]):
             # get fw for cool step
             previous_structure = True if parents or fws else False
             parents = [fws[-1]] if len(fws) > 0 else parents
-            fw = get_MDFW(structure, temp, temp - temperatures["temp_step"],
-                          name="cool_" + str(temp - temperatures["temp_step"]),
+            end_temp = t - temp["temp_step"]
+            fw = get_MDFW(structure, t, end_temp, name="cool_" + str(end_temp),
                           args=cool_args, parents=parents, priority=priority,
                           previous_structure=previous_structure,
                           insert_db=False, **kwargs)
             fws.append(fw)
             # get fw for hold step
-            fw = get_MDFW(structure, temp - temperatures["temp_step"],
-                          temp - temperatures["temp_step"],
-                          name="hold_" + str(temp - temperatures["temp_step"]),
+            fw = get_MDFW(structure, end_temp, end_temp, name="hold_" + str(end_temp),
                           args=hold_args, parents=[fws[-1]], priority=priority,
                           previous_structure=True, insert_db=False, **kwargs)
             fws.append(fw)
@@ -133,22 +128,18 @@ def get_single_quench(structure, temperatures=None, priority=None, cool_args=Non
 
 def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics", priority=None,
              job_time=None, args={}, **kwargs):
-    run_args = {"md_params": {"nsteps": 500},
+    run_args = {"md_params": {"start_temp": start_temp, "end_temp": end_temp, "nsteps": 500},
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
                               "db_file": ">>db_file<<", "wall_time": 40000
                               },
-                "optional_fw_params": {"override_default_vasp_params": {},
-                                       "copy_vasp_outputs": False, "spec": {}
-                                       }
+                "optional_fw_params": {
+                    "override_default_vasp_params": {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}},
+                    "copy_vasp_outputs": False,
+                    "spec": {"_queueadapter": {'walltime': job_time}, "_priority": priority}
+                }
                 }
 
-    run_args["optional_fw_params"]["override_default_vasp_params"].update(
-        {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}})
     run_args = recursive_update(run_args, args)
-    run_args["md_params"]["start_temp"] = start_temp
-    run_args["md_params"]["end_temp"] = end_temp
-    run_args["optional_fw_params"]["spec"]["_priority"] = priority
-    run_args["optional_fw_params"]["spec"]["_queueadapter"] = {"walltime": job_time}
     _mdfw = MDFW(structure=structure, name=name, **run_args["md_params"],
                  **run_args["run_specs"], **run_args["optional_fw_params"], **kwargs)
     return _mdfw

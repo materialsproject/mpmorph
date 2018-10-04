@@ -129,24 +129,24 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
                               "db_file": ">>db_file<<", "wall_time": 86400},
                 "optional_fw_params": {
-                    "override_default_vasp_params":
-                        {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}},
-                    "spec": {}}}
-    run_args["optional_fw_params"]["spec"]["_queueadapter"] = {"walltime": run_args["run_specs"]["wall_time"]}
+                    "override_default_vasp_params": {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}},
+                    "spec": {"_queueadapter": {'walltime': 86400}, '_priority': priority}}
+                }
     run_args = recursive_update(run_args, kwargs.get('converge_args', {}))
-    run_args["optional_fw_params"]["spec"]["_priority"] = priority
 
     # Setup Dictionary specifying parameters of the spawner for convergence tasks
     _spawner_args = {
-        "converge_params": {"max_rescales": 15, "spawn_count": 1},
+        "converge_params": {"max_rescales": 15, 'spawn_count': 1,
+                            'converge_type': kwargs.get('convergence_criteria',
+                                                        [('density', 5), ('ionic', 0.001)])
+                            },
         "rescale_params": {"beta": 5e-7},
-        "run_specs": run_args["run_specs"], "md_params": run_args["md_params"],
+        "run_specs": run_args["run_specs"],
+        "md_params": run_args["md_params"],
         "optional_fw_params": run_args["optional_fw_params"],
-        "unique_identifier": tag_id}
-    _spawner_args['converge_params']['converge_type'] = kwargs.get('convergence_criteria',
-                                                                   [("density", 5), ('ionic', 0.001)])
+        "unique_identifier": tag_id
+    }
     _spawner_args["md_params"].update({"start_temp": run_args["md_params"]["end_temp"]})
-    _spawner_args["optional_fw_params"]["spec"]["_priority"] = priority
     _spawner_args = recursive_update(_spawner_args, kwargs.get('spawner_args', {}))
 
     # Converge the pressure (volume) of the system
@@ -194,24 +194,25 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
             # Create Vasp Optimization firework
             optimize_args = {"run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                                            "spec": {"_priority": priority}}}
-            fw2 = OptimizeFW(structure=structure, name="rescale_optimize" + "-" + str(tag_id), insert_db=False,
-                             job_type="normal",
-                             parents=[fw1], **optimize_args["run_specs"], max_force_threshold=None)
+            fw2 = OptimizeFW(structure=structure, name="rescale_optimize" + "-" + str(tag_id),
+                             insert_db=False, job_type="normal", parents=[fw1],
+                             **optimize_args["run_specs"], max_force_threshold=None)
             fw2 = powerups.add_cont_structure(fw2)
             fw2 = powerups.replace_pass_structure(fw2, rescale_volume=True)
 
             # Create Convergence Firework
             if len(_spawner_args["md_params"].keys()) > 0:
                 run_args["md_params"].update(_spawner_args["md_params"])
-            fw3 = MDFW(structure=structure, name="run1" + "-" + str(tag_id), previous_structure=True, insert_db=False,
-                       **run_args["md_params"],
+            fw3 = MDFW(structure=structure, name="run1" + "-" + str(tag_id),
+                       previous_structure=True, insert_db=False, **run_args["md_params"],
                        parents=[fw2], **run_args["run_specs"], **run_args["optional_fw_params"])
 
             fw3 = powerups.add_converge_task(fw3, **_spawner_args)
 
             fw_list.extend([fw1, fw2, fw3])
         else:
-            fw1 = MDFW(structure=structure, name="run0" + "-" + str(tag_id), previous_structure=False, insert_db=False,
+            fw1 = MDFW(structure=structure, name="run0" + "-" + str(tag_id),
+                       previous_structure=False, insert_db=False,
                        **run_args["md_params"], **run_args["run_specs"],
                        **run_args["optional_fw_params"])
             fw1 = powerups.add_converge_task(fw1, **_spawner_args)
@@ -226,17 +227,18 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
                                   "nsteps": max_steps},
                     "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
                                   "db_file": ">>db_file<<", "wall_time": 86400},
-                    "optional_fw_params": {"override_default_vasp_params": {},
-                                           "copy_vasp_outputs": False, "spec": {}},
+                    "optional_fw_params": {
+                        "override_default_vasp_params":
+                            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False,
+                                                     'PREC': 'Normal'}},
+                        "copy_vasp_outputs": False,
+                        "spec": {'_priority': priority}
+                    },
                     "label": "%s_run" % str(temperature)
                     }
 
-        run_args["optional_fw_params"]["override_default_vasp_params"].update(
-            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'PREC': 'Normal'}})
-        run_args["optional_fw_params"]["spec"]["_priority"] = priority
         parents = fw_list[-1] if len(fw_list) > 0 else parents
         previous_structure = False if preconverged and i == 0 else True
-
         name = '-'.join([run_args["label"], str(i), str(tag_id)])
         fw = MDFW(structure=structure, name=name, previous_structure=previous_structure,
                   insert_db=True, parents=parents, **run_args["md_params"],

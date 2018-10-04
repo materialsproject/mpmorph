@@ -57,22 +57,18 @@ class MDFW(Firework):
             t.append(PassCalcLocs(name=name))
         t.append(SaveStructureTask())
         if insert_db:
-            t.append(VaspMDToDb(db_file=db_file,
-                              additional_fields={"task_label": name}, defuse_unsuccessful=False))
-        super(MDFW, self).__init__(t, parents=parents,
-                                   name="{}-{}".format(structure.composition.reduced_formula, name),
-                                   **kwargs)
+            t.append(VaspMDToDb(db_file=db_file, additional_fields={"task_label": name},
+                                defuse_unsuccessful=False))
+        name = "%s-%s" % (structure.formula.replace(' ', ''), name)
+        super(MDFW, self).__init__(t, parents=parents, name=name, **kwargs)
 
 
 class OptimizeFW(Firework):
-    def __init__(self, structure, name="structure optimization",
-                 vasp_input_set=None, insert_db=True,
-                 vasp_cmd="vasp", override_default_vasp_params=None,
-                 ediffg=None, db_file=None,
-                 force_gamma=True, job_type="double_relaxation_run",
-                 max_force_threshold=None,
-                 previous_structure=False,
-                 auto_npar=">>auto_npar<<",
+    def __init__(self, structure, name="structure optimization", vasp_input_set=None,
+                 insert_db=True, vasp_cmd="vasp", override_default_vasp_params=None,
+                 ediffg=None, db_file=None, force_gamma=True,
+                 job_type="double_relaxation_run", max_force_threshold=None,
+                 previous_structure=False, auto_npar=">>auto_npar<<",
                  half_kpts_first_relax=False, parents=None,
                  copy_vasp_outputs=False, pass_structure=True, **kwargs):
         """
@@ -116,14 +112,14 @@ class OptimizeFW(Firework):
 
         if insert_db:
             t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-        super(OptimizeFW, self).__init__(
-            t, parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name), **kwargs)
+        name = "%s-%s" % (structure.formula.replace(' ', ''), name)
+        super(OptimizeFW, self).__init__(t, parents=parents, name=name, **kwargs)
 
 
 class StaticFW(Firework):
-    def __init__(self, structure, name="static", previous_structure=False, vasp_input_set=None, vasp_cmd="vasp",
-                 db_file=None, parents=None, override_default_vasp_params=None, **kwargs):
+    def __init__(self, structure, name="static", previous_structure=False,
+                 vasp_input_set=None, vasp_cmd="vasp", db_file=None, parents=None,
+                 override_default_vasp_params=None, **kwargs):
         """
         This Firework is modified from atomate.vasp.fireworks.core.StaticFW to fit the needs of mpmorph
         Standard static calculation Firework - either from a previous location or from a structure.
@@ -153,5 +149,5 @@ class StaticFW(Firework):
         t.append(SaveStructureTask())
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-        super(StaticFW, self).__init__(t, parents=parents, name="{}-{}".format(
-            structure.composition.reduced_formula, name), **kwargs)
+        name = "%s-%s" % (structure.formula.replace(' ', ''), name)
+        super(StaticFW, self).__init__(t, parents=parents, name=name, **kwargs)
