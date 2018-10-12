@@ -14,7 +14,7 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
 
     run_args = {"md_params": {"start_temp": 3000, "end_temp": 3000, "nsteps": 2000},
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
-                              "db_file": ">>db_file<<", "wall_time": 86400},
+                              "db_file": ">>db_file<<", "wall_time": 86400 * 2},
                 "optional_fw_params": {"override_default_vasp_params": {},
                                        "copy_vasp_outputs": False, "spec": {}}}
     run_args["optional_fw_params"]["override_default_vasp_params"].update(
@@ -79,7 +79,7 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
                                   "end_temp": run_args["md_params"]["end_temp"],
                                   "nsteps": max_steps},
                     "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
-                                  "db_file": ">>db_file<<", "wall_time": 86400},
+                                  "db_file": ">>db_file<<", "wall_time": 86400 * 2},
                     "optional_fw_params": {"override_default_vasp_params": {},
                                            "copy_vasp_outputs": False, "spec": {}},
                     "label": "prod_run"
@@ -127,10 +127,10 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
     # Setup initial Run and convergence of structure
     run_args = {"md_params": {"start_temp": temperature, "end_temp": temperature, "nsteps": 2000},
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
-                              "db_file": ">>db_file<<", "wall_time": 86400},
+                              "db_file": ">>db_file<<", "wall_time": 86400 * 2},
                 "optional_fw_params": {
                     "override_default_vasp_params": {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}},
-                    "spec": {"_queueadapter": {'walltime': 86400}, '_priority': priority}}
+                    "spec": {"_queueadapter": {'walltime': 86400 * 2}, '_priority': priority}}
                 }
     run_args = recursive_update(run_args, kwargs.get('converge_args', {}))
 
@@ -165,8 +165,9 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
             volume_fws = []
             for n, (i, vol_structure) in enumerate(zip(images, structures)):
                 save_structure = True if n == len(images) - 1 else False
-                _fw = MDFW(structure=vol_structure, name="volume_" + str(i),
-                           previous_structure=False, insert_db=False, parents=parents,
+                previous_structure = True if parents else False
+                _fw = MDFW(structure=vol_structure, name="volume_" + str(i), insert_db=False, 
+                           previous_structure=previous_structure, parents=parents,
                            **EOS_run_args["md_params"], **EOS_run_args["run_specs"],
                            **EOS_run_args["optional_fw_params"])
 
@@ -226,7 +227,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
                                   "end_temp": run_args["md_params"]["end_temp"],
                                   "nsteps": max_steps},
                     "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
-                                  "db_file": ">>db_file<<", "wall_time": 86400},
+                                  "db_file": ">>db_file<<", "wall_time": 86400 * 2},
                     "optional_fw_params": {
                         "override_default_vasp_params":
                             {'user_incar_settings': {'ISIF': 1, 'LWAVE': False,

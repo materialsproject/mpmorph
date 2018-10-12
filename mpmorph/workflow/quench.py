@@ -130,7 +130,7 @@ def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics", priorit
              job_time=None, args={}, **kwargs):
     run_args = {"md_params": {"start_temp": start_temp, "end_temp": end_temp, "nsteps": 500},
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
-                              "db_file": ">>db_file<<", "wall_time": 40000
+                              "db_file": ">>db_file<<", "wall_time": 86400 * 2
                               },
                 "optional_fw_params": {
                     "override_default_vasp_params": {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}},
