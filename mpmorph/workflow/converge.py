@@ -105,7 +105,7 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
 
 def get_converge_new(structure, temperature, converge_scheme='EOS', priority=None,
                      max_steps=5000, target_steps=10000, preconverged=False,
-                     parents=None, **kwargs):
+                     parents=None, trajectory_to_db=False, **kwargs):
     """
 
     :param structure: Starting structure for the run
@@ -166,7 +166,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
             for n, (i, vol_structure) in enumerate(zip(images, structures)):
                 save_structure = True if n == len(images) - 1 else False
                 previous_structure = True if parents else False
-                _fw = MDFW(structure=vol_structure, name="volume_" + str(i), insert_db=False, 
+                _fw = MDFW(structure=vol_structure, name="volume_" + str(i), insert_db=False,
                            previous_structure=previous_structure, parents=parents,
                            **EOS_run_args["md_params"], **EOS_run_args["run_specs"],
                            **EOS_run_args["optional_fw_params"])
@@ -248,4 +248,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
         prod_steps += max_steps
         i += 1
 
+    if trajectory_to_db:
+        fw_list[-1] = powerups.aggregate_trajectory(fw_list[-1], identifier=tag_id,
+                                                    db_file=run_args["run_specs"]["db_file"])
     return fw_list

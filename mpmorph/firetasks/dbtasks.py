@@ -94,19 +94,22 @@ class VaspMDToDb(FiretaskBase):
 @explicit_serialize
 class TrajectoryDBTask(FiretaskBase):
     """
-    Obtain all production runs and insert them into the db. This is done by searching for a tag
+    Obtain all production runs and insert them into the db. This is done by
+    searching for a unique tag
     """
-    required_params = ["tag_id", "db_file"]
+    required_params = ["identifier", "db_file"]
     optional_params = []
 
     def run_task(self, fw_spec):
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
         mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
-        runs = mmdb.find({"task_label": {"$regex": re.compile(".*" + fw_spec["run_tag"] + ".*")}})
-        runs_sorted = sorted(runs, key=lambda x: int(x["task_label"].split("_")[-1].split("-")[0]))
+        runs = mmdb.db['tasks'].find(
+            {"task_label": re.compile(".*" + self["identifier"] + ".*")})
+        runs_sorted = sorted(runs, key=lambda x: x['task_label'])
 
-        trajectory_doc = self.runs_to_trajectory_doc(runs_sorted, db_file, fw_spec["run_tag"])
+        trajectory_doc = self.runs_to_trajectory_doc(runs_sorted, db_file,
+                                                     self["identifier"])
 
         mmdb.db.trajectories.insert_one(trajectory_doc)
 
@@ -115,18 +118,19 @@ class TrajectoryDBTask(FiretaskBase):
 
         mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
         traj_dict = json.dumps(trajectory.as_dict(), cls=MontyEncoder)
-        gfs_id, compression_type = insert_gridfs(traj_dict, mmdb.db, "trajectories_fs")
+        gfs_id, compression_type = insert_gridfs(traj_dict, mmdb.db,
+                                                 "trajectories_fs")
 
-        traj_doc = {}
-        traj_doc['formula_pretty'] = trajectory.composition.reduced_formula
-        traj_doc['temperature'] = runs[0]["input"]["incar"]["TEBEG"]
-        traj_doc['runs_label'] = runs_label
-        traj_doc['compression'] = compression_type
-        traj_doc['fs_id'] = gfs_id
-        traj_doc['structure'] = trajectory.structure.as_dict()
-        traj_doc['length'] = len(trajectory.displacements)
-        traj_doc['time_step'] = 0.002
-        traj_doc['tag'] = self.get('tag_id')
+        traj_doc = {
+            'formula_pretty': trajectory.base_structure.composition.reduced_formula,
+            'temperature': int(runs[0]["input"]["incar"]["TEBEG"]),
+            'runs_label': runs_label,
+            'compression': compression_type,
+            'fs_id': gfs_id,
+            'structure': trajectory.structure.as_dict(),
+            'length': len(trajectory.displacements),
+            'time_step': runs[0]["input"]["incar"]["POTIM"] * 1e-3
+        }
         return traj_doc
 
     def load_trajectories_from_gfs(self, runs, db_file):
