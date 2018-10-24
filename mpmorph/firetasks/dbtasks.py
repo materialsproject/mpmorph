@@ -123,6 +123,7 @@ class TrajectoryDBTask(FiretaskBase):
 
         traj_doc = {
             'formula_pretty': trajectory.base_structure.composition.reduced_formula,
+            'formula': trajectory.base_structure.composition.formula.replace(' ', ''),
             'temperature': int(runs[0]["input"]["incar"]["TEBEG"]),
             'runs_label': runs_label,
             'compression': compression_type,
