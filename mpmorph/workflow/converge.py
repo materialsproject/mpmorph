@@ -1,6 +1,7 @@
-from fireworks import Workflow
+from fireworks import Workflow, Firework
 from mpmorph.fireworks import powerups
 from mpmorph.fireworks.core import MDFW, OptimizeFW
+from mpmorph.firetasks.dbtasks import TrajectoryDBTask
 from mpmorph.util import recursive_update
 import uuid
 from copy import deepcopy
@@ -245,8 +246,10 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
         prod_steps += max_steps
         i += 1
 
-    fw_list[-1] = powerups.aggregate_trajectory(fw_list[-1], identifier=tag_id,
-                                                db_file=run_args["run_specs"]["db_file"])
     pretty_name = structure.composition.reduced_formula
+    aggregate_tasks = [TrajectoryDBTask(identifier=tag_id, db_file=run_args["run_specs"]["db_file"])]
+    aggregate_fw = Firework(aggregate_tasks, parents=fw_list[-1], name=pretty_name+"_aggregate_trajedtory-"+tag_id)
+    fw_list.append(aggregate_fw)
+
     wf = Workflow(fireworks=fw_list, name=pretty_name + "_diffusion")
     return wf
