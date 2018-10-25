@@ -136,7 +136,6 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
                 "optional_fw_params": {
                     "override_default_vasp_params": {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}},
                     "spec": {}}}
-    run_args["optional_fw_params"]["spec"]["_queueadapter"] = {"walltime": run_args["run_specs"]["wall_time"]}
     run_args = recursive_update(run_args, kwargs.get('converge_args', {}))
     run_args["optional_fw_params"]["spec"]["_priority"] = priority
 
