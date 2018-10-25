@@ -131,8 +131,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
 
     # Setup initial Run and convergence of structure
     run_args = {"md_params": {"start_temp": temperature, "end_temp": temperature, "nsteps": 2000},
-                "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
-                              "wall_time": 86400},
+                "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"},
                 "optional_fw_params": {
                     "override_default_vasp_params": {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}},
                     "spec": {}}}
@@ -228,8 +227,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
         # Create Dictionary with production run parameters
         run_args = {"md_params": {"start_temp": temperature,
                                   "end_temp": temperature, "nsteps": max_steps},
-                    "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
-                                  "wall_time": 86400},
+                    "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"},
                     "optional_fw_params": {"override_default_vasp_params": {}, "spec": {}},
                     "label": str(temperature) + "_prod_run_"}
         run_args["optional_fw_params"]["override_default_vasp_params"].update(
