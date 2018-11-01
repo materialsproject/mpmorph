@@ -105,7 +105,7 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
 
 def get_converge_new(structure, temperature, converge_scheme='EOS', priority=None,
                      max_steps=5000, target_steps=10000, preconverged=False,
-                     parents=None, trajectory_to_db=False, **kwargs):
+                     parents=None, trajectory_to_db=False, image_scale=None, **kwargs):
     """
 
     :param structure: Starting structure for the run
@@ -153,7 +153,8 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
     if not preconverged:
         if converge_scheme == 'EOS':
             # Create structures for varying volumes
-            images = kwargs.get('images', [0.9, 1, 1.1])
+            image_scale = [0.9, 1, 1.1] if image_scale is None else image_scale
+            images = kwargs.get('images', image_scale)
             structures = [structure.copy() for i in images]
             for i, factor in enumerate(images):
                 structures[i].scale_lattice(structure.volume * factor)

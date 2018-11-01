@@ -222,6 +222,7 @@ def get_random_packed(composition, add_specie=None, target_atoms=100,
     comp = composition * np.ceil(target_atoms / composition.num_atoms)
     if add_specie is not None:
         comp += add_specie
+        # comp = Composition(comp)
 
     # Generate dict of elements and amounts for AmorphousMaker
     structure = {}
