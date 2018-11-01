@@ -12,11 +12,12 @@ from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_logger
 from atomate.vasp.drones import VaspDrone
 from pymatgen import Structure
-from pymatgen.core.trajectory import Trajectory
 from pymatgen.analysis.diffusion_analyzer import DiffusionAnalyzer
 from mpmorph.database.database import VaspMDCalcDb
+from mpmorph.analysis.trajectory import Trajectory
 
 logger = get_logger(__name__)
+
 
 @explicit_serialize
 class VaspMDToDb(FiretaskBase):
