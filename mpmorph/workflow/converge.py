@@ -18,7 +18,7 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
                 "optional_fw_params": {"override_default_vasp_params": {},
                                        "copy_vasp_outputs": False, "spec": {}}}
     run_args["optional_fw_params"]["override_default_vasp_params"].update(
-        {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'LREAL': 'AUTO',
+        {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'LREAL': 'Auto',
                                  'PREC': 'Normal', 'EDIFF': 1E-4, 'NPAR': 4}})
     run_args["optional_fw_params"]["spec"]["_queueadapter"] = {"walltime": run_args["run_specs"]["wall_time"]}
     run_args = recursive_update(run_args, converge_args)
@@ -86,7 +86,7 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
                     }
 
         run_args["optional_fw_params"]["override_default_vasp_params"].update(
-            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'LREAL': 'AUTO',
+            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'LREAL': 'Auto',
                                      'PREC': 'Normal', 'NPAR': 4}})
         run_args = recursive_update(run_args, prod_args)
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
@@ -131,7 +131,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
                               "db_file": ">>db_file<<", "wall_time": 86400 * 2},
                 "optional_fw_params": {
                     "override_default_vasp_params": {
-                        'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'LREAL': 'AUTO',
+                        'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'LREAL': 'Auto',
                                                 'PREC': 'Normal', 'NPAR': 4}
                     },
                     "spec": {
@@ -237,7 +237,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
                                   "db_file": ">>db_file<<", "wall_time": 86400 * 2},
                     "optional_fw_params": {
                         "override_default_vasp_params":
-                            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'LREAL': 'AUTO',
+                            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'LREAL': 'Auto',
                                                      'PREC': 'Normal', 'NPAR': 4}},
                         "copy_vasp_outputs": False,
                         "spec": {'_priority': priority}
