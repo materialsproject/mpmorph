@@ -19,7 +19,7 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
                                        "copy_vasp_outputs": False, "spec": {}}}
     run_args["optional_fw_params"]["override_default_vasp_params"].update(
         {'user_incar_settings': {'ISIF': 1, 'LWAVE': False,
-                                 'PREC': 'Normal', 'EDIFF': 1E-4}})
+                                 'PREC': 'Normal', 'EDIFF': 1E-4, 'NPAR': 4}})
     run_args["optional_fw_params"]["spec"]["_queueadapter"] = {"walltime": run_args["run_specs"]["wall_time"]}
     run_args = recursive_update(run_args, converge_args)
     run_args["optional_fw_params"]["spec"]["_priority"] = priority
@@ -86,7 +86,8 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
                     }
 
         run_args["optional_fw_params"]["override_default_vasp_params"].update(
-            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'PREC': 'Normal'}})
+            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False,
+                                     'PREC': 'Normal', 'NPAR': 4}})
         run_args = recursive_update(run_args, prod_args)
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
         parents = fw_list[-1] if len(fw_list) > 0 else parents
@@ -129,8 +130,14 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
                               "db_file": ">>db_file<<", "wall_time": 86400 * 2},
                 "optional_fw_params": {
-                    "override_default_vasp_params": {'user_incar_settings': {'ISIF': 1, 'LWAVE': False}},
-                    "spec": {"_queueadapter": {'walltime': 86400 * 2}, '_priority': priority}}
+                    "override_default_vasp_params": {
+                        'user_incar_settings': {'ISIF': 1, 'LWAVE': False,
+                                                'PREC': 'Normal', 'NPAR': 4}
+                    },
+                    "spec": {
+                        "_queueadapter": {'walltime': 86400 * 2}, '_priority': priority
+                    }
+                }
                 }
     run_args = recursive_update(run_args, kwargs.get('converge_args', {}))
 
@@ -231,11 +238,11 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
                     "optional_fw_params": {
                         "override_default_vasp_params":
                             {'user_incar_settings': {'ISIF': 1, 'LWAVE': False,
-                                                     'PREC': 'Normal'}},
+                                                     'PREC': 'Normal', 'NPAR': 4}},
                         "copy_vasp_outputs": False,
                         "spec": {'_priority': priority}
                     },
-                    "label": "%s_run" % str(temperature)
+                    "label": "%s-run" % str(temperature)
                     }
 
         parents = fw_list[-1] if len(fw_list) > 0 else parents
