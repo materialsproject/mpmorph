@@ -19,7 +19,7 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
                                        "copy_vasp_outputs": False, "spec": {}}}
     run_args["optional_fw_params"]["override_default_vasp_params"].update(
         {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'LREAL': 'Auto',
-                                 'PREC': 'Normal', 'EDIFF': 1E-4, 'NPAR': 4}})
+                                 'PREC': 'Normal', 'EDIFF': 1E-4}})
     run_args["optional_fw_params"]["spec"]["_queueadapter"] = {"walltime": run_args["run_specs"]["wall_time"]}
     run_args = recursive_update(run_args, converge_args)
     run_args["optional_fw_params"]["spec"]["_priority"] = priority
@@ -87,7 +87,7 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
 
         run_args["optional_fw_params"]["override_default_vasp_params"].update(
             {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'LREAL': 'Auto',
-                                     'PREC': 'Normal', 'NPAR': 4}})
+                                     'PREC': 'Normal'}})
         run_args = recursive_update(run_args, prod_args)
         run_args["optional_fw_params"]["spec"]["_priority"] = priority
         parents = fw_list[-1] if len(fw_list) > 0 else parents
@@ -132,7 +132,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
                 "optional_fw_params": {
                     "override_default_vasp_params": {
                         'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'LREAL': 'Auto',
-                                                'PREC': 'Normal', 'NPAR': 4}
+                                                'PREC': 'Normal'}
                     },
                     "spec": {
                         "_queueadapter": {'walltime': 86400 * 2}, '_priority': priority
@@ -237,8 +237,8 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
                                   "db_file": ">>db_file<<", "wall_time": 86400 * 2},
                     "optional_fw_params": {
                         "override_default_vasp_params":
-                            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'LREAL': 'Auto',
-                                                     'PREC': 'Normal', 'NPAR': 4}},
+                            {'user_incar_settings': {'ISIF': 1, 'LWAVE': False,
+                                                     'LREAL': 'Auto', 'PREC': 'Normal'}},
                         "copy_vasp_outputs": False,
                         "spec": {'_priority': priority}
                     },
