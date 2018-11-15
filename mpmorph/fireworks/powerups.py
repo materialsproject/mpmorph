@@ -1,11 +1,17 @@
-from mpmorph.firetasks.mdtasks import RescaleVolumeTask, ConvergeTask, PVRescaleTask
+# import mpmorph.firetasks.mdtasks as md
+from mpmorph.firetasks import mdtasks as md
 from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask, \
     PassPVTask
 from mpmorph.firetasks.dbtasks import VaspMDToDb, TrajectoryDBTask
 
 
 def add_converge_task(fw, **kwargs):
-    spawner_task = ConvergeTask(**kwargs)
+    spawner_task = md.ConvergeTask(**kwargs)
+    fw.tasks.append(spawner_task)
+
+
+def add_diffusion_task(fw, **kwargs):
+    spawner_task = md.DiffusionTask(**kwargs)
     fw.tasks.append(spawner_task)
     return fw
 
@@ -45,12 +51,12 @@ def add_pv_volume_rescale(fw):
             insert_i = i
             break
 
-    fw.tasks.insert(insert_i, PVRescaleTask())
+    fw.tasks.insert(insert_i, md.PVRescaleTask())
     return fw
 
 
 def add_rescale_volume(fw, **kwargs):
-    rsv_task = RescaleVolumeTask(**kwargs)
+    rsv_task = md.RescaleVolumeTask(**kwargs)
     insert_i = 2
     for (i, task) in enumerate(fw.tasks):
         if task.fw_name == "{{atomate.vasp.firetasks.run_calc.RunVaspCustodian}}":
