@@ -101,6 +101,20 @@ def coordination_number_distribution(structures, pair, cutoff, step_freq=1):
     return cn_dist
 
 
+def get_cn(structure, pair, cutoff):
+    cn = []
+    for i in range(len(structure)):
+        if str(structure[i].specie) == pair[0]:
+            cn = 0
+            for j in range(len(structure)):
+                if str(structure[j].specie) == pair[1]:
+                    d = structure.get_distance(i, j)
+                    if d < cutoff and np.abs(d) > 0.1:
+                        cn += 1
+            cn.append(cn)
+    return cn
+
+
 class BondAngleDistribution(object):
     """
     Bond Angle Distribution
