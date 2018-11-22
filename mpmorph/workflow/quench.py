@@ -43,7 +43,7 @@ def get_quench(structures, temperatures={}, priority=None, quench_type="simulate
                                       "spec": {"_priority": priority}},
                         "optional_fw_params": {"override_default_vasp_params": {}}}
             run_args = recursive_update(run_args, quench_args)
-            _name = str(structure.composition.reduced_formula) + "_snap_" + str(i)
+            _name = "snap_" + str(i)
 
             fw1 = OptimizeFW(structure=structure, name=_name + descriptor + "_optimize",
                              parents=[_fw_list[-1]] if len(_fw_list) > 0 else [], **run_args["run_specs"], **run_args["optional_fw_params"], max_force_threshold=None)
