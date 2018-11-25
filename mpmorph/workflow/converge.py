@@ -1,4 +1,5 @@
-from fireworks import Workflow
+from fireworks import explicit_serialize, FireTaskBase, FWAction, Workflow
+from pymatgen import Structure
 from mpmorph.fireworks import powerups
 from mpmorph.fireworks.core import MDFW, OptimizeFW
 from mpmorph.util import recursive_update
@@ -106,7 +107,8 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
 
 def get_converge_new(structure, temperature, converge_scheme='EOS', priority=None,
                      max_steps=5000, target_steps=10000, preconverged=False,
-                     parents=None, trajectory_to_db=False, image_scale=None, **kwargs):
+                     parents=None, trajectory_to_db=False, image_scale=None,
+                     tag_id=None, prod_count=0, **kwargs):
     """
 
     :param structure: Starting structure for the run
@@ -121,7 +123,8 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
     :return:
     """
     # Generate a unique identifier for the fireworks belonging to this workflow
-    tag_id = uuid.uuid4()
+    if tag_id is None:
+        tag_id = uuid.uuid4()
 
     fw_list = []
 
@@ -228,7 +231,6 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
 
     # Production length MD runs
     prod_steps = 0
-    i = 0
     while prod_steps <= target_steps - max_steps:
         run_args = {"md_params": {"start_temp": run_args["md_params"]["end_temp"],
                                   "end_temp": run_args["md_params"]["end_temp"],
@@ -246,16 +248,32 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
                     }
 
         parents = fw_list[-1] if len(fw_list) > 0 else parents
-        previous_structure = False if preconverged and i == 0 else True
-        name = '-'.join([run_args["label"], str(i), str(tag_id)])
+        previous_structure = False if preconverged and prod_steps == 0 else True
+        name = '-'.join([run_args["label"], str(prod_count), str(tag_id)])
         fw = MDFW(structure=structure, name=name, previous_structure=previous_structure,
                   insert_db=True, parents=parents, **run_args["md_params"],
                   **run_args["run_specs"], **run_args["optional_fw_params"])
         fw_list.append(fw)
         prod_steps += max_steps
-        i += 1
+        prod_count += 1
 
     if trajectory_to_db:
         fw_list[-1] = powerups.aggregate_trajectory(fw_list[-1], identifier=tag_id,
                                                     db_file=run_args["run_specs"]["db_file"])
     return fw_list
+
+
+@explicit_serialize
+class DiffusionTask(FireTaskBase):
+    required_params = ['temperatures', 'max_steps', 'target_steps', 'trajectory_to_db']
+    optional_params = []
+
+    def run_task(self, fw_spec):
+        s = Structure.from_file('CONTCAR.gz')
+        fws = []
+        for t in self['temperatures']:
+            fws.extend(get_converge_new(s, t, max_steps=self['max_steps'],
+                                           target_steps=self['target_steps'],
+                                           trajectory_to_db=self['trajectory_to_db']))
+        wf = Workflow(fws)
+        return FWAction(detours=wf)
