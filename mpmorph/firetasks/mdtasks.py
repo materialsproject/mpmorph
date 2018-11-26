@@ -3,10 +3,10 @@ from mpmorph.util import recursive_update
 from mpmorph.analysis import md_data
 from fireworks import explicit_serialize, Workflow, FireTaskBase, FWAction
 from pymatgen.io.vasp import Poscar
-from pymatgen import Structure
 from scipy import stats
 import numpy as np
 from pymatgen.analysis.structure_prediction.volume_predictor import DLSVolumePredictor
+
 
 @explicit_serialize
 class DLSVPRescaling(FireTaskBase):
