@@ -11,9 +11,9 @@ class DiffusionTask(FireTaskBase):
         s = Structure.from_file('CONTCAR.gz')
         fws = []
         for t in self['temperatures']:
-            fws.extend(get_converge_new(s, t, max_steps=self['max_steps'],
-                                           target_steps=self['target_steps'],
-                                           trajectory_to_db=self['trajectory_to_db']))
+            fws.extend(get_converge_new(s, int(t), max_steps=self['max_steps'],
+                                        target_steps=self['target_steps'],
+                                        trajectory_to_db=self['trajectory_to_db']))
         wf = Workflow(fws)
         return FWAction(detours=wf)
 
