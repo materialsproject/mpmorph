@@ -1,6 +1,5 @@
 from fireworks import explicit_serialize, FireTaskBase, FWAction, Workflow
 from pymatgen import Structure
-from mpmorph.workflow.converge import get_converge_new
 
 
 @explicit_serialize
@@ -17,3 +16,6 @@ class DiffusionTask(FireTaskBase):
                                            trajectory_to_db=self['trajectory_to_db']))
         wf = Workflow(fws)
         return FWAction(detours=wf)
+
+
+from mpmorph.workflow.converge import get_converge_new
