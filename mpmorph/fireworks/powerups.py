@@ -1,18 +1,18 @@
-from mpmorph.firetasks.mdtasks import RescaleVolumeTask, ConvergeTask, PVRescaleTask
+from mpmorph.firetasks.mdtasks import RescaleVolumeTask, ConvergeTask, PVRescaleTask,\
+    DiffusionTask
 from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask, \
     PassPVTask
 from mpmorph.firetasks.dbtasks import VaspMDToDb, TrajectoryDBTask
-from mpmorph.firetasks.diffusion_tasks import DiffusionTask
-
-
-def add_converge_task(fw, **kwargs):
-    spawner_task = ConvergeTask(**kwargs)
-    fw.tasks.append(spawner_task)
-    return fw
 
 
 def add_diffusion_task(fw, **kwargs):
     spawner_task = DiffusionTask(**kwargs)
+    fw.tasks.append(spawner_task)
+    return fw
+
+
+def add_converge_task(fw, **kwargs):
+    spawner_task = ConvergeTask(**kwargs)
     fw.tasks.append(spawner_task)
     return fw
 
