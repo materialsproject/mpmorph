@@ -1,11 +1,12 @@
+from scipy import stats
+import numpy as np
+from fireworks import explicit_serialize, Workflow, FireTaskBase, FWAction
+from pymatgen import Structure
+from pymatgen.io.vasp import Poscar
+from pymatgen.analysis.structure_prediction.volume_predictor import DLSVolumePredictor
 from mpmorph.runners.rescale_volume import RescaleVolume, fit_BirchMurnaghanPV_EOS
 from mpmorph.util import recursive_update
 from mpmorph.analysis import md_data
-from fireworks import explicit_serialize, Workflow, FireTaskBase, FWAction
-from pymatgen.io.vasp import Poscar
-from scipy import stats
-import numpy as np
-from pymatgen.analysis.structure_prediction.volume_predictor import DLSVolumePredictor
 
 
 @explicit_serialize
@@ -28,6 +29,25 @@ class DLSVPRescaling(FireTaskBase):
         dlsvp_volume = dlsvp.predict(structure)
         structure.scale_lattice(dlsvp_volume)
         return FWAction(update_spec={"structure": structure})
+
+
+@explicit_serialize
+class DiffusionTask(FireTaskBase):
+    required_params = ['temperatures', 'max_steps', 'target_steps', 'trajectory_to_db']
+    optional_params = []
+
+    def run_task(self, fw_spec):
+        from mpmorph.workflow.converge import get_converge_new
+
+        s = Structure.from_file('CONTCAR.gz')
+        fws = []
+        for t in self['temperatures']:
+            fws.extend(get_converge_new(s, int(t), max_steps=self['max_steps'],
+                                        target_steps=self['target_steps'],
+                                        trajectory_to_db=self['trajectory_to_db']))
+        wf = Workflow(fws)
+        return FWAction(detours=wf)
+
 
 @explicit_serialize
 class ConvergeTask(FireTaskBase):
