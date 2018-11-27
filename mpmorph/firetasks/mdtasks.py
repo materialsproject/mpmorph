@@ -61,11 +61,14 @@ class ConvergeTask(FireTaskBase):
     optional_params = ["rescale_params"]
 
     def run_task(self, fw_spec):
+        from mpmorph.fireworks import powerups
+        from mpmorph.fireworks.core import MDFW
+
         # Load Structure from Poscar
         _poscar = Poscar.from_file("CONTCAR.gz")
         structure = _poscar.structure
 
-        #Get convergence parameters from spec
+        # Get convergence parameters from spec
         converge_params = self["converge_params"]
         avg_fraction = converge_params.get("avg_fraction", 0.5)
         convergence_vars = dict(converge_params["converge_type"])
@@ -73,12 +76,11 @@ class ConvergeTask(FireTaskBase):
             convergence_vars["ionic"]=0.0005
         rescale_params = self.get("rescale_params", {})
 
-        #Load Data from OUTCAR
+        # Load Data from OUTCAR
         search_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
         key_map = {'density': 'external', 'kinetic energy': 'kinetic energy EKIN', 'ionic': '% ion-electron',
                    'total energy': 'ETOTAL'}
         outcar_data = md_data.get_MD_data("./OUTCAR.gz", search_keys=search_keys)
-
 
         # Check for convergence
         converged={}
@@ -213,6 +215,3 @@ class PVRescaleTask(FireTaskBase):
         poscar.write_file("./POSCAR")
 
         return FWAction()
-
-from mpmorph.fireworks import powerups
-from mpmorph.fireworks.core import MDFW
