@@ -56,6 +56,7 @@ class MDFW(Firework):
         if copy_vasp_outputs:
             t.append(PassCalcLocs(name=name))
         t.append(SaveStructureTask())
+        name = "%s-%s" % (structure.formula.replace(' ', ''), name)
         if insert_db:
             t.append(VaspMDToDb(db_file=db_file, additional_fields={"task_label": name},
                                 defuse_unsuccessful=False))

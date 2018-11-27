@@ -247,8 +247,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
 
         parents = fw_list[-1] if len(fw_list) > 0 else parents
         previous_structure = False if preconverged and prod_steps == 0 else True
-        name = '-'.join([structure.formula.replace(' ', ''), run_args["label"],
-                         str(prod_count), str(tag_id)])
+        name = '-'.join([run_args["label"], str(prod_count), str(tag_id)])
         fw = MDFW(structure=structure, name=name, previous_structure=previous_structure,
                   insert_db=True, parents=parents, **run_args["md_params"],
                   **run_args["run_specs"], **run_args["optional_fw_params"])
