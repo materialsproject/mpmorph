@@ -107,7 +107,7 @@ class TrajectoryDBTask(FiretaskBase):
         mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
         runs = mmdb.db['tasks'].find(
             {"task_label": re.compile(".*" + self["identifier"] + ".*")})
-        runs_sorted = sorted(runs, key=lambda x: x['task_label'])
+        runs_sorted = sorted(runs, key=lambda x: x['task_id'])
 
         trajectory_doc = runs_to_trajectory_doc(runs_sorted, db_file,
                                                 self["identifier"])
