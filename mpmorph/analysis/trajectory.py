@@ -10,13 +10,14 @@ from pymatgen import Structure
 
 
 class Trajectory(MSONable):
-    def __init__(self, base_structure, disp, lattices):
+    def __init__(self, base_structure, disp, lattices, frac_coords):
         self.base_structure = base_structure
         self.base_frac_coords = base_structure.frac_coords
         self.disp = np.array(disp)
         self.lattices = lattices
         self.index = 0
         self.structure = base_structure
+        self.frac_coords = frac_coords
 
     def __getattr__(self, attr):
 
@@ -78,9 +79,8 @@ class Trajectory(MSONable):
         Convenience constructor to make a Trajectory from a list of Structures
         """
         p, l = [], []
+        structure = structures[0]
         for i, s in enumerate(structures):
-            if i == 0:
-                structure = s
             p.append(np.array(s.frac_coords)[:, None])
             l.append(s.lattice.matrix)
         p.insert(0, p[0])
@@ -100,7 +100,7 @@ class Trajectory(MSONable):
         else:
             l = np.array(l)
 
-        return cls(structure, disp, l)
+        return cls(structure, disp, l, p)
 
     @classmethod
     def from_ionic_steps(cls, ionic_steps_dict):
@@ -117,14 +117,15 @@ class Trajectory(MSONable):
              "@class": self.__class__.__name__,
              "structure": self.structure.as_dict(),
              "displacements": self.disp.tolist(),
-             "lattices": self.lattices.tolist()
+             "lattices": self.lattices.tolist(),
+             "frac_coords": self.frac_coords.tolist()
              }
         return d
 
     @classmethod
     def from_dict(cls, d):
         structure = Structure.from_dict(d["structure"])
-        return cls(structure, d["displacements"], d["lattices"])
+        return cls(structure, d["displacements"], d["lattices"], d["frac_coords"])
 
 
 class TemperingTrajectory(MSONable):
