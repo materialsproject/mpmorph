@@ -105,6 +105,7 @@ class TrajectoryDBTask(FiretaskBase):
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
         mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
+        mmdb.db.trajectories.find_one_and_delete({"runs_label": self["identifier"]})
         runs = mmdb.db['tasks'].find(
             {"task_label": re.compile(".*" + self["identifier"] + ".*")})
         runs_sorted = sorted(runs, key=lambda x: x['task_id'])
