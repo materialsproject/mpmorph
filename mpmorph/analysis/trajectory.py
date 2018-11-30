@@ -78,11 +78,12 @@ class Trajectory(MSONable):
         """
         Convenience constructor to make a Trajectory from a list of Structures
         """
-        p, l = [], []
+        p, l, fracs = [], [], []
         structure = structures[0]
         for i, s in enumerate(structures):
             p.append(np.array(s.frac_coords)[:, None])
             l.append(s.lattice.matrix)
+            fracs.append(s.frac_coords)
         p.insert(0, p[0])
         l.insert(0, l[0])
         p = np.concatenate(p, axis=1)  # [site, time step, axis]
@@ -100,7 +101,7 @@ class Trajectory(MSONable):
         else:
             l = np.array(l)
 
-        return cls(structure, disp, l, p[:, 1:])
+        return cls(structure, disp, l, fracs)
 
     @classmethod
     def from_ionic_steps(cls, ionic_steps_dict):
