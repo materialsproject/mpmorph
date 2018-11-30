@@ -100,7 +100,7 @@ class Trajectory(MSONable):
         else:
             l = np.array(l)
 
-        return cls(structure, disp, l, p)
+        return cls(structure, disp, l, p[:, 1:])
 
     @classmethod
     def from_ionic_steps(cls, ionic_steps_dict):
