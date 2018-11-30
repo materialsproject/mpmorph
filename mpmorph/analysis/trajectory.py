@@ -57,6 +57,7 @@ class Trajectory(MSONable):
         self.disp = np.concatenate((self.disp, traj_disp), axis=1)
         if not np.array_equal(self.lattices, trajectory.lattices):
             self.lattices = np.concatenate(self.lattices, trajectory.lattices)
+        self.frac_coords = np.concatenate(self.frac_coords, trajectory.frac_coords)
 
     @lru_cache()
     def as_structures(self):
