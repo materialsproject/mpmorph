@@ -10,14 +10,13 @@ from pymatgen import Structure
 
 
 class Trajectory(MSONable):
-    def __init__(self, base_structure, disp, lattices, frac_coords):
+    def __init__(self, base_structure, disp, lattices):
         self.base_structure = base_structure
         self.base_frac_coords = base_structure.frac_coords
         self.disp = np.array(disp)
         self.lattices = lattices
         self.index = 0
         self.structure = base_structure
-        self.frac_coords = frac_coords
 
     def __getattr__(self, attr):
 
@@ -79,12 +78,11 @@ class Trajectory(MSONable):
         """
         Convenience constructor to make a Trajectory from a list of Structures
         """
-        p, l, fracs = [], [], []
+        p, l = [], []
         structure = structures[0]
         for i, s in enumerate(structures):
             p.append(np.array(s.frac_coords)[:, None])
             l.append(s.lattice.matrix)
-            fracs.append(s.frac_coords)
         p.insert(0, p[0])
         l.insert(0, l[0])
         p = np.concatenate(p, axis=1)  # [site, time step, axis]
@@ -102,7 +100,7 @@ class Trajectory(MSONable):
         else:
             l = np.array(l)
 
-        return cls(structure, disp, l, fracs)
+        return cls(structure, disp, l)
 
     @classmethod
     def from_ionic_steps(cls, ionic_steps_dict):
@@ -120,14 +118,13 @@ class Trajectory(MSONable):
              "structure": self.structure.as_dict(),
              "displacements": self.disp.tolist(),
              "lattices": self.lattices.tolist(),
-             "frac_coords": self.frac_coords.tolist()
              }
         return d
 
     @classmethod
     def from_dict(cls, d):
         structure = Structure.from_dict(d["structure"])
-        return cls(structure, d["displacements"], d["lattices"], d["frac_coords"])
+        return cls(structure, d["displacements"], d["lattices"])
 
 
 class TemperingTrajectory(MSONable):
@@ -177,7 +174,8 @@ class TemperingTrajectory(MSONable):
 
         if show_attempts:
             for i in self.data["nswap"]:
-                plt.plot([i, i], [min(self.get_temperatures()), max(self.get_temperatures())], '--k', linewidth=1)
+                plt.plot([i, i], [min(self.get_temperatures()), max(self.get_temperatures())],
+                         '--k', linewidth=1)
         plt.xticks(fontsize=14)
         plt.yticks(fontsize=14)
         plt.xlabel("time step (#)", fontsize=18)
@@ -186,14 +184,17 @@ class TemperingTrajectory(MSONable):
 
     def as_dict(self):
         d = {"@module": self.__class__.__module__,
-             "@class": self.__class__.__name__}
-        d["data"] = self.data
-        d["trajectories"] = [trajectory.as_dict() for trajectory in self.trajectories]
+             "@class": self.__class__.__name__,
+             "data": self.data,
+             "trajectories": [trajectory.as_dict()
+                              for trajectory in self.trajectories]
+             }
         return d
 
     @classmethod
     def from_dict(cls, d):
-        trajectories = [Trajectory.from_dict(trajectory_dict) for trajectory_dict in d["trajectories"]]
+        trajectories = [Trajectory.from_dict(trajectory_dict)
+                        for trajectory_dict in d["trajectories"]]
         return cls(d["data"], trajectories)
 
     @classmethod

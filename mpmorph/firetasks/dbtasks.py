@@ -130,6 +130,8 @@ def runs_to_trajectory_doc(runs, db_file, runs_label):
         'runs_label': runs_label,
         'compression': compression_type,
         'fs_id': gfs_id,
+        'step_fs_ids': [i["calcs_reversed"][0]["output"]['ionic_steps_fs_id']
+                        for i in runs],
         'structure': trajectory.structure.as_dict(),
         'dimension': trajectory.disp.shape,
         'time_step': runs[0]["input"]["incar"]["POTIM"] * 1e-3
