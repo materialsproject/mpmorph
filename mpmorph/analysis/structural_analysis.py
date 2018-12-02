@@ -83,7 +83,7 @@ def coordination_number_distribution(structures, pair, cutoff, step_freq=1):
 
     """
 
-    cn_dist=[]
+    cn_list=[]
     n_frames = len(structures)
     for s_index in itertools.count(0, step_freq):
         if s_index >= n_frames:
@@ -97,12 +97,12 @@ def coordination_number_distribution(structures, pair, cutoff, step_freq=1):
                         d = structure.get_distance(i,j)
                         if d < cutoff and np.abs(d) > 0.1:
                             cn+=1
-                cn_dist.append(cn)
-    return cn_dist
+                cn_list.append(cn)
+    return cn_list
 
 
 def get_cn(structure, pair, cutoff):
-    cn = []
+    cn_list = []
     for i in range(len(structure)):
         if str(structure[i].specie) == pair[0]:
             cn = 0
@@ -111,8 +111,8 @@ def get_cn(structure, pair, cutoff):
                     d = structure.get_distance(i, j)
                     if d < cutoff and np.abs(d) > 0.1:
                         cn += 1
-            cn.append(cn)
-    return cn
+            cn_list.append(cn)
+    return cn_list
 
 
 class BondAngleDistribution(object):
