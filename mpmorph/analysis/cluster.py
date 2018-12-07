@@ -1,0 +1,38 @@
+'''
+Created on Feb 13, 2014
+
+@author: sushant
+'''
+
+
+class Cluster(object):
+    def __init__(self,  name, dim):
+        self.name = name
+        self.dim = dim
+        self.points = []
+    
+    def add_point(self, point):
+        self.points.append(point)
+        
+    def get_points(self):
+        return self.points
+    
+    def erase(self):
+        self.points = []
+    
+    def get_X(self):
+        return [p[0] for p in self.points]
+    
+    def get_Y(self):
+        return [p[1] for p in self.points]
+
+    def get_Z(self):
+        if self.dim > 2:
+            return [p[2] for p in self.points]
+        return None
+    
+    def has(self, point):
+        return point in self.points
+            
+    def __str__(self):
+        return "%s: %d points" % (self.name, len(self.points))

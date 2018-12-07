@@ -18,7 +18,8 @@ class ClusteringAnalyzer(object):
         self.cluster_distance_matrix = []
         self.neighbors = []
 
-    def get_clusters(self, cluster_els=[Element("Si")], track_els=[Element("Li")], cluster_bonds=None, prune_els=None):
+    def get_clusters(self, cluster_els=[Element("Si")], track_els=[Element("Li")],
+                     cluster_bonds=None, prune_els=None):
         '''
         TODO: Add functionality to remove elements other than the desired
               RDF's of Cluster
