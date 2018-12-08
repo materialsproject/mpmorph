@@ -3,6 +3,7 @@ Created on Feb 13, 2014
 
 @author: sushant
 '''
+import numpy as np
 
 
 class Cluster(object):
@@ -13,7 +14,7 @@ class Cluster(object):
 
     @property
     def points(self):
-        return self._points
+        return np.array(self._points)
 
     def add_point(self, point):
         self._points.append(point)

@@ -14,6 +14,15 @@ from mpmorph.analysis.cluster import Cluster
 class DBScanner:
 
     def __init__(self, data, eps=0.2, min_pts=2, dim=3):
+        """
+
+        Args:
+            data (Nx3 array): list of cartesian coordinates of trajectories
+            eps (float): maximum allowable distance for neighbouring points
+            min_pts (int): minimum number of neighbours surrounding a point
+                to be considered a cluster point
+            dim (int): dimension of the data
+        """
         self.data = data
         self.eps = eps
         self.min_pts = min_pts
@@ -44,11 +53,8 @@ class DBScanner:
         data = []
         with open(filename, 'r') as file_obj:
             csv_reader = csv.reader(file_obj)
-            for id_, row in enumerate(csv_reader):
-                point = {'id': id_}
-                for i in range(len(row)):
-                    point[i] = float(row[i])
-                data.append(point)
+            for i, row in enumerate(csv_reader):
+                data.append([i] + list(map(float, row)))
         return DBScanner(data, eps, min_pts, dim)
 
     def get_plot(self):
@@ -64,18 +70,17 @@ class DBScanner:
         for cluster in self.clusters:
             if cluster.name == 'noise':
                 continue
+            points = cluster.points
             if self.dim == 2:
-                ax.scatter(cluster.get_x(), cluster.get_y(), marker='o')
+                ax.scatter(points[:, 1], points[:, 2], marker='o')
             elif self.dim == 3:
-                ax.scatter(cluster.get_x(), cluster.get_y(),
-                           cluster.get_z(), marker='o')
+                ax.scatter(points[:, 1], points[:, 2], points[:, 3], marker='o')
         if len(self.noise.points) != 0:
-            if self.dim > 2:
-                ax.scatter(self.noise.get_x(), self.noise.get_y(), self.noise.get_z(),
-                           marker='x', label=self.noise.name)
+            points = self.noise.points
+            if self.dim <= 2:
+                ax.scatter(points[:, 1], points[:, 2], marker='x')
             else:
-                ax.scatter(self.noise.get_x(), self.noise.get_y(),
-                           marker='x', label=self.noise.name)
+                ax.scatter(points[:, 1], points[:, 2], points[:, 3], marker='x')
 
         print("Number of clusters found: %d" % self.cluster_count)
         ax.grid(True)
@@ -103,15 +108,10 @@ class DBScanner:
 
         self.clusters.append(cluster)
 
-    def get_distance(self, from_point, to_point):
-        p1 = [from_point[k] for k in range(self.dim)]
-        p2 = [to_point[k] for k in range(self.dim)]
-        return distance.euclidean(p1, p2)
-
     def region_query(self, point):
         result = []
         for d_point in self.data:
             if d_point != point:
-                if self.get_distance(d_point, point) <= self.eps:
+                if distance.euclidean(d_point[1:], point[1:]) <= self.eps:
                     result.append(d_point)
         return result
