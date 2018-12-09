@@ -72,15 +72,17 @@ class DBScanner:
                 continue
             points = cluster.points
             if self.dim == 2:
-                ax.scatter(points[:, 1], points[:, 2], marker='o')
+                ax.scatter(points[:, 1], points[:, 2], marker='o', color=[0, .5, 0])
             elif self.dim == 3:
-                ax.scatter(points[:, 1], points[:, 2], points[:, 3], marker='o')
+                ax.scatter(points[:, 1], points[:, 2], points[:, 3],
+                           marker='o', color=[0, .5, 0])
         if len(self.noise.points) != 0:
             points = self.noise.points
             if self.dim <= 2:
-                ax.scatter(points[:, 1], points[:, 2], marker='x')
+                ax.scatter(points[:, 1], points[:, 2], marker='x', color='r')
             else:
-                ax.scatter(points[:, 1], points[:, 2], points[:, 3], marker='x')
+                ax.scatter(points[:, 1], points[:, 2], points[:, 3],
+                           marker='x', color='r')
 
         print("Number of clusters found: %d" % self.cluster_count)
         ax.grid(True)
