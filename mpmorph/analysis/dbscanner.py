@@ -100,8 +100,7 @@ class DBScanner:
                             neighbour_pts.append(n)
 
                 for other_cluster in self.clusters:
-                    if not other_cluster.has(p):
-                        if not cluster.has(p):
+                    if not other_cluster.has(p) and not cluster.has(p):
                             cluster.add_point(p)
 
                 if self.cluster_count == 0:
@@ -117,3 +116,16 @@ class DBScanner:
                 if distance.euclidean(d_point[1:], point[1:]) <= self.eps:
                     result.append(d_point)
         return result
+
+    def export_dbs(self, suffix='data'):
+        outs = []
+        for cluster in self.clusters:
+            if cluster.name == 'noise':
+                outs.append('# noise')
+            elif '# cluster' not in outs:
+                outs.append('# cluster')
+            for p in cluster.points:
+                outs.append('\t'.join([str(i) for i in p[1:]]))
+        outs = '\n'.join(outs)
+        with open('dbs_%s' % suffix, 'w') as f:
+            f.write(outs)
