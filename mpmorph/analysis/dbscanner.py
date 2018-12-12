@@ -120,10 +120,7 @@ class DBScanner:
     def export_dbs(self, suffix='data'):
         outs = []
         for cluster in self.clusters:
-            if cluster.name == 'noise':
-                outs.append('# noise')
-            elif '# cluster' not in outs:
-                outs.append('# cluster')
+            outs.append('# ' + cluster.name)
             for p in cluster.points:
                 outs.append('\t'.join([str(i) for i in p[1:]]))
         outs = '\n'.join(outs)
