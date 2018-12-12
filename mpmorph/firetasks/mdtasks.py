@@ -5,28 +5,6 @@ from mpmorph.analysis import md_data
 from pymatgen.io.vasp import Poscar
 from scipy import stats
 import numpy as np
-from pymatgen.analysis.structure_prediction.volume_predictor import DLSVolumePredictor
-
-@explicit_serialize
-class DLSVPRescaling(FireTaskBase):
-    """
-    After First MD run, manipulate the final structure according to:
-    1) Rescale according to DSLVolumePredictor
-    2) Run an optimize FW.
-    3) Pass Structure
-    """
-    required_params = []
-    optional_params = []
-
-    def run_task(self, fw_spec):
-        with open("sst_out", 'w') as f:
-            f.write(str(fw_spec["structure"]))
-            f.close()
-        structure = fw_spec["structure"]
-        dlsvp = DLSVolumePredictor()
-        dlsvp_volume = dlsvp.predict(structure)
-        structure.scale_lattice(dlsvp_volume)
-        return FWAction(update_spec={"structure": structure})
 
 @explicit_serialize
 class ConvergeTask(FireTaskBase):
