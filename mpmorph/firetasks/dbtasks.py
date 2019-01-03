@@ -98,7 +98,7 @@ class TrajectoryDBTask(FiretaskBase):
     Obtain all production runs and insert them into the db. This is done by
     searching for a unique tag
     """
-    required_params = ["identifier", "db_file"]
+    required_params = ["identifier", "db_file", 'notes']
     optional_params = []
 
     def run_task(self, fw_spec):
@@ -111,12 +111,12 @@ class TrajectoryDBTask(FiretaskBase):
         runs_sorted = sorted(runs, key=lambda x: x['task_id'])
 
         trajectory_doc = runs_to_trajectory_doc(runs_sorted, db_file,
-                                                self["identifier"])
+                                                self["identifier"], self['notes'])
 
         mmdb.db.trajectories.insert_one(trajectory_doc)
 
 
-def runs_to_trajectory_doc(runs, db_file, runs_label):
+def runs_to_trajectory_doc(runs, db_file, runs_label, notes):
     trajectory = load_trajectories_from_gfs(runs, db_file)
 
     mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
@@ -134,7 +134,8 @@ def runs_to_trajectory_doc(runs, db_file, runs_label):
                         for i in runs],
         'structure': trajectory.structure.as_dict(),
         'dimension': trajectory.disp.shape,
-        'time_step': runs[0]["input"]["incar"]["POTIM"] * 1e-3
+        'time_step': runs[0]["input"]["incar"]["POTIM"] * 1e-3,
+        'notes': notes
     }
     return traj_doc
 

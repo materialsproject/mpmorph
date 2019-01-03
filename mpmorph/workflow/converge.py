@@ -106,7 +106,7 @@ def get_converge(structure, priority=None, preconverged=False, max_steps=5000, t
 def get_converge_new(structure, temperature, converge_scheme='EOS', priority=None,
                      max_steps=5000, target_steps=10000, preconverged=False,
                      parents=None, trajectory_to_db=False, image_scale=None,
-                     tag_id=None, prod_count=0, **kwargs):
+                     tag_id=None, prod_count=0, notes=None, **kwargs):
     """
 
     :param structure: Starting structure for the run
@@ -256,7 +256,8 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
         prod_count += 1
 
     if trajectory_to_db:
-        fw_list[-1] = powerups.aggregate_trajectory(fw_list[-1], identifier=tag_id,
-                                                    db_file=run_args["run_specs"]["db_file"])
+        fw_list[-1] = powerups.aggregate_trajectory(
+            fw_list[-1], identifier=tag_id, notes=notes,
+            db_file=run_args["run_specs"]["db_file"])
     return fw_list
 
