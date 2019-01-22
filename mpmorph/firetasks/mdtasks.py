@@ -33,7 +33,8 @@ class DLSVPRescaling(FireTaskBase):
 
 @explicit_serialize
 class DiffusionTask(FireTaskBase):
-    required_params = ['temperatures', 'max_steps', 'target_steps', 'trajectory_to_db']
+    required_params = ['temperatures', 'max_steps', 'target_steps',
+                       'trajectory_to_db', 'notes']
     optional_params = []
 
     def run_task(self, fw_spec):
@@ -44,7 +45,8 @@ class DiffusionTask(FireTaskBase):
         for t in self['temperatures']:
             fws.extend(get_converge_new(s, int(t), max_steps=self['max_steps'],
                                         target_steps=self['target_steps'],
-                                        trajectory_to_db=self['trajectory_to_db']))
+                                        trajectory_to_db=self['trajectory_to_db'],
+                                        notes=self['notes']))
         wf = Workflow(fws)
         return FWAction(detours=wf)
 
