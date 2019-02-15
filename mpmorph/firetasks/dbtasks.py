@@ -13,6 +13,7 @@ import zlib
 import gridfs
 from multiprocessing import Pool
 from pymatgen.core.trajectory import Trajectory
+from pymatgen import Structure
 from bson import ObjectId
 
 
@@ -157,7 +158,15 @@ def process_traj(data):
     i, fs_id, fs, db_file = data[0], data[1], data[2], data[3]
     mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
     ionic_steps_dict = load_ionic_steps(fs_id, mmdb.db, fs)
-    return i, Trajectory.from_ionic_steps(ionic_steps_dict).as_dict()
+
+    structure = Structure.from_dict(ionic_steps_dict[0]['structure'])
+    positions = [0] * len(ionic_steps_dict)
+    for i, step in enumerate(ionic_steps_dict):
+        _step = [atom['abc'] for atom in step["structure"]["sites"]]
+        positions[i] = _step
+
+    traj = Trajectory(structure.lattice.matrix, structure.species, positions, 0.002)
+    return i, traj.as_dict()
 
 
 def load_ionic_steps(fs_id, db, fs):
