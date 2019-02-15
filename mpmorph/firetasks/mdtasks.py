@@ -6,6 +6,7 @@ from pymatgen.io.vasp import Poscar
 from scipy import stats
 import numpy as np
 
+
 @explicit_serialize
 class ConvergeTask(FireTaskBase):
     """
@@ -22,12 +23,12 @@ class ConvergeTask(FireTaskBase):
         _poscar = Poscar.from_file("CONTCAR.gz")
         structure = _poscar.structure
 
-        #Get convergence parameters from spec
+        # Get convergence parameters from spec
         converge_params = self["converge_params"]
         avg_fraction = converge_params.get("avg_fraction", 0.5)
         convergence_vars = dict(converge_params["converge_type"])
         if "ionic" not in convergence_vars.keys():
-            convergence_vars["ionic"]=0.0005
+            convergence_vars["ionic"]=0.001
         rescale_params = self.get("rescale_params", {})
 
         #Load Data from OUTCAR
@@ -60,11 +61,14 @@ class ConvergeTask(FireTaskBase):
 
         _index = search_keys.index(key_map["ionic"])
         energy = np.transpose(outcar_data)[_index].copy()
-        norm_energy = (energy / structure.num_sites) / np.mean(energy / structure.num_sites) - 1
-        if np.abs(np.mean(norm_energy[-500:]) - np.mean(norm_energy)) > convergence_vars["ionic"]:
-            converged["ionic"] = False
-        else:
+        norm_energies = energy / structure.num_sites
+        mu, std = stats.norm.fit(norm_energies)
+        mu1, std1 = stats.norm.fit(norm_energies[0:int(len(norm_energies) / 2)])
+        mu2, std2 = stats.norm.fit(norm_energies[int(len(norm_energies)/2):])
+        if np.abs((mu2 - mu1) / mu) < convergence_vars["ionic"]:
             converged["ionic"] = True
+        else:
+            converged["ionic"] = False
 
         # Spawn Additional Fireworks
         if not all([item[1] for item in converged.items()]):
