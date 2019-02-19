@@ -148,7 +148,7 @@ class TrajectoryDBTask(FiretaskBase):
             if not trajectory:
                 trajectory = Trajectory.from_dict(result[1])
             else:
-                trajectory.combine(Trajectory.from_dict(result[1]))
+                trajectory.extend(Trajectory.from_dict(result[1]))
         pool.close()
         pool.join()
         return trajectory
