@@ -70,7 +70,8 @@ class OptimizeFW(Firework):
                  previous_structure=False,
                  auto_npar=">>auto_npar<<",
                  half_kpts_first_relax=False, parents=None,
-                 copy_vasp_outputs=False, pass_structure=True, **kwargs):
+                 copy_vasp_outputs=False, pass_structure=True,
+                 handler_group="default",**kwargs):
         """
         Optimize the given structure.
         Args:
@@ -105,7 +106,8 @@ class OptimizeFW(Firework):
                                   max_force_threshold=max_force_threshold,
                                   ediffg=ediffg,
                                   auto_npar=auto_npar,
-                                  half_kpts_first_relax=half_kpts_first_relax))
+                                  half_kpts_first_relax=half_kpts_first_relax,
+                                  handler_group=handler_group))
         if copy_vasp_outputs:
             t.append(PassCalcLocs(name=name))
         if pass_structure:
