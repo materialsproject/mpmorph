@@ -247,7 +247,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', preconverged
 
     pretty_name = structure.composition.reduced_formula
     aggregate_tasks = [TrajectoryDBTask(identifier=str(tag_id), db_file=run_args["run_specs"]["db_file"])]
-    aggregate_fw = Firework(aggregate_tasks, parents=fw_list[-1], name=pretty_name+"_aggregate_trajedtory-"+str(tag_id))
+    aggregate_fw = Firework(aggregate_tasks, parents=fw_list[-1], name=pretty_name+"_aggregate_trajectory-"+str(tag_id))
     fw_list.append(aggregate_fw)
 
     wf = Workflow(fireworks=fw_list, name=pretty_name + "_diffusion")
