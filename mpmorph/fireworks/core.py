@@ -107,7 +107,7 @@ class OptimizeFW(Firework):
                                   ediffg=ediffg,
                                   auto_npar=auto_npar,
                                   half_kpts_first_relax=half_kpts_first_relax,
-                                  handler_group=handler_groups))
+                                  handler_group=handler_group))
         if copy_vasp_outputs:
             t.append(PassCalcLocs(name=name))
         if pass_structure:
