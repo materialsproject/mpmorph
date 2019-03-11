@@ -122,8 +122,11 @@ class OptimizeFW(Firework):
 
 
 class StaticFW(Firework):
-    def __init__(self, structure, name="static", previous_structure=False, vasp_input_set=None, vasp_cmd="vasp",
-                 db_file=None, parents=None, override_default_vasp_params=None, **kwargs):
+    def __init__(self, structure, name="static",
+                 previous_structure=False, vasp_input_set=None,
+                 vasp_cmd="vasp", db_file=None, parents=None,
+                 override_default_vasp_params=None,
+                 pass_structure=True, **kwargs):
         """
         This Firework is modified from atomate.vasp.fireworks.core.StaticFW to fit the needs of mpmorph
         Standard static calculation Firework - either from a previous location or from a structure.
@@ -150,7 +153,8 @@ class StaticFW(Firework):
         if previous_structure:
             t.append(PreviousStructureTask())
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
-        t.append(SaveStructureTask())
+        if pass_structure:
+            t.append(SaveStructureTask())
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
         super(StaticFW, self).__init__(t, parents=parents, name="{}-{}".format(
