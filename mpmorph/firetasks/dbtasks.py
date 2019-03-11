@@ -119,13 +119,13 @@ class TrajectoryDBTask(FiretaskBase):
         gfs_id, compression_type = insert_gridfs(traj_dict, mmdb.db, "trajectories_fs")
 
         traj_doc = {}
-        traj_doc['formula_pretty'] = trajectory.composition.reduced_formula
+        traj_doc['formula_pretty'] = trajectory[0].composition.reduced_formula
         traj_doc['temperature'] = runs[0]["input"]["incar"]["TEBEG"]
         traj_doc['runs_label'] = runs_label
         traj_doc['compression'] = compression_type
         traj_doc['fs_id'] = gfs_id
-        traj_doc['structure'] = trajectory.structure.as_dict()
-        traj_doc['length'] = len(trajectory.displacements)
+        traj_doc['structure'] = trajectory[0].as_dict()
+        traj_doc['length'] = len(trajectory)
         traj_doc['time_step'] = 0.002
         return traj_doc
 
