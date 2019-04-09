@@ -122,7 +122,7 @@ class TrajectoryDBTask(FiretaskBase):
         mmdb.db.trajectories.find_one_and_delete({"runs_label": self["identifier"]})
         runs = mmdb.db['tasks'].find(
             {"task_label": re.compile(".*" + self["identifier"] + ".*")})
-        runs_sorted = sorted(runs, key=lambda x: x['task_id'])
+        runs_sorted = sorted(runs, key=lambda x: int(re.findall('run-(\d+)', x['task_label'])[0]))
 
         trajectory_doc = runs_to_trajectory_doc(runs_sorted, db_file,
                                                 self["identifier"], self['notes'])

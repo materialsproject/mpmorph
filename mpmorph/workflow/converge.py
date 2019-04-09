@@ -6,7 +6,7 @@ import uuid
 
 
 def get_converge(structure, temperature, priority=None, preconverged=False,
-                 max_steps=5000, target_steps=40000, vasp_opt=True, parents=None,
+                 max_steps=5000, target_steps=40000, vasp_opt=False, parents=None,
                  trajectory_to_db=False, tag_id=None, prod_count=0,
                  notes=None, **kwargs):
     # Generate a unique identifier for the fireworks belonging to this workflow
@@ -15,15 +15,13 @@ def get_converge(structure, temperature, priority=None, preconverged=False,
     fw_list = []
     run_args = {"md_params": {"start_temp": temperature, "end_temp": temperature, "nsteps": 2000},
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
-                              "db_file": ">>db_file<<", "wall_time": 86400 * 2},
+                              "db_file": ">>db_file<<"},
                 "optional_fw_params": {
                     "override_default_vasp_params": {
                         'user_incar_settings': {'ISIF': 1, 'LWAVE': False,
                                                 'LREAL': 'Auto', 'PREC': 'Normal'}
                     },
-                    "spec": {
-                        "_queueadapter": {'walltime': 86400 * 2}, '_priority': priority
-                    }
+                    "spec": {'_priority': priority}
                 }
                 }
     run_args = recursive_update(run_args, kwargs.get('converge_args', {}))
@@ -73,12 +71,13 @@ def get_converge(structure, temperature, priority=None, preconverged=False,
 
             fw_list.extend([fw1, fw2, fw3])
         else:
-            fw1 = MDFW(structure=structure, name="run0" + "-" + str(tag_id),
-                       previous_structure=False, insert_db=False,
-                       **run_args["md_params"], **run_args["run_specs"],
-                       **run_args["optional_fw_params"])
-            fw1 = powerups.add_converge_task(fw1, **_spawner_args)
-            fw_list.append(fw1)
+            spawner_fw = MDFW(structure=structure, name="run1",
+                              previous_structure=False, insert_db=False,
+                              **run_args["md_params"], **run_args["run_specs"],
+                              **run_args["optional_fw_params"])
+
+            spawner_fw = powerups.add_converge_task(spawner_fw, **_spawner_args)
+            fw_list.append(spawner_fw)
 
     # Production length MD runs
     # TODO Build continuation of MD on FIZZLED(from walltime) firework
@@ -88,7 +87,7 @@ def get_converge(structure, temperature, priority=None, preconverged=False,
                                   "end_temp": run_args["md_params"]["end_temp"],
                                   "nsteps": max_steps},
                     "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
-                                  "db_file": ">>db_file<<", "wall_time": 86400 * 2},
+                                  "db_file": ">>db_file<<"},
                     "optional_fw_params": {
                         "override_default_vasp_params":
                             {'user_incar_settings': {'ISIF': 1, 'LWAVE': False,
@@ -142,15 +141,13 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
     # Setup initial Run and convergence of structure
     run_args = {"md_params": {"start_temp": temperature, "end_temp": temperature, "nsteps": 2000},
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
-                              "db_file": ">>db_file<<", "wall_time": 86400 * 2},
+                              "db_file": ">>db_file<<"},
                 "optional_fw_params": {
                     "override_default_vasp_params": {
                         'user_incar_settings': {'ISIF': 1, 'LWAVE': False,
                                                 'LREAL': 'Auto', 'PREC': 'Normal'}
                     },
-                    "spec": {
-                        "_queueadapter": {'walltime': 86400 * 2}, '_priority': priority
-                    }
+                    "spec": {'_priority': priority}
                 }
                 }
     run_args = recursive_update(run_args, kwargs.get('converge_args', {}))
@@ -195,7 +192,6 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
             fw_list.extend(volume_fws)
 
             # Create firework to converge pressure/volume
-            _spawner_args['rescale_params']['beta'] = 5e-7
             spawner_fw = MDFW(structure=structure, name="run1",
                               previous_structure=True, insert_db=False,
                               parents=volume_fws, **run_args["md_params"],
@@ -207,8 +203,8 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
             spawner_fw = powerups.add_converge_task(spawner_fw, **_spawner_args)
             fw_list.append(spawner_fw)
         elif converge_scheme == 'vasp_opt':
-            fw1 = MDFW(structure=structure, name="run0" + "-" + str(tag_id), previous_structure=False, insert_db=False,
-                       **run_args["md_params"], **run_args["run_specs"],
+            fw1 = MDFW(structure=structure, name="run1", previous_structure=False,
+                       insert_db=False, **run_args["md_params"], **run_args["run_specs"],
                        **run_args["optional_fw_params"])
 
             # Create Vasp Optimization firework
@@ -223,7 +219,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
             # Create Convergence Firework
             if len(_spawner_args["md_params"].keys()) > 0:
                 run_args["md_params"].update(_spawner_args["md_params"])
-            fw3 = MDFW(structure=structure, name="run1" + "-" + str(tag_id),
+            fw3 = MDFW(structure=structure, name="run1",
                        previous_structure=True, insert_db=False, **run_args["md_params"],
                        parents=[fw2], **run_args["run_specs"], **run_args["optional_fw_params"])
 
@@ -231,12 +227,15 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
 
             fw_list.extend([fw1, fw2, fw3])
         else:
-            fw1 = MDFW(structure=structure, name="run0" + "-" + str(tag_id),
-                       previous_structure=False, insert_db=False,
-                       **run_args["md_params"], **run_args["run_specs"],
-                       **run_args["optional_fw_params"])
-            fw1 = powerups.add_converge_task(fw1, **_spawner_args)
-            fw_list.append(fw1)
+            spawner_fw = MDFW(structure=structure, name="run1",
+                              previous_structure=False, insert_db=False,
+                              **run_args["md_params"], **run_args["run_specs"],
+                              **run_args["optional_fw_params"])
+
+            spawner_fw = powerups.add_pv_volume_rescale(spawner_fw)
+            spawner_fw = powerups.add_pass_pv(spawner_fw)
+            spawner_fw = powerups.add_converge_task(spawner_fw, **_spawner_args)
+            fw_list.append(spawner_fw)
 
     # Production length MD runs
     prod_steps = 0
@@ -245,7 +244,7 @@ def get_converge_new(structure, temperature, converge_scheme='EOS', priority=Non
                                   "end_temp": run_args["md_params"]["end_temp"],
                                   "nsteps": max_steps},
                     "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<",
-                                  "db_file": ">>db_file<<", "wall_time": 86400 * 2},
+                                  "db_file": ">>db_file<<"},
                     "optional_fw_params": {
                         "override_default_vasp_params":
                             {'user_incar_settings': {'ISIF': 1, 'LWAVE': False,

@@ -80,8 +80,8 @@ class ConvergeTask(FireTaskBase):
 
         # Load Data from OUTCAR
         search_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
-        key_map = {'density': 'external', 'kinetic energy': 'kinetic energy EKIN', 'ionic': '% ion-electron',
-                   'total energy': 'ETOTAL'}
+        key_map = {'density': 'external', 'kinetic energy': 'kinetic energy EKIN',
+                   'ionic': '% ion-electron', 'total energy': 'ETOTAL'}
         outcar_data = md_data.get_MD_data("./OUTCAR.gz", search_keys=search_keys)
 
         # Check for convergence
