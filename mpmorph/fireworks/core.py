@@ -13,7 +13,7 @@ from pymatgen.io.vasp.sets import MITMDSet, MPStaticSet, MPRelaxSet
 class MDFW(Firework):
     def __init__(self, structure, start_temp, end_temp, nsteps, name="molecular dynamics",
                  vasp_input_set=None, vasp_cmd="vasp", override_default_vasp_params=None,
-                 wall_time=19200, db_file=None, parents=None, copy_vasp_outputs=False,
+                 wall_time=None, db_file=None, parents=None, copy_vasp_outputs=False,
                  previous_structure=False, insert_db=False, **kwargs):
         """
         This Firework is modified from atomate.vasp.fireworks.core.MDFW to fit the needs of mpmorph
