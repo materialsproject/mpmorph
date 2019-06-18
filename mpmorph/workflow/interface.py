@@ -50,7 +50,7 @@ def get_interface_wf(interfaces, match, slab_substrates=None, slab_films=None,
                                          name=f'{label}-strained_bulk_substrate_optimize-{str(tag_id)}',
                                          vasp_cmd='>>vasp_cmd<<', db_file='>>db_file<<',
                                          override_default_vasp_params={'user_incar_settings': {'ISIF': 2, 'KPAR': 4}},
-                                         handler_group=handler_group)
+                                         handler_group=handler_group, job_type='normal')
         strained_sub_static_fw = StaticFW(structure=strained_substrate,
                                           name=f'{label}-strained_bulk_substrate_static-{str(tag_id)}',
                                           vasp_cmd='>>vasp_cmd<<', db_file='>>db_file<<', previous_structure=True,
@@ -63,7 +63,7 @@ def get_interface_wf(interfaces, match, slab_substrates=None, slab_films=None,
                                           name=f'{label}-strained_bulk_film_optimize-{str(tag_id)}',
                                           vasp_cmd='>>vasp_cmd<<', db_file='>>db_file<<',
                                           override_default_vasp_params={'user_incar_settings': {'ISIF': 2, 'KPAR': 4}},
-                                          handler_group=handler_group)
+                                          handler_group=handler_group, job_type='normal')
         strained_film_static_fw = StaticFW(structure=strained_film,
                                            name=f'{label}-strained_bulk_film_static-{str(tag_id)}',
                                            vasp_cmd='>>vasp_cmd<<', db_file='>>db_file<<', previous_structure=True,
@@ -156,7 +156,7 @@ def get_interface_wf(interfaces, match, slab_substrates=None, slab_films=None,
                                           parents=[film_slab_orbital_fw], **run_args["run_specs"],
                                           **run_args["optional_fw_params"],
                                           max_force_threshold=None, handler_group=handler_group,
-                                          prev_calc_loc=True)
+                                          prev_calc_loc=True, job_type='normal')
 
             run_args = {"run_specs": {"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                                       "spec": {}},
@@ -236,7 +236,7 @@ def get_interface_wf(interfaces, match, slab_substrates=None, slab_films=None,
                                       parents=[interface_orbital_fw], **run_args["run_specs"],
                                       **run_args["optional_fw_params"],
                                       max_force_threshold=None, handler_group=handler_group,
-                                      prev_calc_loc=True)
+                                      prev_calc_loc=True, job_type='normal')
 
         run_args = {"run_specs": {"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                                   "spec": {}},
