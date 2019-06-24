@@ -14,7 +14,7 @@ handler_group = [VaspErrorHandler(), MeshSymmetryErrorHandler(), UnconvergedErro
 def get_interface_wf(interfaces, match, slab_substrates=None, slab_films=None,
                      bulk_substrate=None, bulk_film=None, strained_substrate=None, strained_film=None,
                      md_prerelax=True, skip_bulk=False, substrate_layers=None, film_layers=None,
-                     interface_labels=None, md_temp=500, h_label='bare_surface', **kwargs):
+                     interface_labels=None, md_temp=500, h_label='bare_surface'):
     """
     This workflow currently does not allow for calculation of interfacial energy.
 
@@ -73,24 +73,21 @@ def get_interface_wf(interfaces, match, slab_substrates=None, slab_films=None,
     # Substrate slab calculation
     if slab_substrates is not None:
         for i, slab_substrate in enumerate(slab_substrates):
-            run_args = {"run_specs": {"vasp_cmd": ">>vasp_cmd<<", "db_file": None, "spec": {}},
-                        "optional_fw_params": {"override_default_vasp_params": {}}}
-            run_args["optional_fw_params"]["override_default_vasp_params"].update(
-                {'user_incar_settings': {"IDIPOL": 3, 'KPAR': 4, 'AMIN': 0.01, 'LWAVE': True}})
+            override_default_vasp_params = {
+                'user_incar_settings': {"IDIPOL": 3, 'KPAR': 4, 'AMIN': 0.01, 'LWAVE': True}}
             sub_slab_orbital_fw = StaticFW(structure=slab_substrate,
                                            name=f'{sub_label}_{i}-substrate_slab_orbital-{str(tag_id)}',
-                                           **run_args["run_specs"], **run_args["optional_fw_params"],
+                                           vasp_cmd=">>vasp_cmd<<", db_file=None,
+                                           override_default_vasp_params=override_default_vasp_params,
                                            previous_structure=False)
 
-            run_args = {"run_specs": {"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
-                                      "spec": {}},
-                        "optional_fw_params": {"override_default_vasp_params": {}}}
-            run_args["optional_fw_params"]["override_default_vasp_params"].update(
-                {'user_incar_settings': {'ISTART': 1, 'LVTOT': True, "LDIPOL": True, "IDIPOL": 3, 'KPAR': 4,
-                                         'AMIN': 0.01}})
+            override_default_vasp_params = {
+                'user_incar_settings': {'ISTART': 1, 'LVTOT': True, "LDIPOL": True, "IDIPOL": 3, 'KPAR': 4,
+                                        'AMIN': 0.01}}
             sub_slab_static_fw = StaticFW(structure=slab_substrate,
                                           name=f'{sub_label}_{i}-substrate_slab_static-{str(tag_id)}',
-                                          **run_args["run_specs"], **run_args["optional_fw_params"],
+                                          vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
+                                          override_default_vasp_params=override_default_vasp_params,
                                           previous_structure=False,
                                           prev_calc_loc=True, parents=[sub_slab_orbital_fw])
 
@@ -100,77 +97,81 @@ def get_interface_wf(interfaces, match, slab_substrates=None, slab_films=None,
     if slab_films is not None:
         for i, slab_film in enumerate(slab_films):
             if md_prerelax:
-                run_args = {"md_params": {"start_temp": md_temp, "end_temp": md_temp, "nsteps": 200},
-                            "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"},
-                            "optional_fw_params": {"override_default_vasp_params": {}, "spec": {}},
-                            "label": "md_prerelax_"}
-
-                run_args["optional_fw_params"]["override_default_vasp_params"].update(
-                    {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'AMIN': 0.01, 'ALGO': "Normal"}})
+                override_default_vasp_params = {
+                    'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'AMIN': 0.01, 'ALGO': "Normal"}}
                 fw = MDFW(structure=slab_film,
                           name=f'{sub_label}_{i}-{h_label}_film_slab_md_prerelax_0-{str(tag_id)}',
-                          previous_structure=False, insert_db=True, **run_args["md_params"],
-                          **run_args["run_specs"], **run_args["optional_fw_params"], parents=[])
+                          previous_structure=False, insert_db=True,
+                          start_temp=md_temp, end_temp=md_temp, nsteps=200,
+                          vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
+                          override_default_vasp_params=override_default_vasp_params,
+                          parents=[])
                 fw_list.append(fw)
 
                 for q in range(1, 5):
                     fw = MDFW(structure=slab_film,
                               name=f'{sub_label}_{i}-{h_label}_film_slab_md_prerelax_{q}-{str(tag_id)}',
-                              previous_structure=True, insert_db=True, **run_args["md_params"],
-                              **run_args["run_specs"], **run_args["optional_fw_params"], parents=[fw_list[-1]])
+                              previous_structure=True, insert_db=True,
+                              start_temp=md_temp, end_temp=md_temp, nsteps=200,
+                              vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
+                              override_default_vasp_params=override_default_vasp_params,
+                              parents=[fw_list[-1]])
                     fw_list.append(fw)
 
-                run_args = {"run_specs": {"vasp_cmd": ">>vasp_cmd<<", "db_file": None,
-                                          "spec": {}},
-                            "optional_fw_params": {"override_default_vasp_params": {}}}
-                run_args["optional_fw_params"]["override_default_vasp_params"].update(
-                    {'user_incar_settings': {"IDIPOL": 3, 'KPAR': 4, 'AMIN': 0.01, 'LWAVE': True}})
+                user_incar_settings = {'ISTART': 1, 'LVTOT': True, 'IDIPOL': 3, 'AMIN': 0.01,
+                                       'EDIFF': 0.000001 * slab_film.num_sites, 'KPAR': 4,
+                                       'ICHARG': 0, 'POTIM': 0.5, 'NSW': 200, 'IBRION': -1,
+                                       'LWAVE': True, "ISMEAR": -5, "LAECHG": True, "LCHARG": True,
+                                       "LORBIT": 11, "LVHAR": True, "NSW": 0, "ICHARG": 0, "ALGO": "Normal"
+                                       }
+                vasp_input_set = MPSurfaceSet(slab_film, auto_dipole=True,
+                                              user_incar_settings=user_incar_settings)
                 film_slab_orbital_fw = StaticFW(structure=slab_film,
                                                 name=f'{sub_label}_{i}-{h_label}_film_slab_orbital-{str(tag_id)}',
-                                                **run_args["run_specs"], **run_args["optional_fw_params"],
+                                                vasp_cmd=">>vasp_cmd<<", db_file=None,
+                                                vasp_input_set=vasp_input_set,
                                                 previous_structure=True, parents=[fw_list[-1]])
             else:
-                run_args = {"run_specs": {"vasp_cmd": ">>vasp_cmd<<", "db_file": None,
-                                          "spec": {}},
-                            "optional_fw_params": {"override_default_vasp_params": {}}}
-                run_args["optional_fw_params"]["override_default_vasp_params"].update(
-                    {'user_incar_settings': {"IDIPOL": 3, 'KPAR': 4, 'AMIN': 0.01, 'LWAVE': True}})
+                user_incar_settings = {'ISTART': 1, 'LVTOT': True, 'IDIPOL': 3, 'AMIN': 0.01,
+                                       'EDIFF': 0.000001 * slab_film.num_sites, 'KPAR': 4,
+                                       'ICHARG': 0, 'POTIM': 0.5, 'NSW': 200, 'IBRION': -1,
+                                       'LWAVE': True, "ISMEAR": -5, "LAECHG": True, "LCHARG": True,
+                                       "LORBIT": 11, "LVHAR": True, "NSW": 0, "ICHARG": 0, "ALGO": "Normal"
+                                       }
+                vasp_input_set = MPSurfaceSet(slab_film, auto_dipole=True,
+                                              user_incar_settings=user_incar_settings)
                 film_slab_orbital_fw = StaticFW(structure=slab_film,
                                                 name=f'{sub_label}_{i}-{h_label}_film_slab_orbital-{str(tag_id)}',
-                                                **run_args["run_specs"], **run_args["optional_fw_params"],
-                                                previous_structure=True)
+                                                vasp_cmd=">>vasp_cmd<<", db_file=None,
+                                                vasp_input_set=vasp_input_set,
+                                                previous_structure=True, parents=[fw_list[-1]])
 
-            run_args = {"run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
-                                      "spec": {}},
-                        "optional_fw_params": {"override_default_vasp_params": {}}}
-            run_args["optional_fw_params"]["override_default_vasp_params"].update(
-                {'user_incar_settings': {'ISTART': 1, 'LVTOT': True, 'LDIPOL': True, 'IDIPOL': 3, 'AMIN': 0.01,
-                                         'EDIFF': 0.000001 * slab_film.num_sites, 'KPAR': 4,
-                                         'ICHARG': 0, 'POTIM': 0.5, 'NSW': 200, 'IBRION': 2}})
-            vasp_input_set = MPSurfaceSet(slab_film, auto_dipole=True,
-                                          **run_args['optional_fw_params']["override_default_vasp_params"])
-            run_args["run_specs"]["vasp_input_set"] = vasp_input_set
+            user_incar_settings = {'ISTART': 1, 'LVTOT': True, 'LDIPOL': True, 'IDIPOL': 3, 'AMIN': 0.01,
+                                   'EDIFF': 0.000001 * slab_film.num_sites, 'KPAR': 4,
+                                   'EDIFFG': 0.0001 * slab_film.num_sites,
+                                   'ICHARG': 0, 'POTIM': 0.5, 'NSW': 200, 'IBRION': 2}
+            vasp_input_set = MPSurfaceSet(slab_film, auto_dipole=True, user_incar_settings=user_incar_settings)
             film_slab_opt_fw = OptimizeFW(structure=slab_film,
                                           name=f'{sub_label}_{i}-{h_label}_film_slab_optimize-{str(tag_id)}',
                                           previous_structure=True,
-                                          parents=[film_slab_orbital_fw], **run_args["run_specs"],
-                                          **run_args["optional_fw_params"],
-                                          max_force_threshold=None, handler_group=handler_group,
-                                          prev_calc_loc=True, job_type='normal')
+                                          parents=[film_slab_orbital_fw], vasp_input_set=vasp_input_set,
+                                          vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
+                                          handler_group=handler_group,
+                                          prev_calc_loc=True, job_type='normal',
+                                          additional_files=["WAVECAR"])
 
-            run_args = {"run_specs": {"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
-                                      "spec": {}},
-                        "optional_fw_params": {"override_default_vasp_params": {}}}
-            run_args["optional_fw_params"]["override_default_vasp_params"].update(
-                {'user_incar_settings': {'LVTOT': True, "LDIPOL": True, "IDIPOL": 3, 'KPAR': 4,
-                                         'AMIN': 0.01}})
-
+            override_default_vasp_params = {
+                'user_incar_settings': {'LVTOT': True, "LDIPOL": True, "IDIPOL": 3, 'KPAR': 4,
+                                        'AMIN': 0.01}}
             film_slab_static_fw = StaticFW(structure=slab_film,
                                            name=f'{sub_label}_{i}-{h_label}_film_slab_static-{str(tag_id)}',
                                            parents=[film_slab_opt_fw],
-                                           **run_args["run_specs"], **run_args["optional_fw_params"],
+                                           vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
+                                           override_default_vasp_params=override_default_vasp_params,
                                            previous_structure=True,
                                            prev_calc_loc=True)
+
+
             fw_list.extend([film_slab_orbital_fw, film_slab_opt_fw, film_slab_static_fw])
 
     # Interface calculations:
@@ -178,77 +179,78 @@ def get_interface_wf(interfaces, match, slab_substrates=None, slab_films=None,
         interface_label = interface_labels[i]
 
         if md_prerelax:
-            run_args = {"md_params": {"start_temp": md_temp, "end_temp": md_temp, "nsteps": 200},
-                        "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"},
-                        "optional_fw_params": {"override_default_vasp_params": {}, "spec": {}},
-                        "label": "md_prerelax_"}
-
-            run_args["optional_fw_params"]["override_default_vasp_params"].update(
-                {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'AMIN': 0.01, 'ALGO': "Normal"}})
+            override_default_vasp_params = {
+                'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'AMIN': 0.01, 'ALGO': "Normal"}}
             fw = MDFW(structure=interface_structure,
-                      name=f'{sub_label}_{interface_label}-{h_label}_interface_md_prerelax_0-{str(tag_id)}',
-                      previous_structure=False, insert_db=True, **run_args["md_params"],
-                      **run_args["run_specs"], **run_args["optional_fw_params"], parents=[])
+                      name=f'{label}_{interface_label}-{h_label}_interface_md_prerelax_0-{str(tag_id)}',
+                      previous_structure=False, insert_db=True,
+                      start_temp=md_temp, end_temp=md_temp, nsteps=200,
+                      vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
+                      override_default_vasp_params=override_default_vasp_params,
+                      parents=[])
             fw_list.append(fw)
 
             for q in range(1, 5):
                 fw = MDFW(structure=interface_structure,
-                          name=f'{sub_label}_{interface_label}-{h_label}_interface_md_prerelax_{q}-{str(tag_id)}',
-                          previous_structure=True, insert_db=True, **run_args["md_params"],
-                          **run_args["run_specs"], **run_args["optional_fw_params"], parents=[fw_list[-1]])
+                          name=f'{label}_{interface_label}-{h_label}_interface_md_prerelax_{q}-{str(tag_id)}',
+                          previous_structure=True, insert_db=True,
+                          start_temp=md_temp, end_temp=md_temp, nsteps=200,
+                          vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
+                          override_default_vasp_params=override_default_vasp_params,
+                          parents=[fw_list[-1]])
                 fw_list.append(fw)
 
-            run_args = {"run_specs": {"vasp_cmd": ">>vasp_cmd<<", "db_file": None,
-                                      "spec": {}},
-                        "optional_fw_params": {"override_default_vasp_params": {}}}
-            run_args["optional_fw_params"]["override_default_vasp_params"].update(
-                {'user_incar_settings': {"IDIPOL": 3, 'KPAR': 4, 'AMIN': 0.01, 'LWAVE': True}})
+            user_incar_settings = {'ISTART': 1, 'LVTOT': True, 'IDIPOL': 3, 'AMIN': 0.01,
+                                   'EDIFF': 0.000001 * interface_structure.num_sites, 'KPAR': 4,
+                                   'ICHARG': 0, 'POTIM': 0.5, 'NSW': 200, 'IBRION': -1,
+                                   'LWAVE': True, "ISMEAR": -5, "LAECHG": True, "LCHARG": True,
+                                   "LORBIT": 11, "LVHAR": True, "NSW": 0, "ICHARG": 0, "ALGO": "Normal"
+                                   }
+            vasp_input_set = MPSurfaceSet(interface_structure, auto_dipole=True,
+                                          user_incar_settings=user_incar_settings)
             interface_orbital_fw = StaticFW(structure=interface_structure,
                                             name=f'{label}_{interface_label}-{h_label}_interface_orbital-{str(tag_id)}',
-                                            **run_args["run_specs"], **run_args["optional_fw_params"],
+                                            vasp_cmd=">>vasp_cmd<<", db_file=None,
+                                            vasp_input_set=vasp_input_set,
                                             previous_structure=True, parents=[fw_list[-1]])
         else:
-
-            run_args = {"run_specs": {"vasp_cmd": ">>vasp_cmd<<", "db_file": None,
-                                      "spec": {}},
-                        "optional_fw_params": {"override_default_vasp_params": {}}}
-            run_args["optional_fw_params"]["override_default_vasp_params"].update(
-                {'user_incar_settings': {"IDIPOL": 3, 'KPAR': 4, 'AMIN': 0.01, 'LWAVE': True}})
+            user_incar_settings = {'ISTART': 1, 'LVTOT': True, 'IDIPOL': 3, 'AMIN': 0.01,
+                                   'EDIFF': 0.000001 * interface_structure.num_sites, 'KPAR': 4,
+                                   'ICHARG': 0, 'POTIM': 0.5, 'NSW': 200, 'IBRION': -1,
+                                   'LWAVE': True, "ISMEAR": -5, "LAECHG": True, "LCHARG": True,
+                                   "LORBIT": 11, "LVHAR": True, "NSW": 0, "ICHARG": 0, "ALGO": "Normal"
+                                   }
+            vasp_input_set = MPSurfaceSet(interface_structure, auto_dipole=True,
+                                          user_incar_settings=user_incar_settings)
             interface_orbital_fw = StaticFW(structure=interface_structure,
                                             name=f'{label}_{interface_label}-{h_label}_interface_orbital-{str(tag_id)}',
-                                            **run_args["run_specs"], **run_args["optional_fw_params"],
+                                            vasp_cmd=">>vasp_cmd<<", db_file=None,
+                                            vasp_input_set=vasp_input_set,
                                             previous_structure=True)
 
-        run_args = {"run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
-                                  "spec": {}},
-                    "optional_fw_params": {"override_default_vasp_params": {}}}
-        run_args["optional_fw_params"]["override_default_vasp_params"].update(
-            {'user_incar_settings': {'ISTART': 1, 'LVTOT': True, 'LDIPOL': True, 'IDIPOL': 3, 'AMIN': 0.01,
-                                     'EDIFF': 0.000001 * interface_structure.num_sites,
-                                     'EDIFFG': 0.00001 * interface_structure.num_sites, 'KPAR': 4,
-                                     'ICHARG': 0, 'POTIM': 0.5, 'NSW': 200, 'IBRION': 2}})
+        user_incar_settings = {'ISTART': 1, 'LVTOT': True, 'LDIPOL': True, 'IDIPOL': 3, 'AMIN': 0.01,
+                               'EDIFF': 0.000001 * interface_structure.num_sites,
+                               'EDIFFG': 0.0001 * interface_structure.num_sites, 'KPAR': 4,
+                               'ICHARG': 0, 'POTIM': 0.5, 'NSW': 200, 'IBRION': 2}
         vasp_input_set = MPSurfaceSet(interface_structure, auto_dipole=True,
-                                      **run_args['optional_fw_params']["override_default_vasp_params"])
-        run_args["run_specs"]["vasp_input_set"] = vasp_input_set
+                                      user_incar_settings=user_incar_settings)
         interface_opt_fw = OptimizeFW(structure=interface_structure,
                                       name=f'{label}_{interface_label}-{h_label}_interface_optimize-{str(tag_id)}',
                                       previous_structure=True,
-                                      parents=[interface_orbital_fw], **run_args["run_specs"],
-                                      **run_args["optional_fw_params"],
-                                      max_force_threshold=None, handler_group=handler_group,
-                                      prev_calc_loc=True, job_type='normal')
+                                      parents=[interface_orbital_fw],
+                                      vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
+                                      vasp_input_set=vasp_input_set,
+                                      handler_group=handler_group,
+                                      prev_calc_loc=True, job_type='normal',
+                                      additional_files=["WAVECAR"])
 
-        run_args = {"run_specs": {"vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
-                                  "spec": {}},
-                    "optional_fw_params": {"override_default_vasp_params": {}}}
-        run_args["optional_fw_params"]["override_default_vasp_params"].update(
-            {'user_incar_settings': {'LVTOT': True, "LDIPOL": True, "IDIPOL": 3, 'KPAR': 4,
-                                     'AMIN': 0.01}})
-
+        override_default_vasp_params = {'user_incar_settings': {'LVTOT': True, "LDIPOL": True, "IDIPOL": 3, 'KPAR': 4,
+                                                                'AMIN': 0.01}}
         interface_static_fw = StaticFW(structure=interface_structure,
                                        name=f'{label}_{interface_label}-{h_label}_interface_static-{str(tag_id)}',
                                        parents=[interface_opt_fw],
-                                       **run_args["run_specs"], **run_args["optional_fw_params"],
+                                       vasp_cmd=">>vasp_cmd<<", db_file=">>db_file<<",
+                                       override_default_vasp_params=override_default_vasp_params,
                                        previous_structure=True,
                                        prev_calc_loc=True)
         fw_list.extend([interface_orbital_fw, interface_opt_fw, interface_static_fw])
