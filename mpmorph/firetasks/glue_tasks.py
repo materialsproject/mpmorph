@@ -28,9 +28,18 @@ class SaveStructureTask(FireTaskBase):
     def run_task(self, fw_spec):
         osw = list(os.walk("."))[0]
         files = []
+
+        contcar_exists = False
         for file_name in osw[2]:
             if "CONTCAR" in file_name:
                 files.append(file_name)
+                contcar_exists = True
+
+        if not contcar_exists:
+            for file_name in osw[2]:
+                if "POSCAR" in file_name:
+                    files.append(file_name)
+
         _poscar = Poscar.from_file(filename=files[-1], check_for_POTCAR=True, read_velocities=True)
         _structure = _poscar.structure.as_dict()
 
