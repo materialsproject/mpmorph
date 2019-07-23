@@ -5,7 +5,7 @@ from mpmorph.analysis import md_data
 from pymatgen.io.vasp import Poscar
 from scipy import stats
 import numpy as np
-
+import warnings
 
 @explicit_serialize
 class ConvergeTask(FireTaskBase):
@@ -167,22 +167,33 @@ class PVRescaleTask(FireTaskBase):
             pv_pairs = np.flip(pv_pairs, axis=1)
             pv_pairs = np.flip(pv_pairs[pv_pairs[:, 1].argsort()], axis=0)
 
-            params = fit_BirchMurnaghanPV_EOS(pv_pairs)
-            equil_volume = params[0]
-        else:
-            pvs = fw_spec["pressure_volume"]
+            try:
+                params = fit_BirchMurnaghanPV_EOS(pv_pairs)
+                equil_volume = params[0]
+            except:
+                warnings.warn("Could not converge Birch-Murnaghan EOS fit, trying linear regression")
+                rescale_type = 'linear_regression'
 
-            p = [item[1] for item in pvs]
-            v = [item[0] for item in pvs]
-
+        pvs = fw_spec["pressure_volume"]
+        p = [item[1] for item in pvs]
+        v = [item[0] for item in pvs]
+        if rescale_type == 'linear_regression':
             slope, intercept, r_value, p_value, std_err = stats.linregress(v, p)
-            equil_volume = -intercept/slope
+            if slope >= 0:
+                raise ValueError("P and V should be inversely related. Try using larger NSW in the volume variation")
+            equil_volume = -intercept / slope
+
+        frac_change = equil_volume / sorted(v)[int(np.floor(len(v)/2))]
+        if frac_change > 2 or frac_change < 0.5:
+            # If volume is greater than 2x or 0.5x, use the lowest pressure volume.
+            equil_volume = v[np.argmin(p)]
 
         poscar = Poscar.from_file("./POSCAR")
         poscar.structure.scale_lattice(equil_volume)
         poscar.write_file("./POSCAR")
 
         return FWAction()
+
 
 from mpmorph.fireworks import powerups
 from mpmorph.fireworks.core import MDFW
