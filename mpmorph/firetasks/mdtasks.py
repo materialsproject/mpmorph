@@ -180,6 +180,7 @@ class PVRescaleTask(FireTaskBase):
         if rescale_type == 'linear_regression':
             slope, intercept, r_value, p_value, std_err = stats.linregress(v, p)
             if slope >= 0:
+                ## In future try building a hull with composition and volume. then getting composition volume
                 raise ValueError("P and V should be inversely related. Try using larger NSW in the volume variation")
             equil_volume = -intercept / slope
 
