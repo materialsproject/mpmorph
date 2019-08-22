@@ -70,8 +70,9 @@ class OptimizeFW(Firework):
                  previous_structure=False,
                  auto_npar=">>auto_npar<<",
                  half_kpts_first_relax=False, parents=None,
-                 copy_vasp_outputs=False, pass_structure=True,
-                 handler_group="default",**kwargs):
+                 pass_structure=True,
+                 handler_group="default",
+                 prev_calc_loc=False, **kwargs):
         """
         Optimize the given structure.
         Args:
@@ -98,6 +99,11 @@ class OptimizeFW(Firework):
                                                       **override_default_vasp_params)
 
         t = []
+        if prev_calc_loc:
+            additional_files = kwargs.get("additional_files", [])
+            if "additional_files" in kwargs.keys():
+                del kwargs["additional_files"]
+            t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, contcar_to_poscar=True, additional_files=additional_files))
         t.append(WriteVaspFromIOSet(structure=structure,
                                     vasp_input_set=vasp_input_set))
         if previous_structure:
@@ -108,8 +114,7 @@ class OptimizeFW(Firework):
                                   auto_npar=auto_npar,
                                   half_kpts_first_relax=half_kpts_first_relax,
                                   handler_group=handler_group))
-        if copy_vasp_outputs:
-            t.append(PassCalcLocs(name=name))
+        t.append(PassCalcLocs(name=name))
         if pass_structure:
             t.append(SaveStructureTask())
 
@@ -126,7 +131,8 @@ class StaticFW(Firework):
                  previous_structure=False, vasp_input_set=None,
                  vasp_cmd="vasp", db_file=None, parents=None,
                  override_default_vasp_params=None,
-                 pass_structure=True, **kwargs):
+                 pass_structure=True,
+                 prev_calc_loc=False, **kwargs):
         """
         This Firework is modified from atomate.vasp.fireworks.core.StaticFW to fit the needs of mpmorph
         Standard static calculation Firework - either from a previous location or from a structure.
@@ -149,6 +155,8 @@ class StaticFW(Firework):
         t = []
         override_default_vasp_params = override_default_vasp_params or {}
         vasp_input_set = vasp_input_set or MPStaticSet(structure, **override_default_vasp_params)
+        if prev_calc_loc:
+            t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, contcar_to_poscar=True))
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         if previous_structure:
             t.append(PreviousStructureTask())
