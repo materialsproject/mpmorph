@@ -310,3 +310,178 @@ def process_vasp_data(raw_data, directory, nimages, load_structs=False):
     data["acceptance"] = [i[0] for i in processing_data.get("Acceptance Ratio", [])]
     data["temperatures"] = temps[0]
     return data, trajectories
+
+
+from multiprocessing import Pool, RawArray
+from monty.json import MSONable
+import numpy as np
+
+# A global dictionary storing the variables passed from the initializer.
+var_dict = {}
+
+
+def init_worker(shared_d, d_shape):
+    var_dict['shared_d'] = shared_d
+    var_dict['d_shape'] = d_shape
+
+
+class MSD(MSONable):
+    def __init__(self, t, msd, std_dev, temperature, time_step, sites, site_multiplicity):
+        self.t = t
+        self.msd = msd
+        self.std_dev = std_dev
+        self.temperature = temperature
+        self.time_step = time_step
+        self.sites = sites
+        self.site_multiplicity = site_multiplicity
+
+    def average_species(self):
+        avg_msd = self.msd.copy()
+        avg_msd_sites = self.sites.copy()
+        avg_std = self.std_dev.copy()
+        site_mult = self.site_multiplicity.copy()
+        # Ensure the msd is not already averaged over species:
+        if len(self.sites) < np.shape(avg_msd)[0]:
+            _avg_msd = []
+            _avg_std = []
+            _avg_sites = {}
+            _site_mult = {}
+            for i, (key, items) in enumerate(avg_msd_sites.items()):
+                _avg_msd.append(np.mean(np.array(avg_msd)[items], axis=0))
+                #                 _avg_std.append(np.std(np.array(avg_msd)[items], axis=0))
+
+                # Compute as sum of normally distributed random variables
+                # (may not be accurate given that x, y, z are not random):
+                _avg_std.append(np.sqrt(np.divide(np.sum(np.square(np.array(avg_std)[items]), axis=0), len(items))))
+                _avg_sites[key] = [i]
+                _site_mult[key] = [len(items)]
+            avg_msd = _avg_msd
+            avg_std = _avg_std
+            avg_msd_sites = _avg_sites
+            site_mult = _site_mult
+        return MSD(self.t, avg_msd, avg_std, temperature=self.temperature, time_step=self.time_step,
+                   sites=avg_msd_sites, site_multiplicity=site_mult)
+
+    def avg_msds(self, msds):
+        """
+        Average over multiple msds
+
+        :param msds:
+        :return:
+        """
+        # Ensure the msd is already averaged over species:
+        all_msds = [self.average_species()]
+        for msd in msds:
+            all_msds.append(msd.average_species())
+        # if len(self.sites) < np.shape(self.msd)[0]:
+        #             self.average(['specie', 'vector'])
+        avg_msds = []
+        avg_stds = []
+        site_mult = {}
+        for key in self.sites.keys():
+            # TODO: Need to ensure all trajectories are the same length, else truncate to the shortest
+
+            # CalculateAverage
+            msd_list = [msd.msd[msd.sites[key][0]] * msd.site_multiplicity[key] for msd in all_msds]
+            msd_array = np.stack(msd_list)
+            msd_sum = np.sum(msd_array, axis=0)
+            total_sites = np.sum([msd.site_multiplicity[key] for msd in all_msds])
+            msd_avg = msd_sum / total_sites
+
+            # Calculate std deviation
+            std_list = [msd.std_dev[msd.sites[key][0]] for msd in all_msds]
+            std_array = np.stack(std_list)
+            std_dev = np.sqrt(np.divide(np.sum(np.square(std_array), axis=0), len(std_list)))
+
+            site_mult[key] = total_sites
+            avg_msds.append(msd_avg)
+            avg_stds.append(std_dev)
+        avg_msd_sites = self.sites
+        return MSD(self.t, avg_msds, avg_stds, temperature=self.temperature, time_step=self.time_step,
+                   sites=avg_msd_sites, site_multiplicity=site_mult)
+
+    @classmethod
+    def from_trajectory(cls, trajectory, temperature, x_vals=None, skip=1):
+        trajectory.to_displacements()
+        displacements = trajectory[0].lattice.get_cartesian_coords(trajectory.frac_coords)[::skip]
+        # cumulative sum displacements
+        displacements = np.cumsum(displacements, axis=0)
+        if type(x_vals) not in [np.ndarray, list]:
+            # Default to evenly spaced points in log-space (Makes for prettier log-log plots)
+            run_length = np.shape(displacements)[0]
+            x_vals = np.unique(
+                np.logspace(0, np.log10(run_length - 1), int(np.log10(run_length - 1) * 100), base=10, dtype=int))
+        # Calculate MSD at each x_val using multiprocessing
+        d_shape = np.shape(displacements)
+        shared_d = RawArray('d', d_shape[0] * d_shape[1] * d_shape[2])
+        shared_d_np = np.frombuffer(shared_d, dtype=np.float64).reshape(d_shape)
+        np.copyto(shared_d_np, displacements)
+        # from multiprocessing import Pool
+        with Pool(processes=32, initializer=init_worker, initargs=(shared_d, d_shape)) as pool:
+            results = pool.map(process_chunk, [(h, i) for h, i in enumerate(x_vals)])
+        # Extract data from results
+        #         msd = np.zeros((len(x_vals), np.shape(displacements)[1], 3))
+        #         msd_std = np.zeros((len(x_vals), np.shape(displacements)[1], 3))
+        msd = np.zeros((len(x_vals), np.shape(displacements)[1]))
+        msd_std = np.zeros((len(x_vals), np.shape(displacements)[1]))
+        for result in results:
+            index = result[0]
+            msd[index] = result[1]
+            msd_std[index] = result[2]
+        # Swap the axes so the array is structured as [atom][time_step]
+        msd = np.swapaxes(msd, 0, 1)
+        msd_std = np.swapaxes(msd_std, 0, 1)
+        t = np.multiply(x_vals, skip * trajectory.time_step)
+        # Get the sites and site multiplicity
+        trajectory.to_positions()
+        structure = trajectory[0]
+        species = structure.composition.elements
+        sites = dict([(str(el), []) for el in species])
+        site_mult = dict([(str(el), []) for el in species])
+        for i, el in enumerate(structure.species):
+            sites[str(el)].append(i)
+        for key in sites.keys():
+            sites[key] = np.array(sites[key])
+            site_mult[key] = np.ones(len(sites[key]))
+        return cls(t, msd, msd_std, time_step=trajectory.time_step,
+                   sites=sites, site_multiplicity=site_mult, temperature=temperature)
+
+    def plot(self, axes='None', atomic_index=0, **kwargs):
+        from matplotlib import pyplot as plt
+        plt.figure(figsize=kwargs.get('figsize', [7, 5]), dpi=kwargs.get('dpi', 150))
+
+        ax = plt.axes()
+        if axes in ['semilogx', 'log']:
+            ax.set_xscale("log")
+        if axes in ['semilogy', 'log']:
+            ax.set_yscale("log")
+        for key in self.sites:
+            ax.errorbar(self.t, self.msd[self.sites[key][atomic_index]],
+                        yerr=self.std_dev[self.sites[key][atomic_index]], label=f'{key}')
+        ax.set_ylabel(r'MSD ($\AA{}^2$)', fontsize=18)
+        ax.set_xlabel('time (ps)', fontsize=18)
+
+        plt.legend(fontsize=16)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+        return plt
+
+
+def process_chunk(data):
+    """
+    This function computes the time-averaged point for one time
+
+    :param data: a tuple of (int, int) corresponding to index and dt for this chunk
+    :return:
+    """
+
+    h = data[0]
+    i = data[1]
+    a = np.frombuffer(var_dict['shared_d']).reshape(var_dict['d_shape'])
+    b = np.subtract(a[i:], a[:-i])
+    c = np.square(b)
+    del a, b
+    msd = np.mean(np.sum(c, axis=-1), axis=0)
+    msd_std = np.std(np.sum(c, axis=-1), axis=0)
+    del c
+    return h, msd, msd_std
