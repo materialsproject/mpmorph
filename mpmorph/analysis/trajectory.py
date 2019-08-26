@@ -1,16 +1,19 @@
 from copy import deepcopy
+from multiprocessing import Pool, RawArray
 import numpy as np
+from scipy.optimize import curve_fit
 import bisect
 import os
 from monty.json import MSONable
 from monty.functools import lru_cache
 from monty.re import regrep
-from pymatgen.io.vasp.outputs import Xdatcar
 from pymatgen import Structure
+from pymatgen.io.vasp.outputs import Xdatcar
 
 
 class Trajectory(MSONable):
-    def __init__(self, base_structure, disp, lattices):
+    def __init__(self, base_structure, disp, lattices, time_step=2):
+        self.time_step = time_step
         self.base_structure = base_structure
         self.base_frac_coords = base_structure.frac_coords
         self.disp = np.array(disp)
@@ -312,10 +315,6 @@ def process_vasp_data(raw_data, directory, nimages, load_structs=False):
     return data, trajectories
 
 
-from multiprocessing import Pool, RawArray
-from monty.json import MSONable
-import numpy as np
-
 # A global dictionary storing the variables passed from the initializer.
 var_dict = {}
 
@@ -382,7 +381,8 @@ class MSD(MSONable):
             # TODO: Need to ensure all trajectories are the same length, else truncate to the shortest
 
             # CalculateAverage
-            msd_list = [msd.msd[msd.sites[key][0]] * msd.site_multiplicity[key] for msd in all_msds]
+            msd_list = [msd.msd[msd.sites[key][0]] * msd.site_multiplicity[key]
+                        for msd in all_msds]
             msd_array = np.stack(msd_list)
             msd_sum = np.sum(msd_array, axis=0)
             total_sites = np.sum([msd.site_multiplicity[key] for msd in all_msds])
@@ -397,33 +397,60 @@ class MSD(MSONable):
             avg_msds.append(msd_avg)
             avg_stds.append(std_dev)
         avg_msd_sites = self.sites
-        return MSD(self.t, avg_msds, avg_stds, temperature=self.temperature, time_step=self.time_step,
-                   sites=avg_msd_sites, site_multiplicity=site_mult)
+        return MSD(self.t, avg_msds, avg_stds, temperature=self.temperature,
+                   time_step=self.time_step, sites=avg_msd_sites,
+                   site_multiplicity=site_mult)
 
     @classmethod
-    def from_trajectory(cls, trajectory, temperature, x_vals=None, skip=1):
-        trajectory.to_displacements()
-        displacements = trajectory[0].lattice.get_cartesian_coords(trajectory.frac_coords)[::skip]
-        # cumulative sum displacements
-        displacements = np.cumsum(displacements, axis=0)
+    def get_msd_from_structures(cls, structures, temperature, specie, x_vals=None, skip=1,
+                                time_step=2):
+        traj = Trajectory.from_structures(structures)
+        return cls.get_msd_from_displacements(traj.structure, traj.disp, temperature,
+                                              specie, x_vals, skip, time_step)
+
+    @classmethod
+    def get_msd_from_displacements(cls, structure, displacements, temperature, specie,
+                                   x_vals=None, skip=1, time_step=2):
+        """
+
+        Args:
+            structure:
+            displacements: Numpy array with shape  [site, time step, axis]
+            temperature:
+            x_vals:
+            skip:
+            time_step:
+
+        Returns:
+
+        """
+        framework_indices = list(structure.indices_from_symbol(specie))
+        framework_disp = displacements[framework_indices]
+        drift = np.average(framework_disp, axis=0)[None, :, :]
+
+        # drift corrected position and reshape to [time step, site, axis]
+        dc = displacements - drift
+        dc = np.swapaxes(dc, 0, 1)[::skip]
+        nsteps, nions, dim = dc.shape
         if type(x_vals) not in [np.ndarray, list]:
             # Default to evenly spaced points in log-space (Makes for prettier log-log plots)
-            run_length = np.shape(displacements)[0]
+            run_length = nsteps
             x_vals = np.unique(
-                np.logspace(0, np.log10(run_length - 1), int(np.log10(run_length - 1) * 100), base=10, dtype=int))
+                np.logspace(0, np.log10(run_length - 1),
+                            int(np.log10(run_length - 1) * 100), base=10, dtype=int))
         # Calculate MSD at each x_val using multiprocessing
-        d_shape = np.shape(displacements)
-        shared_d = RawArray('d', d_shape[0] * d_shape[1] * d_shape[2])
-        shared_d_np = np.frombuffer(shared_d, dtype=np.float64).reshape(d_shape)
-        np.copyto(shared_d_np, displacements)
+        shared_d = RawArray('d', nsteps * nions * dim)
+        shared_d_np = np.frombuffer(shared_d, dtype=np.float64).reshape((nsteps, nions, dim))
+        np.copyto(shared_d_np, dc)
         # from multiprocessing import Pool
-        with Pool(processes=32, initializer=init_worker, initargs=(shared_d, d_shape)) as pool:
+        with Pool(processes=32, initializer=init_worker,
+                  initargs=(shared_d, (nsteps, nions, dim))) as pool:
             results = pool.map(process_chunk, [(h, i) for h, i in enumerate(x_vals)])
         # Extract data from results
         #         msd = np.zeros((len(x_vals), np.shape(displacements)[1], 3))
         #         msd_std = np.zeros((len(x_vals), np.shape(displacements)[1], 3))
-        msd = np.zeros((len(x_vals), np.shape(displacements)[1]))
-        msd_std = np.zeros((len(x_vals), np.shape(displacements)[1]))
+        msd = np.zeros((len(x_vals), nions))
+        msd_std = np.zeros((len(x_vals), nions))
         for result in results:
             index = result[0]
             msd[index] = result[1]
@@ -431,10 +458,8 @@ class MSD(MSONable):
         # Swap the axes so the array is structured as [atom][time_step]
         msd = np.swapaxes(msd, 0, 1)
         msd_std = np.swapaxes(msd_std, 0, 1)
-        t = np.multiply(x_vals, skip * trajectory.time_step)
+        t = np.multiply(x_vals, skip * time_step)
         # Get the sites and site multiplicity
-        trajectory.to_positions()
-        structure = trajectory[0]
         species = structure.composition.elements
         sites = dict([(str(el), []) for el in species])
         site_mult = dict([(str(el), []) for el in species])
@@ -443,8 +468,8 @@ class MSD(MSONable):
         for key in sites.keys():
             sites[key] = np.array(sites[key])
             site_mult[key] = np.ones(len(sites[key]))
-        return cls(t, msd, msd_std, time_step=trajectory.time_step,
-                   sites=sites, site_multiplicity=site_mult, temperature=temperature)
+        return cls(t, msd, msd_std, time_step=time_step, sites=sites,
+                   site_multiplicity=site_mult, temperature=temperature)
 
     def plot(self, axes='None', atomic_index=0, **kwargs):
         from matplotlib import pyplot as plt
@@ -465,6 +490,110 @@ class MSD(MSONable):
         plt.xticks(fontsize=14)
         plt.yticks(fontsize=14)
         return plt
+
+
+class DiffusionAnalyzer(MSONable):
+    def __init__(self, msds):
+        """
+        :param msds: (list) of MSD objects
+        """
+        self.msds = msds
+        self.msds_dict = {}
+        for msd in msds:
+            try:
+                self.msds_dict[msd.temperature].append(msd)
+            except:
+                self.msds_dict[msd.temperature] = [msd]
+        self.msds_avg = {}
+        for key, msd_list in self.msds_dict.items():
+            self.msds_avg[key] = msd_list[0].avg_msds(msd_list[1:])
+        self.temps = sorted(self.msds_avg.keys(), reverse=True)
+        self.elements = sorted(list(self.msds_avg[self.temps[0]].sites.keys()), key = lambda x: self.msds_avg[self.temps[0]].sites[x])
+        d = []
+        d_std = []
+        for temp in self.temps:
+            # TODO: Check if the MSD meets a minimum of 1 (or maybe a higher cutoff)
+            _d, _d_std = self.fit_msd(self.msds_avg[temp])
+            d.append(_d)
+            d_std.append(_d_std)
+        self.d = np.array(d)
+        self.d_std = np.array(d_std)
+        self.fit_data = {}
+        self.room_temp_d = {}
+        self.room_temp_d_std = {}
+        self.plot_data = {}
+        for i, el in enumerate(self.elements):
+            x = self.temps
+            y = self.d[:, i]
+            yerr = self.d_std[:, i]
+            popt, pcov = curve_fit(arrhenius_eqn, x, y, sigma=yerr, absolute_sigma=True)
+            self.fit_data[el]=(popt, pcov)
+            # Calculate room temperature value
+            room_t = 298.15
+            d_fit = arrhenius_eqn(room_t, *popt)
+            # Calculate error on extrapolated value
+            sigma_a = np.sqrt(np.diag(pcov))[0]
+            sigma_e = np.sqrt(np.diag(pcov))[1]
+            sigma_d = np.sqrt((sigma_a ** 2 * (d_fit / popt[0]) ** 2) + sigma_e ** 2 * (d_fit / extrap_t) ** 2)
+            #set
+            self.room_temp_d[el] = d_fit
+            self.room_temp_d_std[el] = sigma_d
+#     print(fr'{d_fit:.2E} +- {sigma_d:.2E} cm2/s')
+
+    def get_plot_data(self):
+        plot_data = {}
+        for i, el in enumerate(self.elements):
+            popt, pcov = self.fit_data[el]
+            x = self.temps
+            x_scaled = [1000 / t for t in x]
+            y = self.d[:, i]
+            fit_line_x = x.copy()
+            fit_line_x.append(298.15)
+            fit_line_x_scaled = [1000 / t for t in fit_line_x]
+            fit_line_y = arrhenius_eqn(fit_line_x, *popt)
+            plot_data[el] = (x_scaled, y, fit_line_x_scaled, fit_line_y)
+        return plot_data
+
+    def plot(self):
+        from matplotlib import pyplot as plt
+        plot_data = self.get_plot_data()
+        plt.figure(figsize=[7, 5], dpi=150)
+        ax = plt.axes()
+        ax.set_yscale("log")
+        colors = ['blue', 'green', 'orange']
+        for i, el in enumerate(self.elements):
+            x_scaled, y, fit_line_x_scaled, fit_line_y = plot_data[el]
+            ax.errorbar(x_scaled, y, self.d_std[:, i], color=colors[i], label=str(el))
+            ax.errorbar(fit_line_x_scaled, fit_line_y, fmt='--', color=colors[i], label=None)
+            ax.errorbar([1000/298.15], [self.room_temp_d[el]], [self.room_temp_d_std[el]], fmt='x', label=None)
+        plt.legend()
+        ax.set_ylabel(r'D ($cm^2/s$)', fontsize=18)
+        ax.set_xlabel('1000/T ($K^{-1}$)', fontsize=18)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.tight_layout()
+        return plt
+
+    def fit_msd(self, msd):
+        d_arr = []
+        d_std_arr = []
+        min_t = np.where(msd.t > 1)[0][0] - 1
+        max_t = np.where(msd.t > msd.t[-1] * .5)[0][0] - 1
+        for i, el in enumerate(self.elements):
+        # for i in range(len(msd.msd)):
+            popt, pcov = curve_fit(linear_eqn, msd.t[min_t:max_t], msd.msd[i][min_t:max_t],
+                                   sigma=msd.std_dev[i][min_t:max_t], absolute_sigma=True)
+            d_arr.append(popt[0] * 1E-4)
+            d_std_arr.append(np.sqrt(np.diag(pcov))[0] * 1E-4)
+        return d_arr, d_std_arr
+
+
+def arrhenius_eqn(t, a, b):
+    return a * np.exp(-b / t)
+
+
+def linear_eqn(x, m, b):
+    return m * x + b
 
 
 def process_chunk(data):
