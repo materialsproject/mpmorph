@@ -326,9 +326,9 @@ def init_worker(shared_d, d_shape):
 
 class MSD(MSONable):
     def __init__(self, t, msd, std_dev, temperature, time_step, sites, site_multiplicity):
-        self.t = t
-        self.msd = msd
-        self.std_dev = std_dev
+        self.t = np.array(t)
+        self.msd = np.array(msd)
+        self.std_dev = np.array(std_dev)
         self.temperature = temperature
         self.time_step = time_step
         self.sites = sites
@@ -347,19 +347,19 @@ class MSD(MSONable):
             _site_mult = {}
             for i, (key, items) in enumerate(avg_msd_sites.items()):
                 _avg_msd.append(np.mean(np.array(avg_msd)[items], axis=0))
-                #                 _avg_std.append(np.std(np.array(avg_msd)[items], axis=0))
-
                 # Compute as sum of normally distributed random variables
                 # (may not be accurate given that x, y, z are not random):
-                _avg_std.append(np.sqrt(np.divide(np.sum(np.square(np.array(avg_std)[items]), axis=0), len(items))))
+                _avg_std.append(
+                    np.sqrt(np.sum(avg_std[items] ** 2, axis=0) / len(items)))
                 _avg_sites[key] = [i]
                 _site_mult[key] = [len(items)]
             avg_msd = _avg_msd
             avg_std = _avg_std
             avg_msd_sites = _avg_sites
             site_mult = _site_mult
-        return MSD(self.t, avg_msd, avg_std, temperature=self.temperature, time_step=self.time_step,
-                   sites=avg_msd_sites, site_multiplicity=site_mult)
+        return MSD(self.t, avg_msd, avg_std, temperature=self.temperature,
+                   time_step=self.time_step, sites=avg_msd_sites,
+                   site_multiplicity=site_mult)
 
     def avg_msds(self, msds):
         """
@@ -475,16 +475,23 @@ class MSD(MSONable):
         from matplotlib import pyplot as plt
         plt.figure(figsize=kwargs.get('figsize', [7, 5]), dpi=kwargs.get('dpi', 150))
 
+        if np.max(self.t) > 100000:
+            plot_dt = self.t / 1000
+            unit = 'ps'
+        else:
+            plot_dt = self.t
+            unit = 'fs'
+
         ax = plt.axes()
         if axes in ['semilogx', 'log']:
             ax.set_xscale("log")
         if axes in ['semilogy', 'log']:
             ax.set_yscale("log")
         for key in self.sites:
-            ax.errorbar(self.t, self.msd[self.sites[key][atomic_index]],
+            ax.errorbar(plot_dt, self.msd[self.sites[key][atomic_index]],
                         yerr=self.std_dev[self.sites[key][atomic_index]], label=f'{key}')
         ax.set_ylabel(r'MSD ($\AA{}^2$)', fontsize=18)
-        ax.set_xlabel('time (ps)', fontsize=18)
+        ax.set_xlabel(f'Time ({unit})', fontsize=18)
 
         plt.legend(fontsize=16)
         plt.xticks(fontsize=14)
@@ -508,7 +515,8 @@ class DiffusionAnalyzer(MSONable):
         for key, msd_list in self.msds_dict.items():
             self.msds_avg[key] = msd_list[0].avg_msds(msd_list[1:])
         self.temps = sorted(self.msds_avg.keys(), reverse=True)
-        self.elements = sorted(list(self.msds_avg[self.temps[0]].sites.keys()), key = lambda x: self.msds_avg[self.temps[0]].sites[x])
+        self.elements = sorted(list(self.msds_avg[self.temps[0]].sites.keys()),
+                               key=lambda x: self.msds_avg[self.temps[0]].sites[x])
         d = []
         d_std = []
         for temp in self.temps:
@@ -534,8 +542,8 @@ class DiffusionAnalyzer(MSONable):
             # Calculate error on extrapolated value
             sigma_a = np.sqrt(np.diag(pcov))[0]
             sigma_e = np.sqrt(np.diag(pcov))[1]
-            sigma_d = np.sqrt((sigma_a ** 2 * (d_fit / popt[0]) ** 2) + sigma_e ** 2 * (d_fit / extrap_t) ** 2)
-            #set
+            sigma_d = np.sqrt((sigma_a ** 2 * (d_fit / popt[0]) ** 2) +
+                              sigma_e ** 2 * (d_fit / room_t) ** 2)
             self.room_temp_d[el] = d_fit
             self.room_temp_d_std[el] = sigma_d
 #     print(fr'{d_fit:.2E} +- {sigma_d:.2E} cm2/s')
@@ -577,14 +585,16 @@ class DiffusionAnalyzer(MSONable):
     def fit_msd(self, msd):
         d_arr = []
         d_std_arr = []
-        min_t = np.where(msd.t > 1)[0][0] - 1
-        max_t = np.where(msd.t > msd.t[-1] * .5)[0][0] - 1
+        # min_t = np.where(msd.t > 1)[0][0] - 1
+        # max_t = np.where(msd.t > msd.t[-1] * .5)[0][0] - 1
+        min_t = 50
+        max_t = 150
         for i, el in enumerate(self.elements):
         # for i in range(len(msd.msd)):
             popt, pcov = curve_fit(linear_eqn, msd.t[min_t:max_t], msd.msd[i][min_t:max_t],
                                    sigma=msd.std_dev[i][min_t:max_t], absolute_sigma=True)
-            d_arr.append(popt[0] * 1E-4)
-            d_std_arr.append(np.sqrt(np.diag(pcov))[0] * 1E-4)
+            d_arr.append(popt[0] / 60)
+            d_std_arr.append(np.sqrt(np.diag(pcov))[0] / 60)
         return d_arr, d_std_arr
 
 
