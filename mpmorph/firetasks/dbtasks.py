@@ -93,27 +93,13 @@ class VaspMDToDb(FiretaskBase):
 
 
 @explicit_serialize
-class DiffusionDBTask(FiretaskBase):
-    """
-    Obtain all production runs and insert them into the db. This is done by
-    searching for a unique tag
-    """
-    required_params = ["identifier", "db_file", 'notes']
-    optional_params = []
-
-    def run_task(self, fw_spec):
-        db_file = env_chk(self.get('db_file'), fw_spec)
-        mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
-
-
-@explicit_serialize
 class TrajectoryDBTask(FiretaskBase):
     """
     Obtain all production runs and insert them into the db. This is done by
     searching for a unique tag
     """
-    required_params = ["identifier", "db_file", 'notes']
-    optional_params = []
+    required_params = ["identifier", "db_file"]
+    optional_params = ['notes']
 
     def run_task(self, fw_spec):
         # get the database connection
