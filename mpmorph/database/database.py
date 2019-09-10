@@ -10,6 +10,7 @@ from pymatgen import Structure
 
 logger = get_logger(__name__)
 
+__author__ = 'Eric Sivonxay <esivonxay@lbl.gov>'
 
 class VaspMDCalcDb(VaspCalcDb):
     """

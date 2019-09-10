@@ -9,6 +9,14 @@ from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTas
 from mpmorph.firetasks.dbtasks import VaspMDToDb
 from pymatgen.io.vasp.sets import MPMDSet, MPStaticSet, MPRelaxSet
 
+"""
+These fireworks were adapted from atomate.vasp.fireworks.core specifically for this package. 
+Slight modifications were made to each.
+"""
+
+__maintainer__ = "Eric Sivonxay"
+__email__ = "esivonxay@lbl.gov"
+
 
 class MDFW(Firework):
     def __init__(self, structure, start_temp, end_temp, nsteps, name="molecular dynamics",

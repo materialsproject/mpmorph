@@ -2,6 +2,10 @@ import numpy as np
 from pymatgen.io.vasp import Poscar
 
 
+__author__ = 'Eric Sivonxay and Muratahan Aykol'
+__maintainer__ = 'Eric Sivonxay'
+__email__ = 'esivonxay@lbl.gov'
+
 class RescaleVolume(object):
     """
     Class for adjusting the volume of an input simulation box based on conditions.

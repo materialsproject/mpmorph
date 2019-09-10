@@ -6,9 +6,12 @@ from mpmorph.fireworks.core import StaticFW, MDFW
 from mpmorph.util import recursive_update
 import numpy as np
 
+__author__ = 'Eric Sivonxay and Muratahan Aykol'
+__maintainer__ = 'Eric Sivonxay'
+__email__ = 'esivonxay@lbl.gov'
 
-def get_quench(structures, temperatures={}, priority=None, quench_type="simulated_anneal", cool_args={}, hold_args={}, quench_args={},
-               descriptor = "", **kwargs):
+def get_quench_wf(structures, temperatures={}, priority=None, quench_type="slow_quench", cool_args={}, hold_args={}, quench_args={},
+                  descriptor = "", **kwargs):
     fw_list = []
     if temperatures == {}:
         temperatures = {"start_temp": 3000, "end_temp": 500, "temp_step": 500}
@@ -19,7 +22,7 @@ def get_quench(structures, temperatures={}, priority=None, quench_type="simulate
 
     for (i, structure) in enumerate(structures):
         _fw_list = []
-        if quench_type == "simulated_anneal":
+        if quench_type == "slow_quench":
             for temp in np.arange(temperatures["start_temp"], temperatures["end_temp"], -temperatures["temp_step"]):
                 # get fw for cool step
                 use_prev_structure = False
@@ -37,7 +40,7 @@ def get_quench(structures, temperatures={}, priority=None, quench_type="simulate
                                previous_structure=True, insert_db=False, **kwargs)
                 _fw_list.append(_fw)
 
-        if quench_type in ["simulated_anneal", "mp_quench"]:
+        if quench_type in ["slow_quench", "mp_quench"]:
             # Relax OptimizeFW and StaticFW
             run_args = {"run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                                       "spec": {"_priority": priority}},

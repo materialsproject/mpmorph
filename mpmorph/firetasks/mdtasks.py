@@ -7,6 +7,10 @@ from scipy import stats
 import numpy as np
 import warnings
 
+__author__ = 'Eric Sivonxay and Muratahan Aykol'
+__maintainer__ = "Eric Sivonxay"
+__email__ = "esivonxay@lbl.gov"
+
 @explicit_serialize
 class ConvergeTask(FireTaskBase):
     """

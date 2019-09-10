@@ -5,6 +5,7 @@ from mpmorph.analysis import md_data
 import numpy as np
 import os
 
+__author__ = 'Eric Sivonxay <esivonxay@lbl.gov>'
 
 @explicit_serialize
 class PreviousStructureTask(FireTaskBase):

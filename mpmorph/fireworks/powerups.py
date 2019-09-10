@@ -2,6 +2,9 @@ from mpmorph.firetasks.mdtasks import RescaleVolumeTask, ConvergeTask, PVRescale
 from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask, PassPVTask
 from mpmorph.firetasks.dbtasks import VaspMDToDb, TrajectoryDBTask
 
+__author__ = 'Eric Sivonxay'
+__maintainer__ = "Eric Sivonxay"
+__email__ = "esivonxay@lbl.gov"
 
 def add_converge_task(fw, **kwargs):
     """

@@ -7,6 +7,7 @@ from pymatgen.analysis import structure_analyzer
 from pymatgen.util.coord import get_angle
 from pymatgen.io.vasp.outputs import Xdatcar
 
+__author__ = 'Muratahan Aykol <maykol@lbl.gov>'
 
 def polyhedra_connectivity(structures, pair, cutoff, step_freq=1):
     """

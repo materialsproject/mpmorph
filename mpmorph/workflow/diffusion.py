@@ -1,5 +1,9 @@
 from mpmorph.workflow.converge import get_converge
 
+__author__ = 'Eric Sivonxay and Muratahan Aykol'
+__maintainer__ = 'Eric Sivonxay'
+__email__ = 'esivonxay@lbl.gov'
+
 def get_diffusion(structure, temperatures=[500, 1000, 1500], prod_quants={"nsteps": 5000, "target": 40000}, converge_args={}, prod_args={}):
     wfs = []
     for temperature in temperatures:

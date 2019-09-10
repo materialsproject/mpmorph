@@ -16,6 +16,7 @@ from pymatgen.core.trajectory import Trajectory
 from pymatgen import Structure
 from bson import ObjectId
 
+__author__ = 'Eric Sivonxay <esivonxay@lbl.gov>'
 
 logger = get_logger(__name__)
 

@@ -6,6 +6,9 @@ from mpmorph.util import recursive_update
 import uuid
 from copy import deepcopy
 
+__author__ = 'Eric Sivonxay and Muratahan Aykol'
+__maintainer__ = 'Eric Sivonxay'
+__email__ = 'esivonxay@lbl.gov'
 
 def get_converge(structure, priority=None, preconverged=False, max_steps=5000, target_steps=40000,
                  spawner_args={}, converge_args={}, prod_args={}, converge_type=("density", 5), vasp_opt=True,

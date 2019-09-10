@@ -13,12 +13,13 @@ class Xdatcar_Writer():
             f.write(self.get_string_from_struct(**kwargs))
 
     def get_string_from_struct(self, structures, system="unknown system", significant_figures=6):
-        lines = [system, "1.0", str(structures[0].lattice)]
-        lines.append(" ".join(self.get_site_symbols(structures[0])))
-        lines.append(" ".join([str(x) for x in self.get_natoms(structures[0])]))
-
         format_str = "{{:.{0}f}}".format(significant_figures)
+
         for (si, structure) in enumerate(structures):
+            lines = [system, "1.0", str(structure.lattice)]
+            lines.append(" ".join(self.get_site_symbols(structure)))
+            lines.append(" ".join([str(x) for x in self.get_natoms(structure)]))
+
             lines.append("Direct configuration=     " + str(si + 1))
             for (i, site) in enumerate(structure):
                 coords = site.frac_coords

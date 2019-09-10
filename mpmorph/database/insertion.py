@@ -10,6 +10,8 @@ from atomate.vasp.drones import VaspDrone
 
 logger =get_logger(__name__)
 
+__author__ = 'Eric Sivonxay <esivonxay@lbl.gov>'
+
 class PostRunInsertion():
     """
     Inserts existing amorphous calculations into MongoDB

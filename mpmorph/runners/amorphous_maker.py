@@ -6,6 +6,7 @@ import numpy as np
 import os
 import shutil
 
+__author__ = 'Muratahan Aykol <maykol@lbl.gov>'
 
 class AmorphousMaker(object):
     def __init__(self, el_num_dict, box_scale, tol=2.0, packmol_path="packmol", clean=True, xyz_paths=None, time_seed=False):
