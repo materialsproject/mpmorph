@@ -10,6 +10,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 from pymatgen.io.vasp import Xdatcar
+from pymatgen import Element
+import scipy.integrate as integrate
 
 
 class Diffusion(object):
@@ -43,11 +45,13 @@ class Diffusion(object):
         self.block_l = block_l
         self.ci = ci
         self.msds = None
+        self.vel_matrix = None
+        self.vacfs = None
         self.scaling_factor = 0.1 / self.t_step  # conv. to cm2/s
 
     @property
     def n_origins(self):
-        n = (self.total_t - self.block_t - self.skip_first) / self.corr_t + 1
+        n = int((self.total_t - self.block_t - self.skip_first) / self.corr_t + 1)
         if n <= 0:
             raise ValueError("Too many blocks for the correlation time")
         return n
@@ -83,6 +87,10 @@ class Diffusion(object):
         """
         Method to calculate diffusion coefficient(s) of the given element (el).
         """
+
+        if type(el) == type(Element("Li")):
+            el = el.name
+
         self._getd(el)
         D = [[], [], []]
         for i in self.msds:
@@ -93,15 +101,15 @@ class Diffusion(object):
         D = np.array(D) * self.scaling_factor
         self.D_blocks = D
 
-        alpha = 1.0-self.ci
-        tn = stats.t.ppf(1.0-alpha/2.0, len(self.D_blocks) - 1) / np.sqrt(len(self.D_blocks))
+        alpha = 1.0 - self.ci
+        tn = stats.t.ppf(1.0 - alpha / 2.0, len(self.D_blocks) - 1) / np.sqrt(len(self.D_blocks))
 
         if tn == "nan":
             tn = 1
         self.D_i = np.mean(D, axis=1)
-        self.D_i_std = np.std(D, axis=1)*tn
+        self.D_i_std = np.std(D, axis=1) * tn
         self.D_avg = np.sum(self.D_i) / 3.0
-        self.D_avg_std = np.std(np.sum(D, axis=0) / 3.0)*tn
+        self.D_avg_std = np.std(np.sum(D, axis=0) / 3.0) * tn
         return self.D_dict
 
     @property
@@ -125,6 +133,73 @@ class Diffusion(object):
         "to be implemented"
         pass
 
+    def get_v(self, el):
+        # Make copy of structures
+        _structures = [structure.copy() for structure in self.structures]
+
+        # Find unneccessary elements and delete
+        prune_els = []
+        for specie in _structures[0].species:
+            if specie != el:
+                prune_els.append(specie)
+        for structure in _structures:
+            structure.remove_species(prune_els)
+        _structures_sites = [structure.sites for structure in _structures]
+
+        # Iterate through each site through each timestep and find velocity
+        vel_matrix = [[0 for y in range(len(_structures)-1)] for x in range(len(_structures[0].sites))]
+        for i in range(len(vel_matrix)):
+            for j in range(len(vel_matrix[0])):
+                vel_matrix[i][j] = _structures_sites[j][i].distance(_structures_sites[j+1][i])/self.t_step
+        self.vel_matrix=vel_matrix
+        return
+
+    def get_v_vector(self, el):
+        # Make copy of structures
+        _structures = [structure.copy() for structure in self.structures]
+
+        # Find unneccessary elements and delete
+        prune_els = []
+        for specie in _structures[0].species:
+            if specie != el:
+                prune_els.append(specie)
+        for structure in _structures:
+            structure.remove_species(prune_els)
+        _structures_sites = [structure.sites for structure in _structures]
+
+        # Iterate through each site through each timestep and find velocity
+        vel_matrix = [[[0, 0, 0] for y in range(len(_structures) - 1)] for x in range(len(_structures[0].sites))]
+        for i in range(len(vel_matrix)):
+            for j in range(len(vel_matrix[0])):
+                dist_x = _structures_sites[j][i].x - _structures_sites[j + 1][i].x
+                if dist_x > _structures[i].lattice.a/2:
+                    dist_x = (_structures[i].lattice.a-np.abs(dist_x))*(-1*np.sign(dist_x))
+                dist_y = _structures_sites[j][i].y - _structures_sites[j + 1][i].y
+                #if dist_y > _structures[i].lattice.b/2:
+                #    dist_y = (_structures[i].lattice.b-np.abs(dist_y))*(-1*np.sign(dist_y))
+                dist_z = _structures_sites[j][i].z - _structures_sites[j + 1][i].z
+                #if dist_z > _structures[i].lattice.c/2:
+                #    dist_z = (_structures[i].lattice.c-np.abs(dist_z))*(-1*np.sign(dist_z))
+
+                vel_matrix[i][j][0] = dist_x / self.t_step
+                vel_matrix[i][j][1] = dist_y / self.t_step
+                vel_matrix[i][j][2] = dist_z / self.t_step
+
+        self.vel_matrix = vel_matrix
+        return
+
+    def green_kubo_D(self, el):
+        self.get_v(el)
+        #Get velocity autocorrelation function for each site
+        vacfs = []
+        for site_vel in self.vel_matrix:
+            _vacf = np.correlate(site_vel, site_vel, "full")
+            vacfs.append(_vacf)
+        self.vacfs=vacfs
+        D = []
+        for vacf in vacfs:
+            D.append(integrate.simps(vacf))
+        return D
 
 class Activation(object):
     def __init__(self, D_t):

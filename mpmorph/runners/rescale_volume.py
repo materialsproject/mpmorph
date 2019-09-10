@@ -2,13 +2,17 @@ import numpy as np
 from pymatgen.io.vasp import Poscar
 
 
+__author__ = 'Eric Sivonxay and Muratahan Aykol'
+__maintainer__ = 'Eric Sivonxay'
+__email__ = 'esivonxay@lbl.gov'
+
 class RescaleVolume(object):
     """
     Class for adjusting the volume of an input simulation box based on conditions.
     """
 
-    def __init__(self, structure, initial_pressure=0.0, initial_temperature=1000.0,
-                         target_pressure=0.0, target_temperature=1000.0,
+    def __init__(self, structure, initial_pressure=0.0, initial_temperature=1,
+                         target_pressure=0.0, target_temperature=1,
                          alpha=10e-6, beta=10e-7, poscar=None):
         """
         Args:
@@ -33,7 +37,7 @@ class RescaleVolume(object):
         self.beta = beta  # /bar
         self.poscar = poscar
 
-    def rescale_structure_volume(self, v2_v1, tol=0.3):
+    def rescale_structure_volume(self, v2_v1, tol=1):
         """
         Scales the volume of a structure by the given factor v2_v1.
         Args:

@@ -4,9 +4,10 @@ from multiprocessing import Pool
 from scipy.spatial import Voronoi
 from copy import deepcopy
 from pymatgen.analysis import structure_analyzer
-from pymatgen.util.coord_utils import get_angle
+from pymatgen.util.coord import get_angle
 from pymatgen.io.vasp.outputs import Xdatcar
 
+__author__ = 'Muratahan Aykol <maykol@lbl.gov>'
 
 def polyhedra_connectivity(structures, pair, cutoff, step_freq=1):
     """
@@ -95,7 +96,7 @@ def coordination_number_distribution(structures, pair, cutoff, step_freq=1):
                 for j in range(len(structure)):
                     if str(structure[j].specie) == pair[1]:
                         d = structure.get_distance(i,j)
-                        if d < cutoff:
+                        if d < cutoff and np.abs(d) > 0.1:
                             cn+=1
                 cn_dist.append(cn)
     return cn_dist
@@ -361,7 +362,7 @@ class VoronoiAnalysis(object):
                 "This means if the center atom is in key"
                 if -1 in key:
                     "This means if an infinity point is in key"
-                    print "Cutoff too short. Exiting."
+                    print ("Cutoff too short. Exiting.")
                     return None
                 else:
                     try:
@@ -383,7 +384,7 @@ class VoronoiAnalysis(object):
         Returns:
             A list of [voronoi_tesellation, count]
         """
-        print "This might take a while..."
+        print ("This might take a while...")
         voro_dict = {}
         step = 0
         for structure in structures:
@@ -447,9 +448,9 @@ class RadialDistributionFunction(object):
         self.structures = structures
         self.cutoff = cutoff
         self.bin_size = bin_size
-        self.step_freq = step_freq
+        self.step_freq = int(step_freq)
         self.smooth = smooth
-        self.n_frames = len(self.structures)
+        self.n_frames = int(len(self.structures))
         self.n_atoms = len(self.structures[0])
         self.n_species = self.structures[0].composition.as_dict()
         self.get_pair_order = None
@@ -477,7 +478,7 @@ class RadialDistributionFunction(object):
         """
 
         frames = [(self.structures[i * self.step_freq], self.pairs, self.n_bins, self.cutoff, self.bin_size) for i in
-                  range(self.n_frames / self.step_freq)]
+                  range(int(self.n_frames / self.step_freq))]
         self.counter = len(frames)
         pool = Pool(nproc)
         results = pool.map(_process_frame, frames)
@@ -607,7 +608,7 @@ def get_smooth_rdfs(RDFs, passes=1):
         return get_smooth_rdfs(RDFs, passes=passes)
 
 
-def get_sample_structures(xdatcar_path, n=10, steps_skip_first=1000):
+def get_sample_structures(structures, n=10, steps_skip_first=1000):
     """
     Helper method to extract n unique structures from an MD output
     Args:
@@ -615,9 +616,13 @@ def get_sample_structures(xdatcar_path, n=10, steps_skip_first=1000):
     Returns:
         A list of Structure objects
     """
-    input_structures = Xdatcar(xdatcar_path).structures
+    if type(structures) == type("asdf"):
+        input_structures = Xdatcar(xdatcar_path).structures
+    else:
+        input_structures = structures
     output_structures = []
     t = len(input_structures)-steps_skip_first
     for i in range(n):
         output_structures.append(input_structures[::-1][i*t//n])
     return output_structures
+
