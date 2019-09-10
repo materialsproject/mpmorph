@@ -20,7 +20,39 @@ MPmorph provides:
   * Diffusion coefficients:  
     * Robust calculation of diffusion coefficients (D) and activation energies (Q).
     * Rigorous error analysis for D and Q.
-    
+
+# Installation
+
+Before installing mpmorph, install the latest version of [pymatgen](http://www.pymatgen.org), 
+[custodian](https://github.com/materialsproject/custodian), 
+[fireworks](https://github.com/materialsproject/fireworks)) and [atomate](https://github.com/hackingmaterials/atomate)
+
+clone the repository to your computer and install using 
+```
+python setup.py install
+```
+
+If you wish to make amorphous structures, please install [packmol](http://m3g.iqm.unicamp.br/packmol/home.shtml) on your machine
+
+# Using MPmorph
+
+A sample of using mpmorph to run an AIMD simulation at 1500K for 200ps (100k steps at 2fs/step) is shown below:
+
+```python
+from mpmorph.workflow.converge import get_converge
+from pymatgen import MPRester
+from fireworks import LaunchPad
+
+mpr = MPRester()
+structure = mpr.get_structure_by_material_id('mp-1143')
+structure.make_supercell([3, 3, 3])
+
+wf = get_converge(structure, temperature = 1500, max_steps = 5000, target_steps = 100000)
+
+lp = LaunchPad.auto_load()
+lp.add_wf(wf)
+```
+
 # Citation
 
 If you use mpmorph, please cite the following papers:
