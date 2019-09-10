@@ -21,7 +21,7 @@ __email__ = "esivonxay@lbl.gov"
 class MDFW(Firework):
     def __init__(self, structure, start_temp, end_temp, nsteps, name="molecular dynamics",
                  vasp_input_set=None, vasp_cmd="vasp", override_default_vasp_params=None,
-                 wall_time=None, db_file=None, parents=None, save_structure=True,
+                 wall_time=None, db_file=None, parents=None, copy_vasp_outputs=False,
                  previous_structure=False, insert_db=False, **kwargs):
         """
         This Firework is modified from atomate.vasp.fireworks.core.MDFW to fit the needs of mpmorph
@@ -58,27 +58,22 @@ class MDFW(Firework):
             t.append(PreviousStructureTask())
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time))
-        if save_structure:
-            t.append(SaveStructureTask())
+        t.append(PassCalcLocs(name=name))
+        t.append(SaveStructureTask())
+        name = f'{structure.formula.replace(" ", "")}-{name}'
         if insert_db:
-            t.append(VaspMDToDb(db_file=db_file,
-                              additional_fields={"task_label": name}, defuse_unsuccessful=False))
-        super(MDFW, self).__init__(t, parents=parents,
-                                   name="{}-{}".format(structure.composition.reduced_formula, name),
-                                   **kwargs)
+            t.append(VaspMDToDb(db_file=db_file, additional_fields={"task_label": name},
+                                defuse_unsuccessful=False))
+        super(MDFW, self).__init__(t, parents=parents, name=name, **kwargs)
 
 
 class OptimizeFW(Firework):
-    def __init__(self, structure, name="structure optimization",
-                 vasp_input_set=None, insert_db=True,
-                 vasp_cmd="vasp", override_default_vasp_params=None,
-                 ediffg=None, db_file=None,
-                 force_gamma=True, job_type="double_relaxation_run",
-                 max_force_threshold=None,
-                 previous_structure=False,
-                 auto_npar=">>auto_npar<<",
+    def __init__(self, structure, name="structure optimization", vasp_input_set=None,
+                 insert_db=True, vasp_cmd="vasp", override_default_vasp_params=None,
+                 ediffg=None, db_file=None, force_gamma=True,
+                 job_type="double_relaxation_run", max_force_threshold=None,
+                 previous_structure=False, auto_npar=">>auto_npar<<",
                  half_kpts_first_relax=False, parents=None,
-                 pass_structure=True,
                  handler_group="default",
                  prev_calc_loc=False, **kwargs):
         """
@@ -102,9 +97,8 @@ class OptimizeFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
-        vasp_input_set = vasp_input_set or MPRelaxSet(structure,
-                                                      force_gamma=force_gamma,
-                                                      **override_default_vasp_params)
+        vasp_input_set = vasp_input_set or MPRelaxSet(
+            structure, force_gamma=force_gamma, **override_default_vasp_params)
 
         t = []
         if prev_calc_loc:
@@ -123,15 +117,12 @@ class OptimizeFW(Firework):
                                   half_kpts_first_relax=half_kpts_first_relax,
                                   handler_group=handler_group))
         t.append(PassCalcLocs(name=name))
-        if pass_structure:
-            t.append(SaveStructureTask())
+        t.append(SaveStructureTask())
 
         if insert_db:
             t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-        super(OptimizeFW, self).__init__(t, parents=parents, name="{}-{}".
-                                         format(
-            structure.composition.reduced_formula, name),
-                                         **kwargs)
+        name = f'{structure.formula.replace(" ", "")}-{name}'
+        super(OptimizeFW, self).__init__(t, parents=parents, name=name, **kwargs)
 
 
 class StaticFW(Firework):
@@ -169,9 +160,8 @@ class StaticFW(Firework):
         if previous_structure:
             t.append(PreviousStructureTask())
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
-        if pass_structure:
-            t.append(SaveStructureTask())
+        t.append(SaveStructureTask())
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-        super(StaticFW, self).__init__(t, parents=parents, name="{}-{}".format(
-            structure.composition.reduced_formula, name), **kwargs)
+        name = f'{structure.formula.replace(" ", "")}-{name}'
+        super(StaticFW, self).__init__(t, parents=parents, name=name, **kwargs)

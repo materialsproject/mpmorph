@@ -1,15 +1,36 @@
+from scipy import stats
+import numpy as np
 from fireworks import explicit_serialize, Workflow, FireTaskBase, FWAction
 from mpmorph.runners.rescale_volume import RescaleVolume, fit_BirchMurnaghanPV_EOS
 from mpmorph.util import recursive_update
 from mpmorph.analysis import md_data
 from pymatgen.io.vasp import Poscar
-from scipy import stats
+from pymatgen import Structure
 import numpy as np
-import warnings
 
 __author__ = 'Eric Sivonxay and Muratahan Aykol'
 __maintainer__ = "Eric Sivonxay"
 __email__ = "esivonxay@lbl.gov"
+
+@explicit_serialize
+class DiffusionTask(FireTaskBase):
+    required_params = ['temperatures', 'max_steps', 'target_steps',
+                       'trajectory_to_db', 'notes']
+    optional_params = []
+
+    def run_task(self, fw_spec):
+        from mpmorph.workflow.converge import get_converge_new
+
+        s = Structure.from_file('CONTCAR.gz')
+        fws = []
+        for t in self['temperatures']:
+            fws.extend(get_converge_new(s, int(t), max_steps=self['max_steps'],
+                                        target_steps=self['target_steps'],
+                                        trajectory_to_db=self['trajectory_to_db'],
+                                        notes=self['notes']))
+        wf = Workflow(fws)
+        return FWAction(detours=wf)
+
 
 @explicit_serialize
 class ConvergeTask(FireTaskBase):
@@ -23,6 +44,9 @@ class ConvergeTask(FireTaskBase):
     optional_params = ["rescale_params", 'unique_identifier']
 
     def run_task(self, fw_spec):
+        from mpmorph.fireworks import powerups
+        from mpmorph.fireworks.core import MDFW
+
         # Load Structure from Poscar
         _poscar = Poscar.from_file("CONTCAR.gz")
         structure = _poscar.structure
@@ -35,12 +59,11 @@ class ConvergeTask(FireTaskBase):
             convergence_vars["ionic"]=0.001
         rescale_params = self.get("rescale_params", {})
 
-        #Load Data from OUTCAR
+        # Load Data from OUTCAR
         search_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
-        key_map = {'density': 'external', 'kinetic energy': 'kinetic energy EKIN', 'ionic': '% ion-electron',
-                   'total energy': 'ETOTAL'}
+        key_map = {'density': 'external', 'kinetic energy': 'kinetic energy EKIN',
+                   'ionic': '% ion-electron', 'total energy': 'ETOTAL'}
         outcar_data = md_data.get_MD_data("./OUTCAR.gz", search_keys=search_keys)
-
 
         # Check for convergence
         converged={}
@@ -52,7 +75,6 @@ class ConvergeTask(FireTaskBase):
                 converged["density"] = False
             else:
                 converged["density"] = True
-
 
         if "kinetic energy" in convergence_vars.keys():
             _index = search_keys.index(key_map["kinetic energy"])
@@ -79,6 +101,7 @@ class ConvergeTask(FireTaskBase):
             density_spawn_count = converge_params["density_spawn_count"]
             energy_spawn_count = converge_params["energy_spawn_count"]
             max_rescales = converge_params["max_rescales"]
+            max_energy_runs = 3
 
             run_specs = self["run_specs"]
             md_params = self["md_params"]
@@ -87,9 +110,16 @@ class ConvergeTask(FireTaskBase):
             additional_label = tag_id
             if tag_id != "":
                 additional_label = "-" + additional_label
-            if not converged.get("density", True):
-                rescale_args = {"initial_pressure": pressure * 1000, "initial_temperature": 1, "beta": 0.0000005}
-                rescale_args = recursive_update(rescale_args, rescale_params)
+            if density_spawn_count >= max_rescales:
+                return FWAction(defuse_children=True)
+            elif energy_spawn_count >= max_energy_runs:
+                # Too many energy rescales... Just continue with the production runs
+                return FWAction(stored_data={'pressure': pressure,
+                                         'energy': norm_energy_change,
+                                         'density_calculated': True})
+            elif not converged.get("density", True):
+                    rescale_args = {"initial_pressure": pressure * 1000, "initial_temperature": 1, "beta": 0.0000005}
+                    rescale_args = recursive_update(rescale_args, rescale_params)
 
                 # Spawn fw
                 fw = MDFW(structure, name="density_run" + str(density_spawn_count + 1) + additional_label,
@@ -118,9 +148,12 @@ class ConvergeTask(FireTaskBase):
                 fw = powerups.add_pass_pv(fw)
                 fw = powerups.add_converge_task(fw, **_spawner_args)
             wf = Workflow([fw])
-            return FWAction(detours=wf, stored_data={'pressure': pressure})
+            return FWAction(detours=wf, stored_data={'pressure': pressure,
+                                                     'energy': norm_energy_change})
         else:
-            return FWAction(stored_data={'pressure': pressure, 'density_calculated': True})
+            return FWAction(stored_data={'pressure': pressure,
+                                         'energy': norm_energy_change,
+                                         'density_calculated': True})
 
 
 @explicit_serialize

@@ -1,9 +1,9 @@
-from fireworks import explicit_serialize, FireTaskBase, FWAction
-from pymatgen.io.vasp import Poscar
-from pymatgen import Structure
-from mpmorph.analysis import md_data
-import numpy as np
 import os
+import numpy as np
+from fireworks import explicit_serialize, FireTaskBase, FWAction, Workflow
+from pymatgen.io.vasp import Poscar
+from pymatgen import Structure, Lattice
+from mpmorph.analysis import md_data
 
 __author__ = 'Eric Sivonxay <esivonxay@lbl.gov>'
 
@@ -36,11 +36,6 @@ class SaveStructureTask(FireTaskBase):
                 files.append(file_name)
                 contcar_exists = True
 
-        if not contcar_exists:
-            for file_name in osw[2]:
-                if "POSCAR" in file_name:
-                    files.append(file_name)
-
         _poscar = Poscar.from_file(filename=files[-1], check_for_POTCAR=True, read_velocities=True)
         _structure = _poscar.structure.as_dict()
 
@@ -54,6 +49,7 @@ class SaveStructureTask(FireTaskBase):
             f.write(str(_structure))
             f.close()
         return FWAction(update_spec={"structure": _structure})
+
 
 @explicit_serialize
 class PassPVTask(FireTaskBase):
