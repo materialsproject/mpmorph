@@ -28,11 +28,14 @@ Before installing mpmorph, install the latest version of [pymatgen](http://www.p
 [fireworks](https://github.com/materialsproject/fireworks)) and [atomate](https://github.com/hackingmaterials/atomate)
 
 clone the repository to your computer and install using 
-```
+```bash
 python setup.py install
 ```
 
-If you wish to make amorphous structures, please install [packmol](http://m3g.iqm.unicamp.br/packmol/home.shtml) on your machine
+If you wish to make amorphous structures, please install [packmol](http://m3g.iqm.unicamp.br/packmol/home.shtml) on your machine and add the following line to your bash profile
+```bash
+export PACKMOL_PATH="path_to_packmol_here"
+```
 
 # Using MPmorph
 
