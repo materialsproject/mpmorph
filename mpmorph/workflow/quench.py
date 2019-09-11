@@ -1,17 +1,18 @@
-from fireworks import Firework, Workflow
-from pymatgen import Structure, Composition
-from mpmorph.fireworks import powerups
+import numpy as np
 from atomate.vasp.fireworks.core import OptimizeFW
+from fireworks import Workflow
+from mpmorph.fireworks import powerups
 from mpmorph.fireworks.core import StaticFW, MDFW
 from mpmorph.util import recursive_update
-import numpy as np
 
 __author__ = 'Eric Sivonxay and Muratahan Aykol'
 __maintainer__ = 'Eric Sivonxay'
 __email__ = 'esivonxay@lbl.gov'
 
-def get_quench_wf(structures, temperatures={}, priority=None, quench_type="slow_quench", cool_args={}, hold_args={}, quench_args={},
-                  descriptor = "", **kwargs):
+
+def get_quench_wf(structures, temperatures={}, priority=None, quench_type="slow_quench", cool_args={}, hold_args={},
+                  quench_args={},
+                  descriptor="", **kwargs):
     fw_list = []
     temp = {"start_temp": 3000, "end_temp": 500, "temp_step": 500} if temp is None else temp
     cool_args = {"md_params": {"nsteps": 200}} if cool_args is None else cool_args
@@ -73,14 +74,15 @@ def get_quench_wf(structures, temperatures={}, priority=None, quench_type="slow_
     return wf
 
 
-def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics", priority=None, job_time=None, args={}, **kwargs):
+def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics", priority=None, job_time=None, args={},
+             **kwargs):
     run_args = {"md_params": {"nsteps": 500},
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                               "wall_time": 40000},
                 "optional_fw_params": {"override_default_vasp_params": {}, "spec": {}}}
 
     run_args["optional_fw_params"]["override_default_vasp_params"].update(
-        {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'PREC':'Low'}})
+        {'user_incar_settings': {'ISIF': 1, 'LWAVE': False, 'PREC': 'Low'}})
     run_args = recursive_update(run_args, args)
     _mdfw = MDFW(structure=structure, name=name, **run_args["md_params"],
                  **run_args["run_specs"], **run_args["optional_fw_params"], **kwargs)

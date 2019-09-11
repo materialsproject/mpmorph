@@ -1,12 +1,12 @@
-from fireworks import Firework
+from atomate.common.firetasks.glue_tasks import PassCalcLocs
+from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
+from atomate.vasp.firetasks.parse_outputs import VaspToDb
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
-from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.vasp.fireworks.core import StaticFW
-from atomate.common.firetasks.glue_tasks import PassCalcLocs
-from atomate.vasp.firetasks.parse_outputs import VaspToDb
-from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask
+from fireworks import Firework
 from mpmorph.firetasks.dbtasks import VaspMDToDb
+from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask
 from pymatgen.io.vasp.sets import MPMDSet, MPStaticSet, MPRelaxSet
 
 """
@@ -22,7 +22,7 @@ class MDFW(Firework):
     def __init__(self, structure, start_temp, end_temp, nsteps, name="molecular dynamics",
                  vasp_input_set=None, vasp_cmd="vasp", override_default_vasp_params=None,
                  wall_time=None, db_file=None, parents=None, copy_vasp_outputs=False,
-                 previous_structure=False, insert_db=False, **kwargs):
+                 previous_structure=False, insert_db=False, save_structure=True, **kwargs):
         """
         This Firework is modified from atomate.vasp.fireworks.core.MDFW to fit the needs of mpmorph
         Standard firework for a single MD run.
@@ -48,8 +48,8 @@ class MDFW(Firework):
         """
         override_default_vasp_params = override_default_vasp_params or {}
         vasp_input_set = vasp_input_set or MPMDSet(structure, start_temp=start_temp,
-                                                    end_temp=end_temp, nsteps=nsteps,
-                                                    **override_default_vasp_params)
+                                                   end_temp=end_temp, nsteps=nsteps,
+                                                   **override_default_vasp_params)
 
         t = []
 
@@ -59,7 +59,8 @@ class MDFW(Firework):
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
                                   handler_group="md", wall_time=wall_time))
         t.append(PassCalcLocs(name=name))
-        t.append(SaveStructureTask())
+        if save_structure:
+            t.append(SaveStructureTask())
         name = f'{structure.formula.replace(" ", "")}-{name}'
         if insert_db:
             t.append(VaspMDToDb(db_file=db_file, additional_fields={"task_label": name},

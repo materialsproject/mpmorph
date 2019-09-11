@@ -1,12 +1,12 @@
-from html.parser import endendtag
-
-import numpy as np
-import re
-import os
 import gzip
+import os
+import re
 import shutil
 
+import numpy as np
+
 __author__ = 'Muratahan Aykol <maykol@lbl.gov>'
+
 
 def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
     '''

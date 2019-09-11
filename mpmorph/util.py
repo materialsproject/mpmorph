@@ -1,5 +1,8 @@
 import collections
 
+__author__ = 'Eric Sivonxay'
+
+
 def recursive_update(orig_dict, new_dict):
     for key, val in new_dict.items():
         if isinstance(val, collections.Mapping):

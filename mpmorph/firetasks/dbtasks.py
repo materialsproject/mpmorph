@@ -1,19 +1,19 @@
-import re
-import os
 import json
+import os
+import re
 import zlib
+
 import gridfs
-from bson import ObjectId
-from multiprocessing import Pool
-from monty.json import MontyEncoder
-from fireworks import explicit_serialize, FiretaskBase, FWAction
-from fireworks.utilities.fw_serializers import DATETIME_HANDLER
+import numpy as np
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_logger
 from atomate.vasp.drones import VaspDrone
-from pymatgen import Structure
-from pymatgen.analysis.diffusion_analyzer import DiffusionAnalyzer
+from bson import ObjectId
+from fireworks import explicit_serialize, FiretaskBase, FWAction
+from fireworks.utilities.fw_serializers import DATETIME_HANDLER
+from monty.json import MontyEncoder
 from mpmorph.database.database import VaspMDCalcDb
+from pymatgen import Structure
 from pymatgen.core.trajectory import Trajectory
 
 __author__ = 'Eric Sivonxay and Jianli Cheng'
@@ -82,7 +82,8 @@ class VaspMDToDb(FiretaskBase):
             mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
             t_id = mmdb.insert_task(task_doc,
                                     parse_dos=self.get("parse_dos", False),
-                                    parse_bs=bool(self.get("bandstructure_mode", False)), md_structures=self.get("md_structures", True))
+                                    parse_bs=bool(self.get("bandstructure_mode", False)),
+                                    md_structures=self.get("md_structures", True))
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         if self.get("defuse_unsuccessful", True):
@@ -105,8 +106,8 @@ class TrajectoryDBTask(FiretaskBase):
 
     def run_task(self, fw_spec):
         notes = self.get('notes', None)
-        identifier = self['tag_id']
-        
+        tag_id = self['tag_id']
+
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
         mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
@@ -115,12 +116,23 @@ class TrajectoryDBTask(FiretaskBase):
             {"task_label": re.compile(f'.*{tag_id}.*')})
         runs_sorted = sorted(runs, key=lambda x: int(re.findall('run-(\d+)', x['task_label'])[0]))
 
-        trajectory_doc = runs_to_trajectory_doc(runs_sorted, db_file, identifier, notes)
+        trajectory_doc = runs_to_trajectory_doc(runs_sorted, db_file, tag_id, notes)
 
         mmdb.db.trajectories.insert_one(trajectory_doc)
 
 
-def runs_to_trajectory_doc(runs, db_file, runs_label, notes):
+def runs_to_trajectory_doc(runs, db_file, runs_label, notes=None):
+    """
+    Takes a list of task_documents, aggregates the trajectories from the ionics_steps gridfs storage, then dumps
+    the pymatgen.core.Trajectory object into the 'trajectories_fs' collection and makes a dictionary doc to track
+    the entry.
+
+    :param runs: list of MD runs
+    :param db_file:
+    :param runs_label: unique identifier to the runs
+    :param notes: (optional) any notes or comments on the specific run
+    :return:
+    """
     trajectory = load_trajectories_from_gfs(runs, db_file)
 
     mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
@@ -136,8 +148,8 @@ def runs_to_trajectory_doc(runs, db_file, runs_label, notes):
         'fs_id': gfs_id,
         'step_fs_ids': [i["calcs_reversed"][0]["output"]['ionic_steps_fs_id']
                         for i in runs],
-        'structure': trajectory[0]..as_dict(),
-        'dimension': list(np.shape(trajectory))
+        'structure': trajectory[0].as_dict(),
+        'dimension': list(np.shape(trajectory.frac_coords)),
         'time_step': runs[0]["input"]["incar"]["POTIM"] * 1e-3,
         'notes': notes
     }
@@ -149,6 +161,7 @@ def load_trajectories_from_gfs(runs, db_file):
     fs = []
     for run in runs:
         if "INCAR" in run.keys():
+            # for backwards compatibility with older version of mpmorph
             fs_id.append(run["ionic_steps_fs_id"])
             fs.append('previous_runs_gfs')
         elif "input" in run.keys():
@@ -158,11 +171,12 @@ def load_trajectories_from_gfs(runs, db_file):
     for i, v in enumerate(fs_id):
         mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
         ionic_steps_dict = load_ionic_steps(v, mmdb.db, fs[i])
+
         if i == 0:
-            trajectory = Trajectory.from_ionic_steps(ionic_steps_dict)
+            trajectory = Trajectory.from_structures([Structure.from_dict(i['structure']) for i in ionic_steps_dict])
         else:
-            trajectory.combine(Trajectory.from_ionic_steps(ionic_steps_dict))
-    #TODO: Ensure compatibility with pymatgen trajectory
+            trajectory.extend(
+                Trajectory.from_structures([Structure.from_dict(i['structure']) for i in ionic_steps_dict]))
     return trajectory
 
 

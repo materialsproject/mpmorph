@@ -1,14 +1,16 @@
 from __future__ import division
 
-from collections import OrderedDict
-import numpy as np
 import os
 import shutil
+from collections import OrderedDict
+
+import numpy as np
+from pymatgen import Structure, MPRester, Composition
+from pymatgen.io.vasp.inputs import Poscar
 
 __author__ = 'Eric Sivonxay, Jianli Cheng, and Muratahan Aykol'
-
-from pymatgen.io.vasp.inputs import Poscar
-from pymatgen import Structure, MPRester, Composition
+__maintainer__ = 'Eric Sivonxay'
+__email__ = 'esivonxay@lbl.gov'
 
 
 class AmorphousMaker(object):
@@ -45,7 +47,7 @@ class AmorphousMaker(object):
         self.xyz_paths = xyz_paths
         self.time_seed = time_seed
         if self.xyz_paths:
-            assert len(self.xyz_paths)==len(self.el_num_dict.keys())
+            assert len(self.xyz_paths) == len(self.el_num_dict.keys())
             self.clean = False
 
     def __repr__(self):
@@ -56,7 +58,7 @@ class AmorphousMaker(object):
         """
         Returns: box vectors scaled with box_scale
         """
-        return (np.array(self._lattice)*self.box_scale).tolist()
+        return (np.array(self._lattice) * self.box_scale).tolist()
 
     @property
     def random_packed_structure(self):
@@ -76,20 +78,20 @@ class AmorphousMaker(object):
         """
 
         # this ensures periodic boundaries don't cause problems
-        pm_l = self.tol/2
-        pm_h = self.box_scale-self.tol/2
+        pm_l = self.tol / 2
+        pm_h = self.box_scale - self.tol / 2
         try:
             len(pm_h)
         except:
             pm_h = [pm_h for i in range(3)]
 
         with open("packmol.input", "w") as f:
-            f.write("tolerance "+ str(self.tol) +"\nfiletype xyz\noutput mixture.xyz\n")
+            f.write("tolerance " + str(self.tol) + "\nfiletype xyz\noutput mixture.xyz\n")
             for el in self.el_num_dict:
                 f.write("structure " + el + ".xyz\n" + "  number " + str(self.el_num_dict[el])
-                          + "\n  inside box" + 3*(" " + str(pm_l))
-                          + (" " + str(pm_h[0])) + (" " + str(pm_h[1])) + (" " + str(pm_h[2]))
-                          + "\nend structure\n\n")
+                        + "\n  inside box" + 3 * (" " + str(pm_l))
+                        + (" " + str(pm_h[0])) + (" " + str(pm_h[1])) + (" " + str(pm_h[2]))
+                        + "\nend structure\n\n")
 
             if self.time_seed:
                 f.write("seed -1\n")
@@ -97,13 +99,13 @@ class AmorphousMaker(object):
             if self.xyz_paths:
                 for path in self.xyz_paths:
                     try:
-                        shutil.copy2(path,'./')
+                        shutil.copy2(path, './')
                     except:
                         pass
             else:
                 for el in self.el_num_dict.keys():
-                    with open(el+".xyz", "w") as f:
-                       f.write("1\ncomment\n" + el + " 0.0 0.0 0.0\n")
+                    with open(el + ".xyz", "w") as f:
+                        f.write("1\ncomment\n" + el + " 0.0 0.0 0.0\n")
 
         try:
             os.system(self.packmol_path + " < packmol.input")
@@ -120,19 +122,19 @@ class AmorphousMaker(object):
         This is a generic xyz to dictionary convertor.
         Used to get the structure from packmol output.
         """
-        with open(filename,'r') as f:
+        with open(filename, 'r') as f:
             lines = f.readlines()
             N = int(lines[0].rstrip('\n'))
             el_dict = {}
             for line in lines[2:]:
                 l = line.rstrip('\n').split()
                 if l[0] in el_dict:
-                    el_dict[ l[0] ].append( [ float (i) for i in l[1:] ] )
+                    el_dict[l[0]].append([float(i) for i in l[1:]])
                 else:
-                    el_dict[ l[0] ] = [ [ float (i) for i in l[1:] ] ]
-        if N != sum( [ len(x) for x in el_dict.values() ] ):
+                    el_dict[l[0]] = [[float(i) for i in l[1:]]]
+        if N != sum([len(x) for x in el_dict.values()]):
             raise ValueError("Inconsistent number of atoms")
-        self._el_dict=OrderedDict(el_dict)
+        self._el_dict = OrderedDict(el_dict)
         if self.clean:
             os.system("rm " + filename)
         return self._el_dict
@@ -159,7 +161,7 @@ class AmorphousMaker(object):
         return Poscar(self.random_packed_structure)
 
     @staticmethod
-    def xyzdict_to_poscar(el_dict, lattice, filepath ="POSCAR"):
+    def xyzdict_to_poscar(el_dict, lattice, filepath="POSCAR"):
         """
         Generates XYZ file from element coordinate dictionary and lattice
         Args:
@@ -175,21 +177,21 @@ class AmorphousMaker(object):
             f.write("Parsed form XYZ file\n")
             f.write("1.0\n")
             for vec in lattice:
-                f.write(" ".join( [str(v) for v in vec ] ) + "\n")
+                f.write(" ".join([str(v) for v in vec]) + "\n")
             el_dict = OrderedDict(el_dict)
             for key in el_dict.keys():
                 f.write(key + " ")
             f.write("\n")
             for key in el_dict.keys():
-                f.write( str(len(el_dict[key])) + " ")
+                f.write(str(len(el_dict[key])) + " ")
             f.write("\nCartesian\n")
             for key in el_dict.keys():
                 for atom in el_dict[key]:
-                    f.write( " ".join( [ str(i) for i in atom ]) + "\n")
+                    f.write(" ".join([str(i) for i in atom]) + "\n")
 
 
 def get_random_packed(composition, add_specie=None, target_atoms=100,
-                     vol_per_atom=None, vol_exp=1.0, modify_species=None):
+                      vol_per_atom=None, vol_exp=1.0, modify_species=None):
     mpr = MPRester()
 
     if type(composition) == str:
@@ -237,7 +239,7 @@ def get_random_packed(composition, add_specie=None, target_atoms=100,
             structure[i] += v
     # use packmol to get a random configured structure
     packmol_path = os.environ['PACKMOL_EXE']
-    amorphous_maker_params = {'box_scale': (vol_per_atom * comp.num_atoms * vol_exp) ** (1/3),
+    amorphous_maker_params = {'box_scale': (vol_per_atom * comp.num_atoms * vol_exp) ** (1 / 3),
                               'packmol_path': packmol_path, 'xyz_paths': None}
 
     glass = AmorphousMaker(structure, **amorphous_maker_params)

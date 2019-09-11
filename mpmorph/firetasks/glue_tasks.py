@@ -1,15 +1,16 @@
 import os
+
 import numpy as np
-from fireworks import explicit_serialize, FireTaskBase, FWAction, Workflow
-from pymatgen.io.vasp import Poscar
-from pymatgen import Structure, Lattice
+from fireworks import explicit_serialize, FireTaskBase, FWAction
 from mpmorph.analysis import md_data
+from pymatgen import Structure
+from pymatgen.io.vasp import Poscar
 
 __author__ = 'Eric Sivonxay <esivonxay@lbl.gov>'
 
+
 @explicit_serialize
 class PreviousStructureTask(FireTaskBase):
-
     required_params = []
     optional_params = []
 
@@ -22,7 +23,6 @@ class PreviousStructureTask(FireTaskBase):
 
 @explicit_serialize
 class SaveStructureTask(FireTaskBase):
-
     required_params = []
     optional_params = ["rescale_volume"]
 
@@ -53,7 +53,6 @@ class SaveStructureTask(FireTaskBase):
 
 @explicit_serialize
 class PassPVTask(FireTaskBase):
-
     required_params = []
     optional_params = []
 

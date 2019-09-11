@@ -1,12 +1,13 @@
-from mpmorph.firetasks.mdtasks import RescaleVolumeTask, ConvergeTask, PVRescaleTask,\
-    DiffusionTask
+from mpmorph.firetasks.dbtasks import VaspMDToDb, TrajectoryDBTask
 from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask, \
     PassPVTask
-from mpmorph.firetasks.dbtasks import VaspMDToDb, TrajectoryDBTask
+from mpmorph.firetasks.mdtasks import RescaleVolumeTask, ConvergeTask, PVRescaleTask, \
+    DiffusionTask
 
-__author__ = 'Eric Sivonxay'
+__author__ = 'Eric Sivonxay and Jianli Cheng'
 __maintainer__ = "Eric Sivonxay"
 __email__ = "esivonxay@lbl.gov"
+
 
 def add_diffusion_task(fw, **kwargs):
     spawner_task = DiffusionTask(**kwargs)
@@ -61,6 +62,7 @@ def add_pass_pv(fw, **kwargs):
     fw.tasks.append(pass_pv_task)
     return fw
 
+
 def add_pv_volume_rescale(fw):
     insert_i = 2
     for (i, task) in enumerate(fw.tasks):
@@ -70,6 +72,7 @@ def add_pv_volume_rescale(fw):
 
     fw.tasks.insert(insert_i, PVRescaleTask())
     return fw
+
 
 def add_rescale_volume(fw, **kwargs):
     rsv_task = RescaleVolumeTask(**kwargs)
@@ -111,7 +114,7 @@ def replace_vaspmdtodb(fw):
             fw.tasks[i] = VaspMDToDb(**fw_dict['spec']['_tasks'][i])
             replaced = True
             break
-    #TODO: Replace with real error handling
+    # TODO: Replace with real error handling
     if replaced == False:
         print("error, no vasptodb to replace")
         return
