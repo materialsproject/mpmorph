@@ -123,7 +123,7 @@ class ConvergeTask(FireTaskBase):
                 rescale_args = recursive_update(rescale_args, rescale_params)
 
                 # Spawn fw
-                fw = MDFW(structure, name='density_run_{density_spawn_count + 1}-{tag_id}',
+                fw = MDFW(structure, name=f'density_run_{density_spawn_count + 1}-{tag_id}',
                           previous_structure=False, insert_db=False,
                           **run_specs, **md_params, **optional_params)
                 converge_params["density_spawn_count"] += 1
@@ -134,9 +134,9 @@ class ConvergeTask(FireTaskBase):
                 fw = powerups.add_pass_pv(fw)
                 fw = powerups.add_converge_task(fw, **_spawner_args)
                 wf = Workflow([fw])
-                return FWAction(detours=wf, defuse_children=True, stored_data={'pressure': pressure, 'energy': mu})
+                return FWAction(detours=wf, stored_data={'pressure': pressure, 'energy': mu})
             else:
-                fw = MDFW(structure, name='energy_run_{energy_spawn_count + 1}_{tag_id}', previous_structure=False,
+                fw = MDFW(structure, name=f'energy_run_{energy_spawn_count + 1}_{tag_id}', previous_structure=False,
                           insert_db=False, **run_specs, **md_params, **optional_params)
                 converge_params["energy_spawn_count"] += 1
                 _spawner_args = {"converge_params": converge_params, "rescale_params": rescale_params,
@@ -145,8 +145,7 @@ class ConvergeTask(FireTaskBase):
                 fw = powerups.add_pass_pv(fw)
                 fw = powerups.add_converge_task(fw, **_spawner_args)
                 wf = Workflow([fw])
-                return FWAction(detours=wf, stored_data={'pressure': pressure,
-                                                         'energy': mu})
+                return FWAction(detours=wf, stored_data={'pressure': pressure, 'energy': mu})
         else:
             return FWAction(stored_data={'pressure': pressure,
                                          'energy': mu,
