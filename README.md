@@ -42,7 +42,7 @@ export PACKMOL_PATH="path_to_packmol_here"
 A sample of using mpmorph to run an AIMD simulation at 1500K for 200ps (100k steps at 2fs/step) is shown below:
 
 ```python
-from mpmorph.workflow.converge import get_converge
+from mpmorph.workflow.converge import get_converge_wf
 from pymatgen import MPRester
 from fireworks import LaunchPad
 
@@ -50,7 +50,23 @@ mpr = MPRester()
 structure = mpr.get_structure_by_material_id('mp-1143')
 structure.make_supercell([3, 3, 3])
 
-wf = get_converge(structure, temperature = 1500, max_steps = 5000, target_steps = 100000)
+wf = get_converge_wf(structure, temperature = 1500, max_steps = 5000, target_steps = 100000)
+
+lp = LaunchPad.auto_load()
+lp.add_wf(wf)
+```
+
+To generate an amorphous structure, run the following code:
+
+```python
+from mpmorph.runners.amorphous_maker import get_random_packed
+from mpmorph.workflow.converge import get_converge_wf
+from pymatgen import MPRester
+from fireworks import LaunchPad
+
+structure = get_random_packed('Li', target_atoms=100)
+
+wf = get_converge_wf(structure, temperature = 5000, max_steps = 5000, target_steps = 10000)
 
 lp = LaunchPad.auto_load()
 lp.add_wf(wf)
