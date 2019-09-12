@@ -13,7 +13,7 @@ __email__ = 'esivonxay@lbl.gov'
 
 def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None,
                     max_steps=5000, target_steps=10000, preconverged=False,
-                    notes=None, **kwargs):
+                    notes=None, save_data="all", aggregate_trajectory=True, **kwargs):
     """
     :param structure: Starting structure for the run
     :param temperature: Temperature for which to obtain a liquid
@@ -24,12 +24,17 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
     :param priority: Priority of all fireworks in the workflow
     :param kwargs: arguments such as spawner_args, converge_args, convergence_criteria, tag_id, prod_count, etc.
     :param notes: Any additional comments to propagate with this run
+    :param save_data: Level to save job outputs. Options are "all", 'production', and None
 
     :return:
     """
     # Generate a unique identifier for the fireworks belonging to this workflow
     tag_id = kwargs.get('tag_id', uuid.uuid4())
     prod_count = kwargs.get('prod_count', 0)
+
+    # To aggregate trajectory, the job output from the production runs must be saved.
+    if aggregate_trajectory and save_data == None:
+        save_data = "production"
 
     fw_list = []
 
@@ -60,6 +65,7 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
 
     # Converge the pressure (volume) of the system
     if not preconverged:
+        insert_converge_data = True if save_data == "all" else False
         if converge_scheme == 'EOS':
             # Create structures for varying volumes
             images = kwargs.get('image_scale', [0.8, 1, 1.2])
@@ -75,7 +81,7 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
             for n, (i, vol_structure) in enumerate(zip(images, structures)):
                 save_structure = True if n == len(images) - 1 else False
                 _fw = MDFW(structure=vol_structure, name=f'volume_{str(i)}-{str(tag_id)}',
-                           previous_structure=False, insert_db=False, save_structure=save_structure,
+                           previous_structure=False, insert_db=insert_converge_data, save_structure=save_structure,
                            **EOS_run_args["md_params"], **EOS_run_args["run_specs"],
                            **EOS_run_args["optional_fw_params"])
 
@@ -85,7 +91,7 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
 
             # Create firework to converge pressure/volume
             spawner_fw = MDFW(structure=structure, name="run1" + "-" + str(tag_id),
-                              previous_structure=True, insert_db=False, parents=volume_fws,
+                              previous_structure=True, insert_db=insert_converge_data, parents=volume_fws,
                               **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"])
 
             spawner_fw = powerups.add_pv_volume_rescale(spawner_fw)
@@ -93,13 +99,14 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
             spawner_fw = powerups.add_converge_task(spawner_fw, **_spawner_args)
             fw_list.append(spawner_fw)
         else:
-            fw1 = MDFW(structure=structure, name="run0" + "-" + str(tag_id), previous_structure=False, insert_db=False,
-                       **run_args["md_params"], **run_args["run_specs"],
-                       **run_args["optional_fw_params"])
+            fw1 = MDFW(structure=structure, name="run0" + "-" + str(tag_id),
+                       previous_structure=False, insert_db=insert_converge_data,
+                       **run_args["md_params"], **run_args["run_specs"], **run_args["optional_fw_params"])
             fw1 = powerups.add_converge_task(fw1, **_spawner_args)
             fw_list.append(fw1)
 
     # Production length MD runs
+    insert_prod_data = True if save_data == "all" or save_data == "production" else False
     prod_steps = 0
     while prod_steps <= target_steps - max_steps:
         # Create Dictionary with production run parameters
@@ -116,7 +123,7 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
         parents = fw_list[-1] if len(fw_list) > 0 else []
         previous_structure = False if preconverged and prod_steps == 0 else True
         fw = MDFW(structure=structure, name=f'{str(temperature)}_prod_run_{str(prod_count)}-{str(tag_id)}',
-                  previous_structure=previous_structure, insert_db=True, **run_args["md_params"],
+                  previous_structure=previous_structure, insert_db=insert_prod_data, **run_args["md_params"],
                   **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
         fw_list.append(fw)
 
@@ -124,8 +131,10 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
         prod_count += 1
 
     pretty_name = structure.composition.reduced_formula
-    fw_list[-1] = powerups.aggregate_trajectory(fw_list[-1], tag_id=tag_id, notes=notes,
-                                                db_file=run_args["run_specs"]["db_file"])
+
+    if aggregate_trajectory:
+        fw_list[-1] = powerups.aggregate_trajectory(fw_list[-1], tag_id=tag_id, notes=notes,
+                                                    db_file=run_args["run_specs"]["db_file"])
 
     wf = Workflow(fireworks=fw_list, name=f'{pretty_name}_{temperature}_diffusion')
     return wf

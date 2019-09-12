@@ -64,7 +64,7 @@ class MDFW(Firework):
         name = f'{structure.formula.replace(" ", "")}-{name}'
         if insert_db:
             t.append(VaspMDToDb(db_file=db_file, additional_fields={"task_label": name},
-                                defuse_unsuccessful=False))
+                                defuse_unsuccessful=False, md_structures=True))
         super(MDFW, self).__init__(t, parents=parents, name=name, **kwargs)
 
 

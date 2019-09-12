@@ -8,6 +8,9 @@ from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from monty.json import MontyEncoder
 from pymatgen import Structure
+from pymatgen.core.trajectory import Trajectory
+from collections import defaultdict
+import numpy as np
 
 logger = get_logger(__name__)
 
@@ -57,24 +60,59 @@ class VaspMDCalcDb(VaspCalcDb):
 
         # insert structures  at each ionic step into GridFS
         if md_structures and "calcs_reversed" in task_doc:
-            ionic_steps = json.dumps(task_doc["calcs_reversed"][0]['output']['ionic_steps'], cls=MontyEncoder)
-            gfs_id, compression_type = self.insert_gridfs(ionic_steps, "structures_fs")
+            # insert ionic steps into gridfs
+            #TODO: Depricate this and move to only storing trajectory
+            ionic_steps_dict = json.dumps(task_doc["calcs_reversed"][0]['output']['ionic_steps'], cls=MontyEncoder)
+            gfs_id, compression_type = self.insert_gridfs(ionic_steps_dict, "structures_fs")
             task_doc["calcs_reversed"][0]['output']['ionic_steps_compression'] = compression_type
             task_doc["calcs_reversed"][0]['output']['ionic_steps_fs_id'] = gfs_id
             del task_doc["calcs_reversed"][0]['output']['ionic_steps']
 
+            # Aggregate a trajectory
+            ## Convert from a list of dictionaries to a dictionary of lists
+            ionic_steps_defaultdict = defaultdict(list)
+            for d in ionic_steps_dict:
+                for key, val in d.items():
+                    ionic_steps_defaultdict[key].append(val)
+            ionic_steps = dict(ionic_steps_defaultdict.items())
+
+            ## extract structures from dictionary
+            structures = [Structure.from_dict(struct) for struct in ionic_steps['structure']]
+            del ionic_steps['structure']
+
+            frame_properties = {}
+            for key in ['e_fr_energy', 'e_wo_entrp', 'e_0_energy', 'kinetic', 'lattice kinetic', 'nosepot',
+                        'nosekinetic', 'total']:
+                frame_properties[key] = ionic_steps[key]
+
+            # Create trajectory
+            trajectory = Trajectory.from_structures(structures, constant_lattice=True,
+                                                    frame_properties=frame_properties,
+                                                    time_step=task_doc['input']['incar']['POTIM'])
+            traj_dict = json.dumps(trajectory.as_dict(), cls=MontyEncoder)
+            gfs_id, compression_type = self.insert_gridfs(traj_dict, "trajectories_fs")
+
+            task_doc['trajectory'] = {
+                'formula': trajectory[0].composition.formula.replace(' ', ''),
+                'temperature': int(task_doc["input"]["incar"]["TEBEG"]),
+                'compression': compression_type,
+                'fs_id': gfs_id,
+                'dimension': list(np.shape(trajectory.frac_coords)),
+                'time_step': task_doc["input"]["incar"]["POTIM"],
+            }
+
         # insert the task document and return task_id
         return self.insert(task_doc)
 
-    def get_ionic_steps(self, task_id):
-        m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
-        fs_id = m_task["calcs_reversed"][0]["output"]["ionic_steps_fs_id"]
-        fs = gridfs.GridFS(self.db, "structures_fs")
-        ionic_steps_json = zlib.decompress(fs.get(fs_id).read())
-        ionic_steps_dict = json.loads(ionic_steps_json.decode())
-        return ionic_steps_dict
-
-    def get_structures(self, task_id):
-        ionic_steps_dict = self.get_ionic_steps(task_id)
-        structures = [Structure.from_dict(step["structure"]) for step in ionic_steps_dict]
-        return structures
+    # def get_ionic_steps(self, task_id):
+    #     m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
+    #     fs_id = m_task["calcs_reversed"][0]["output"]["ionic_steps_fs_id"]
+    #     fs = gridfs.GridFS(self.db, "structures_fs")
+    #     ionic_steps_json = zlib.decompress(fs.get(fs_id).read())
+    #     ionic_steps_dict = json.loads(ionic_steps_json.decode())
+    #     return ionic_steps_dict
+    #
+    # def get_structures(self, task_id):
+    #     ionic_steps_dict = self.get_ionic_steps(task_id)
+    #     structures = [Structure.from_dict(step["structure"]) for step in ionic_steps_dict]
+    #     return structures
