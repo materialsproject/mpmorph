@@ -22,8 +22,8 @@ class VaspMDCalcDb(VaspCalcDb):
     """
 
     def __init__(self, host="localhost", port=27017, database="vasp", collection="tasks", user=None,
-                 password=None):
-        super(VaspMDCalcDb, self).__init__(host, port, database, collection, user, password)
+                 password=None, **kwargs):
+        super(VaspMDCalcDb, self).__init__(host, port, database, collection, user, password, **kwargs)
 
     def insert_task(self, task_doc, parse_dos=False, parse_bs=False, md_structures=False):
         """
