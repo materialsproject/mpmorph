@@ -9,7 +9,7 @@ from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_logger
 from atomate.vasp.drones import VaspDrone
 from bson import ObjectId
-from database import VaspMDCalcDb
+from mpmorph.database import VaspMDCalcDb
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from monty.json import MontyEncoder
