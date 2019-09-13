@@ -124,7 +124,7 @@ class ConvergeTask(FireTaskBase):
 
                 # Spawn fw
                 fw = MDFW(structure, name=f'density_run_{density_spawn_count + 1}-{tag_id}',
-                          previous_structure=False, insert_db=False,
+                          previous_structure=False,
                           **run_specs, **md_params, **optional_params)
                 converge_params["density_spawn_count"] += 1
                 _spawner_args = {"converge_params": converge_params, "rescale_params": rescale_params,
@@ -137,7 +137,7 @@ class ConvergeTask(FireTaskBase):
                 return FWAction(detours=wf, stored_data={'pressure': pressure, 'energy': mu})
             else:
                 fw = MDFW(structure, name=f'energy_run_{energy_spawn_count + 1}_{tag_id}', previous_structure=False,
-                          insert_db=False, **run_specs, **md_params, **optional_params)
+                          **run_specs, **md_params, **optional_params)
                 converge_params["energy_spawn_count"] += 1
                 _spawner_args = {"converge_params": converge_params, "rescale_params": rescale_params,
                                  "run_specs": run_specs, "md_params": md_params,
