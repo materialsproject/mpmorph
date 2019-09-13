@@ -50,7 +50,7 @@ mpr = MPRester()
 structure = mpr.get_structure_by_material_id('mp-1143')
 structure.make_supercell([3, 3, 3])
 
-wf = get_converge_wf(structure, temperature = 1500, max_steps = 5000, target_steps = 100000)
+wf = get_converge_wf(structure, temperature = 1500, target_steps = 100000)
 
 lp = LaunchPad.auto_load()
 lp.add_wf(wf)
@@ -65,11 +65,49 @@ from fireworks import LaunchPad
 
 structure = get_random_packed('Li', target_atoms=100)
 
-wf = get_converge_wf(structure, temperature = 5000, max_steps = 5000, target_steps = 10000)
+wf = get_converge_wf(structure, temperature = 5000, target_steps = 10000)
 
 lp = LaunchPad.auto_load()
 lp.add_wf(wf)
 ```
+
+## Customizing runs
+At the simplest level of customizing the workflow, one can change the temperature, total number of steps by changing the args passed to get_converge_wf().
+
+For more advanced changes, pass a dictionary for "converge_args", "spawner_args", or "prod_args". This allows customization of vasp inputs, starting and ending temperatures, number of steps, and convergence crieteria.
+
+### Examples:
+
+Changing the rescale parameter, to make for larger volume changes at each stage:
+```python
+from mpmorph.runners.amorphous_maker import get_random_packed
+from mpmorph.workflow.converge import get_converge_wf
+from fireworks import LaunchPad
+
+structure = get_random_packed('Li', target_atoms=100)
+
+spawner_args = {'rescale_params': {'beta': 5e-6}}
+wf = get_converge_wf(structure, temperature = 5000, target_steps = 10000, spawner_args=spawner_args)
+
+lp = LaunchPad.auto_load()
+lp.add_wf(wf)
+```
+
+Changing precision of production runs to PREC=Low:
+```python
+from mpmorph.runners.amorphous_maker import get_random_packed
+from mpmorph.workflow.converge import get_converge_wf
+from fireworks import LaunchPad
+
+structure = get_random_packed('Li', target_atoms=100)
+
+prod_args = {'optional_fw_params': {'override_default_vasp_params': {'user_incar_settings': {'PREC': 'Normal'}}}}
+wf = get_converge_wf(structure, temperature = 5000, target_steps = 10000, prod_args = prod_args)
+
+lp = LaunchPad.auto_load()
+lp.add_wf(wf)
+```
+
 
 # Citation
 
