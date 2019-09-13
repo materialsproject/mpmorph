@@ -66,6 +66,7 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
     # Converge the pressure (volume) of the system
     if not preconverged:
         insert_converge_data = True if save_data == "all" else False
+
         if converge_scheme == 'EOS':
             # Create structures for varying volumes
             images = kwargs.get('image_scale', [0.8, 1, 1.2])
@@ -96,6 +97,7 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
 
             spawner_fw = powerups.add_pv_volume_rescale(spawner_fw)
             spawner_fw = powerups.add_pass_pv(spawner_fw)
+            _spawner_args['run_spec']['insert_db'] = insert_converge_data
             spawner_fw = powerups.add_converge_task(spawner_fw, **_spawner_args)
             fw_list.append(spawner_fw)
         else:
