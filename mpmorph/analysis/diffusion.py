@@ -6,12 +6,12 @@ from MD calculations.
 
 __author__ = 'Muratahan Aykol <maykol@lbl.gov>'
 
-import numpy as np
 import matplotlib.pyplot as plt
-from scipy import stats
-from pymatgen.io.vasp import Xdatcar
-from pymatgen import Element
+import numpy as np
 import scipy.integrate as integrate
+from pymatgen import Element
+from pymatgen.io.vasp import Xdatcar
+from scipy import stats
 
 
 class Diffusion(object):
@@ -147,11 +147,11 @@ class Diffusion(object):
         _structures_sites = [structure.sites for structure in _structures]
 
         # Iterate through each site through each timestep and find velocity
-        vel_matrix = [[0 for y in range(len(_structures)-1)] for x in range(len(_structures[0].sites))]
+        vel_matrix = [[0 for y in range(len(_structures) - 1)] for x in range(len(_structures[0].sites))]
         for i in range(len(vel_matrix)):
             for j in range(len(vel_matrix[0])):
-                vel_matrix[i][j] = _structures_sites[j][i].distance(_structures_sites[j+1][i])/self.t_step
-        self.vel_matrix=vel_matrix
+                vel_matrix[i][j] = _structures_sites[j][i].distance(_structures_sites[j + 1][i]) / self.t_step
+        self.vel_matrix = vel_matrix
         return
 
     def get_v_vector(self, el):
@@ -172,13 +172,13 @@ class Diffusion(object):
         for i in range(len(vel_matrix)):
             for j in range(len(vel_matrix[0])):
                 dist_x = _structures_sites[j][i].x - _structures_sites[j + 1][i].x
-                if dist_x > _structures[i].lattice.a/2:
-                    dist_x = (_structures[i].lattice.a-np.abs(dist_x))*(-1*np.sign(dist_x))
+                if dist_x > _structures[i].lattice.a / 2:
+                    dist_x = (_structures[i].lattice.a - np.abs(dist_x)) * (-1 * np.sign(dist_x))
                 dist_y = _structures_sites[j][i].y - _structures_sites[j + 1][i].y
-                #if dist_y > _structures[i].lattice.b/2:
+                # if dist_y > _structures[i].lattice.b/2:
                 #    dist_y = (_structures[i].lattice.b-np.abs(dist_y))*(-1*np.sign(dist_y))
                 dist_z = _structures_sites[j][i].z - _structures_sites[j + 1][i].z
-                #if dist_z > _structures[i].lattice.c/2:
+                # if dist_z > _structures[i].lattice.c/2:
                 #    dist_z = (_structures[i].lattice.c-np.abs(dist_z))*(-1*np.sign(dist_z))
 
                 vel_matrix[i][j][0] = dist_x / self.t_step
@@ -190,16 +190,17 @@ class Diffusion(object):
 
     def green_kubo_D(self, el):
         self.get_v(el)
-        #Get velocity autocorrelation function for each site
+        # Get velocity autocorrelation function for each site
         vacfs = []
         for site_vel in self.vel_matrix:
             _vacf = np.correlate(site_vel, site_vel, "full")
             vacfs.append(_vacf)
-        self.vacfs=vacfs
+        self.vacfs = vacfs
         D = []
         for vacf in vacfs:
             D.append(integrate.simps(vacf))
         return D
+
 
 class Activation(object):
     def __init__(self, D_t):
@@ -238,14 +239,14 @@ class Activation(object):
         return self.Q, self.Q_std
 
     def plot(self, title=None, annotate=True, el='', **kwargs):
-        #fig = plt.figure()
+        # fig = plt.figure()
 
         line = np.polyval([-self.Q, self.intercept], self.x)
         tx = str(int(np.rint(self.Q)))
         if self.Q_std:
             tx += "$\pm${}".format(str(int(np.rint(self.Q_std))))
-        c = kwargs.get('color','')
-        plt.plot(self.x * 1000, line, c+'-', )
+        c = kwargs.get('color', '')
+        plt.plot(self.x * 1000, line, c + '-', )
         plt.errorbar(self.x * 1000, self.y, yerr=self.yerr.T, label="Q[{}]: ".format(el) + tx + " K", **kwargs)
         plt.ylabel("ln(D cm$^2$/s)", fontsize=15)
         plt.xlabel("1000/T K$^{-1}$", fontsize=15)
@@ -255,7 +256,7 @@ class Activation(object):
                          horizontalalignment='right', verticalalignment='top')
         if title:
             plt.title = title
-        #return fig
+            # return fig
 
     @classmethod
     def from_run_paths(cls, p, T, el, corr_t, block_l, t_step=2.0, l_lim=50, skip_first=0):

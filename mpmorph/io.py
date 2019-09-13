@@ -1,9 +1,12 @@
-from monty.io import zopen
 import itertools
+
 import numpy as np
+from monty.io import zopen
+
+__author__ = 'Eric Sivonxay'
+
 
 class Xdatcar_Writer():
-
     def write_xdatcar(self, filename, **kwargs):
         """
         Writes Xdatcar to a file. The supported kwargs are the same as those for

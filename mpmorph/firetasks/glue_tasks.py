@@ -1,15 +1,16 @@
-from fireworks import explicit_serialize, FireTaskBase, FWAction
-from pymatgen.io.vasp import Poscar
-from pymatgen import Structure
-from mpmorph.analysis import md_data
-import numpy as np
 import os
+
+import numpy as np
+from fireworks import explicit_serialize, FireTaskBase, FWAction
+from mpmorph.analysis import md_data
+from pymatgen import Structure
+from pymatgen.io.vasp import Poscar
 
 __author__ = 'Eric Sivonxay <esivonxay@lbl.gov>'
 
+
 @explicit_serialize
 class PreviousStructureTask(FireTaskBase):
-
     required_params = []
     optional_params = []
 
@@ -22,7 +23,6 @@ class PreviousStructureTask(FireTaskBase):
 
 @explicit_serialize
 class SaveStructureTask(FireTaskBase):
-
     required_params = []
     optional_params = ["rescale_volume"]
 
@@ -35,11 +35,6 @@ class SaveStructureTask(FireTaskBase):
             if "CONTCAR" in file_name:
                 files.append(file_name)
                 contcar_exists = True
-
-        if not contcar_exists:
-            for file_name in osw[2]:
-                if "POSCAR" in file_name:
-                    files.append(file_name)
 
         _poscar = Poscar.from_file(filename=files[-1], check_for_POTCAR=True, read_velocities=True)
         _structure = _poscar.structure.as_dict()
@@ -55,9 +50,9 @@ class SaveStructureTask(FireTaskBase):
             f.close()
         return FWAction(update_spec={"structure": _structure})
 
+
 @explicit_serialize
 class PassPVTask(FireTaskBase):
-
     required_params = []
     optional_params = []
 
