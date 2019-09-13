@@ -21,14 +21,14 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
     :param preconverged: Is the structure already converged (i.e. Pressure 0bar) or volume rescaling not desired?
     :param max_steps: Maximum number of steps per chunk of production run MD simulation
     :param target_steps: Target number of steps for production MD run
-    :param priority: Priority of all fireworks in the workflow
+    :param priority: Priority of all fireworks in the workflows
     :param kwargs: arguments such as spawner_args, converge_args, convergence_criteria, tag_id, prod_count, etc.
     :param notes: Any additional comments to propagate with this run
     :param save_data: Level to save job outputs. Options are "all", 'production', and None
 
     :return:
     """
-    # Generate a unique identifier for the fireworks belonging to this workflow
+    # Generate a unique identifier for the fireworks belonging to this workflows
     tag_id = kwargs.get('tag_id', uuid.uuid4())
     prod_count = kwargs.get('prod_count', 0)
 
@@ -76,7 +76,6 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
 
             # Create firework for each structure
             EOS_run_args = deepcopy(run_args)
-            EOS_run_args['md_params']['nsteps'] = 1000  # Use less steps... Pressure usually converges rapidly
             EOS_run_args = recursive_update(EOS_run_args, kwargs.get('converge_args', {}))
             volume_fws = []
             for n, (i, vol_structure) in enumerate(zip(images, structures)):
@@ -97,7 +96,7 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
 
             spawner_fw = powerups.add_pv_volume_rescale(spawner_fw)
             spawner_fw = powerups.add_pass_pv(spawner_fw)
-            _spawner_args['run_spec']['insert_db'] = insert_converge_data
+            _spawner_args['run_specs']['insert_db'] = insert_converge_data
             spawner_fw = powerups.add_converge_task(spawner_fw, **_spawner_args)
             fw_list.append(spawner_fw)
         else:
