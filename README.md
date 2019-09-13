@@ -61,7 +61,6 @@ To generate an amorphous structure, run the following code:
 ```python
 from mpmorph.runners.amorphous_maker import get_random_packed
 from mpmorph.workflow.converge import get_converge_wf
-from pymatgen import MPRester
 from fireworks import LaunchPad
 
 structure = get_random_packed('Li', target_atoms=100)
