@@ -62,14 +62,15 @@ class VaspMDCalcDb(VaspCalcDb):
         if md_structures and "calcs_reversed" in task_doc:
             # insert ionic steps into gridfs
             #TODO: Depricate this and move to only storing trajectory
-            ionic_steps_dict = json.dumps(task_doc["calcs_reversed"][0]['output']['ionic_steps'], cls=MontyEncoder)
-            gfs_id, compression_type = self.insert_gridfs(ionic_steps_dict, "structures_fs")
+            ionic_steps_json = json.dumps(task_doc["calcs_reversed"][0]['output']['ionic_steps'], cls=MontyEncoder)
+            gfs_id, compression_type = self.insert_gridfs(ionic_steps_json, "structures_fs")
             task_doc["calcs_reversed"][0]['output']['ionic_steps_compression'] = compression_type
             task_doc["calcs_reversed"][0]['output']['ionic_steps_fs_id'] = gfs_id
-            del task_doc["calcs_reversed"][0]['output']['ionic_steps']
 
             # Aggregate a trajectory
             ## Convert from a list of dictionaries to a dictionary of lists
+            ionic_steps_dict = task_doc["calcs_reversed"][0]['output']['ionic_steps']
+            del task_doc["calcs_reversed"][0]['output']['ionic_steps']
             ionic_steps_defaultdict = defaultdict(list)
             for d in ionic_steps_dict:
                 for key, val in d.items():
