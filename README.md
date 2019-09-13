@@ -38,6 +38,7 @@ export PACKMOL_PATH="path_to_packmol_here"
 ```
 
 # Using MPmorph
+Before diving headfirst into mpmorph, one should get familiar with how to run fireworks before jumping into mpmorph. Relevant features of fireworks include setting up a fireworks database, adding workflows to the database, configuring a conda environment for running fireworks on a supercomputer, launching jobs to a workload manager (using qlaunch), and monitoring fireworks jobs. For a quick tutorial, check out [beginner](https://www.youtube.com/watch?v=-MalOMJt34U) and [intermediate](https://www.youtube.com/watch?v=zYA_BbKwVO4) atomate/fireworks tutorials from our 2019 Materials project workshop. 
 
 A sample of using mpmorph to run an AIMD simulation at 1500K for 200ps (100k steps at 2fs/step) is shown below:
 
