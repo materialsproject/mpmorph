@@ -61,7 +61,7 @@ class MDFW(Firework):
         t.append(PassCalcLocs(name=name))
         if save_structure:
             t.append(SaveStructureTask())
-        name = f'{structure.formula.replace(" ", "")}-{name}'
+        name = f'{structure.composition.reduced_formula}-{name}'
         if insert_db:
             t.append(VaspMDToDb(db_file=db_file, additional_fields={"task_label": name},
                                 defuse_unsuccessful=False, md_structures=True))
@@ -122,7 +122,7 @@ class OptimizeFW(Firework):
 
         if insert_db:
             t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-        name = f'{structure.formula.replace(" ", "")}-{name}'
+        name = f'{structure.composition.reduced_formula}-{name}'
         super(OptimizeFW, self).__init__(t, parents=parents, name=name, **kwargs)
 
 
@@ -164,5 +164,5 @@ class StaticFW(Firework):
         t.append(SaveStructureTask())
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-        name = f'{structure.formula.replace(" ", "")}-{name}'
+        name = f'{structure.composition.reduced_formula}-{name}'
         super(StaticFW, self).__init__(t, parents=parents, name=name, **kwargs)
