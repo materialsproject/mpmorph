@@ -21,7 +21,7 @@ class DiffusionTask(FireTaskBase):
     optional_params = []
 
     def run_task(self, fw_spec):
-        from mpmorph.workflow.converge import get_converge_wf
+        from mpmorph.workflows.converge import get_converge_wf
 
         s = Structure.from_file('CONTCAR.gz')
         fws = []
