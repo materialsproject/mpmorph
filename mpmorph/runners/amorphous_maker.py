@@ -191,7 +191,8 @@ class AmorphousMaker(object):
 
 
 def get_random_packed(composition, add_specie=None, target_atoms=100,
-                      vol_per_atom=None, vol_exp=1.0, modify_species=None):
+                      vol_per_atom=None, vol_exp=1.0, modify_species=None,
+                      use_random_seed=True):
     mpr = MPRester()
 
     if type(composition) == str:
@@ -240,7 +241,7 @@ def get_random_packed(composition, add_specie=None, target_atoms=100,
     # use packmol to get a random configured structure
     packmol_path = os.environ['PACKMOL_PATH']
     amorphous_maker_params = {'box_scale': (vol_per_atom * comp.num_atoms * vol_exp) ** (1 / 3),
-                              'packmol_path': packmol_path, 'xyz_paths': None}
+                              'packmol_path': packmol_path, 'xyz_paths': None, 'time_seed' : use_random_seed}
 
     glass = AmorphousMaker(structure, **amorphous_maker_params)
     structure = glass.random_packed_structure
