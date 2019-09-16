@@ -113,8 +113,8 @@ class TrajectoryDBTask(FiretaskBase):
         mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
         mmdb.db.trajectories.find_one_and_delete({"runs_label": tag_id})
         runs = mmdb.db['tasks'].find(
-            {"task_label": re.compile(f'.*{tag_id}.*')})
-
+            {"task_label": re.compile(f'.*prod_run.*{tag_id}.*')})
+        
         runs_sorted = sorted(runs, key=lambda x: int(re.findall('run[_-](\d+)', x['task_label'])[0]))
 
         trajectory_doc = runs_to_trajectory_doc(runs_sorted, db_file, tag_id, notes)
