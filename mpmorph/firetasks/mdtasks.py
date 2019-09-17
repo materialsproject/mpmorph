@@ -7,6 +7,7 @@ from mpmorph.runners.rescale_volume import RescaleVolume, fit_BirchMurnaghanPV_E
 from mpmorph.util import recursive_update
 from pymatgen import Structure
 from pymatgen.io.vasp import Poscar
+from pymatgen.io.vasp.outputs import Vasprun
 from scipy import stats
 
 __author__ = 'Eric Sivonxay and Muratahan Aykol'
@@ -17,13 +18,14 @@ __email__ = "esivonxay@lbl.gov"
 @explicit_serialize
 class DiffusionTask(FireTaskBase):
     required_params = ['temperatures', 'max_steps', 'target_steps',
-                       'trajectory_to_db', 'notes']
+                       'num_samples' 'trajectory_to_db', 'notes']
     optional_params = []
 
     def run_task(self, fw_spec):
         from mpmorph.workflows.converge import get_converge_wf
 
-        s = Structure.from_file('CONTCAR.gz')
+        vr = Vasprun('vasprun.xml.gz')
+
         fws = []
         for t in self['temperatures']:
             fws.extend(get_converge_wf(s, int(t), max_steps=self['max_steps'],
