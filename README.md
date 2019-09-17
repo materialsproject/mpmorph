@@ -51,7 +51,7 @@ mpr = MPRester()
 structure = mpr.get_structure_by_material_id('mp-1143')
 structure.make_supercell([3, 3, 3])
 
-wf = get_converge_wf(structure, temperature = 1500, target_steps = 100000)
+wf = get_converge_wf(structure, temperature = 750, target_steps = 100000)
 
 lp = LaunchPad.auto_load()
 lp.add_wf(wf)
