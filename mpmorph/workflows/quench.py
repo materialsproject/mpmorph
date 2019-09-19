@@ -13,10 +13,10 @@ def get_quench_wf(structures, temperatures=None, priority=None, quench_type="slo
                   quench_args={},
                   descriptor="", **kwargs):
     fw_list = []
-    temperatures = {"start_temp": 3000, "end_temp": 500, "temp_step": 500} if temperatures is None else temperatures
-    cool_args = {"md_params": {"nsteps": 200}} if cool_args is None else cool_args
-    hold_args = {"md_params": {"nsteps": 500}} if hold_args is None else hold_args
-    quench_args = {} if quench_args is None else quench_args
+    temperatures = kwargs.get('temperatures', {"start_temp": 3000, "end_temp": 500, "temp_step": 500})
+    cool_args = kwargs.get('cool_args', {"md_params": {"nsteps": 200}})
+    hold_args = kwargs.get('hold_args', {"md_params": {"nsteps": 500}})
+    quench_args = kwargs.get('quench_args', {})
 
     for (i, structure) in enumerate(structures):
         _fw_list = []
