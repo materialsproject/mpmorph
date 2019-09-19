@@ -72,7 +72,7 @@ def get_quench_wf(structures, temperatures=None, priority=None, quench_type="slo
     return wf
 
 
-def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics", priority=None, job_time=None, args={},
+def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics", priority=None, args={},
              **kwargs):
     run_args = {"md_params": {"nsteps": 500, "start_temp": start_temp, "end_temp": end_temp},
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
