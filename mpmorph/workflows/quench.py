@@ -9,9 +9,24 @@ __maintainer__ = 'Eric Sivonxay'
 __email__ = 'esivonxay@lbl.gov'
 
 
-def get_quench_wf(structures, temperatures=None, priority=None, quench_type="slow_quench", cool_args={}, hold_args={},
-                  quench_args={},
+def get_quench_wf(structures, priority=None, quench_type="slow_quench",
                   descriptor="", **kwargs):
+    """
+
+    Args:
+        structure: Starting structure for the run
+        priority: Priority of all fireworks in the workflows
+        quench_type: use "slow_quench" for a gradual decrease in temperature or
+            "mp_quench" for a instantaneous DFT relaxation
+        target_steps: Target number of steps for production MD run
+        descriptor: Extra description to add to the name of the firework
+        **kwargs: Arguments such as cool_args, hold_args, quench_args, etc. Cool_args and hold args are only applicable
+            when using "slow_quench"
+
+    Returns: Workflow object
+
+    """
+
     fw_list = []
     temperatures = kwargs.get('temperatures', {"start_temp": 3000, "end_temp": 500, "temp_step": 500})
     cool_args = kwargs.get('cool_args', {"md_params": {"nsteps": 200}})
@@ -74,6 +89,23 @@ def get_quench_wf(structures, temperatures=None, priority=None, quench_type="slo
 
 def get_MDFW(structure, start_temp, end_temp, name="molecular dynamics", priority=None, args={},
              **kwargs):
+    """
+
+    Helper function to get molecular dynamics firework for quench workflow
+
+    Args:
+        structure: Initial structure for molecular dynamics run
+        start_temp: Starting Temperature
+        end_temp: Ending Temperature
+        name: name of firework
+        priority: priority of job in database
+        args: custom arguments dictionary for molecular dynamics run
+        kwargs: kwargs for MDFW
+
+    Returns: Molecular Dynamics Firework
+
+    """
+    # Get customized firework
     run_args = {"md_params": {"nsteps": 500, "start_temp": start_temp, "end_temp": end_temp},
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<",
                               "wall_time": 40000},
