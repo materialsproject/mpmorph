@@ -200,9 +200,9 @@ def get_random_packed(composition, add_specie=None, target_atoms=100,
     if type(add_specie) == str:
         add_specie = Composition(add_specie)
 
-    comp_entries = mpr.get_entries(composition.reduced_formula,
-                                   inc_structure=True)
     if vol_per_atom is None:
+        comp_entries = mpr.get_entries(composition.reduced_formula,
+                                       inc_structure=True)
         if len(comp_entries) > 0:
             vols = np.min([entry.structure.volume / entry.structure.num_sites
                            for entry in comp_entries])
