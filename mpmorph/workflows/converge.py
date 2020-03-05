@@ -131,7 +131,7 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
 
         parents = fw_list[-1] if len(fw_list) > 0 else []
         previous_structure = False if preconverged and prod_steps == 0 else True
-        fw = MDFW(structure=structure, name=f'{temperature}_run_{prod_count}-{tag_id}',
+        fw = MDFW(structure=structure, name=f'{temperature}_prod_run_{prod_count}-{tag_id}',
                   previous_structure=previous_structure, insert_db=insert_prod_data, **run_args["md_params"],
                   **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
         fw_list.append(fw)

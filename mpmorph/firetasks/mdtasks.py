@@ -45,7 +45,7 @@ class ConvergeTask(FireTaskBase):
     """
 
     required_params = ["converge_params", "run_specs", "md_params"]
-    optional_params = ["rescale_params", 'tag_id']
+    optional_params = ["rescale_params", 'tag_id', "optional_fw_params"]
 
     def run_task(self, fw_spec):
         from mpmorph.fireworks import powerups
@@ -109,7 +109,7 @@ class ConvergeTask(FireTaskBase):
 
             run_specs = self["run_specs"]
             md_params = self["md_params"]
-            optional_params = self["optional_fw_params"]
+            optional_params = self.get("optional_fw_params", {})
 
             tag_id = self.get("tag_id", "")
 
@@ -138,7 +138,7 @@ class ConvergeTask(FireTaskBase):
                 wf = Workflow([fw])
                 return FWAction(detours=wf, stored_data={'pressure': pressure, 'energy': mu})
             else:
-                fw = MDFW(structure, name=f'energy_run_{energy_spawn_count + 1}_{tag_id}', previous_structure=False,
+                fw = MDFW(structure, name=f'energy_run_{energy_spawn_count + 1}-{tag_id}', previous_structure=False,
                           **run_specs, **md_params, **optional_params)
                 converge_params["energy_spawn_count"] += 1
                 _spawner_args = {"converge_params": converge_params, "rescale_params": rescale_params,

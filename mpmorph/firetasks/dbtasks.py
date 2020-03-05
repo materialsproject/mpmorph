@@ -80,10 +80,16 @@ class VaspMDToDb(FiretaskBase):
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
             mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
+
+            # prevent duplicate insertion
+            mmdb.db.tasks.find_one_and_delete({'formula_pretty': task_doc['formula_pretty'],
+                                                        'task_label': task_doc['task_label']})
+
             t_id = mmdb.insert_task(task_doc,
                                     parse_dos=self.get("parse_dos", False),
                                     parse_bs=bool(self.get("bandstructure_mode", False)),
                                     md_structures=self.get("md_structures", True))
+
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
         if self.get("defuse_unsuccessful", True):
@@ -116,6 +122,12 @@ class TrajectoryDBTask(FiretaskBase):
             {"task_label": re.compile(f'.*prod_run.*{tag_id}.*')})
 
         runs_sorted = sorted(runs, key=lambda x: int(re.findall('run[_-](\d+)', x['task_label'])[0]))
+
+        # Remove duplicates of the same run (if they exist)
+        labels = [result['task_label'] for result in runs_sorted]
+        nums = [int(re.findall('run[_-](\d+)', label)[0]) for label in labels]
+        duplicates = np.where((nums - np.roll(nums, 1)) == 0)[0]
+        runs_sorted = [runs_sorted[i] for i in range(len(runs_sorted)) if i not in duplicates]
 
         trajectory_doc = runs_to_trajectory_doc(runs_sorted, db_file, tag_id, notes)
 
