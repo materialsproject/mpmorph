@@ -62,6 +62,7 @@ class VaspMDToDb(FiretaskBase):
 
         drone = VaspDrone(additional_fields=self.get("additional_fields"),
                           parse_dos=self.get("parse_dos", False),
+                          parse_bader=False,
                           bandstructure_mode=self.get("bandstructure_mode", False),
                           store_volumetric_data=[])
 
