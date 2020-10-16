@@ -43,7 +43,7 @@ Before diving headfirst into mpmorph, one should get familiar with how to run fi
 A sample of using mpmorph to run an AIMD simulation at 1500K for 200ps (100k steps at 2fs/step) is shown below:
 
 ```python
-from mpmorph.workflow.converge import get_converge_wf
+from mpmorph.workflows.converge import get_converge_wf
 from pymatgen import MPRester
 from fireworks import LaunchPad
 
@@ -61,7 +61,7 @@ To generate an amorphous structure, run the following code:
 
 ```python
 from mpmorph.runners.amorphous_maker import get_random_packed
-from mpmorph.workflow.converge import get_converge_wf
+from mpmorph.workflows.converge import get_converge_wf
 from fireworks import LaunchPad
 
 structure = get_random_packed('Li', target_atoms=100)
@@ -82,7 +82,7 @@ For more advanced changes, pass a dictionary for "converge_args", "spawner_args"
 Changing the rescale parameter, to make for larger volume changes at each stage:
 ```python
 from mpmorph.runners.amorphous_maker import get_random_packed
-from mpmorph.workflow.converge import get_converge_wf
+from mpmorph.workflows.converge import get_converge_wf
 from fireworks import LaunchPad
 
 structure = get_random_packed('Li', target_atoms=100)
@@ -97,7 +97,7 @@ lp.add_wf(wf)
 Changing precision of production runs to PREC=Low:
 ```python
 from mpmorph.runners.amorphous_maker import get_random_packed
-from mpmorph.workflow.converge import get_converge_wf
+from mpmorph.workflows.converge import get_converge_wf
 from fireworks import LaunchPad
 
 structure = get_random_packed('Li', target_atoms=100)
