@@ -32,9 +32,9 @@ clone the repository to your computer and install using
 python setup.py install
 ```
 
-If you wish to make amorphous structures, please install [packmol](http://m3g.iqm.unicamp.br/packmol/home.shtml) on your machine and add the following line to your bash profile
+If you wish to make amorphous structures, please install [packmol](http://m3g.iqm.unicamp.br/packmol/home.shtml) on your machine and add the following line to your bash profile. 
 ```bash
-export PACKMOL_PATH="path_to_packmol_here"
+export PACKMOL_PATH="path_to_packmol_executable_here"
 ```
 
 # Using MPmorph
