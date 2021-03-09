@@ -15,6 +15,7 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from monty.json import MontyEncoder
 from pymatgen import Structure
 from pymatgen.core.trajectory import Trajectory
+from collections import defaultdict
 
 __author__ = 'Eric Sivonxay and Jianli Cheng'
 
@@ -85,7 +86,7 @@ class VaspMDToDb(FiretaskBase):
 
             # prevent duplicate insertion
             mmdb.db.tasks.find_one_and_delete({'formula_pretty': task_doc['formula_pretty'],
-                                                        'task_label': task_doc['task_label']})
+                                               'task_label': task_doc['task_label']})
 
             t_id = mmdb.insert_task(task_doc,
                                     parse_dos=self.get("parse_dos", False),
@@ -172,26 +173,53 @@ def runs_to_trajectory_doc(runs, db_file, runs_label, notes=None):
 
 
 def load_trajectories_from_gfs(runs, db_file):
-    fs_id = []
-    fs = []
+    gfs_keys = []
     for run in runs:
-        if "INCAR" in run.keys():
+        # 3 cases to deal with: 1) Trajectory 2) previous_runs (old mpmorph) 3) structures_fs
+        if 'trajectory' in run.keys():
+            gfs_keys.append((run['trajectory']['fs_id'], 'trajectories_fs'))
+        elif "INCAR" in run.keys():
             # for backwards compatibility with older version of mpmorph
-            fs_id.append(run["ionic_steps_fs_id"])
-            fs.append('previous_runs_gfs')
+            gfs_keys.append((run["ionic_steps_fs_id"], 'previous_runs_gfs'))
         elif "input" in run.keys():
-            fs_id.append(run["calcs_reversed"][0]["output"]["ionic_steps_fs_id"])
-            fs.append('structures_fs')
+            gfs_keys.append((run["calcs_reversed"][0]["output"]["ionic_steps_fs_id"], 'structures_fs'))
 
-    for i, v in enumerate(fs_id):
-        mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
-        ionic_steps_dict = load_ionic_steps(v, mmdb.db, fs[i])
+    trajectory = None
+    with VaspMDCalcDb.from_db_file(db_file, admin=False) as mmdb:
+        for fs_id, fs in enumerate(gfs_keys):
 
-        if i == 0:
-            trajectory = Trajectory.from_structures([Structure.from_dict(i['structure']) for i in ionic_steps_dict])
-        else:
-            trajectory.extend(
-                Trajectory.from_structures([Structure.from_dict(i['structure']) for i in ionic_steps_dict]))
+            if fs == 'trajectories_fs':
+                # Load stored Trajectory
+                _trajectory = load_trajectory(fs_id=fs_id, db=mmdb.db, fs=fs)
+            else:
+                # This is compatibility code for when
+                # Load Ionic steps from gfs, then convert to trajectory before extending (compatibility code)
+                ionic_steps_dict = load_ionic_steps(fs_id=fs_id, db=mmdb.db, fs=fs)
+                ionic_steps_defaultdict = defaultdict(list)
+                for d in ionic_steps_dict:
+                    for key, val in d.items():
+                        ionic_steps_defaultdict[key].append(val)
+                ionic_steps = dict(ionic_steps_defaultdict.items())
+
+                # extract structures from dictionary
+                structures = [Structure.from_dict(struct) for struct in ionic_steps['structure']]
+                del ionic_steps['structure']
+
+                frame_properties = {}
+                for key in ['e_fr_energy', 'e_wo_entrp', 'e_0_energy', 'kinetic', 'lattice kinetic', 'nosepot',
+                            'nosekinetic', 'total']:
+                    frame_properties[key] = ionic_steps[key]
+
+                # Create trajectory
+                _trajectory = Trajectory.from_structures(structures, constant_lattice=True,
+                                                         frame_properties=frame_properties,
+                                                         time_step=run[0]['input']['incar']['POTIM'])
+            if trajectory is None:
+                trajectory = _trajectory
+            else:
+                # Eliminate duplicate structure at the start of each trajectory
+                # (since vasp will output the input structure)
+                trajectory.extend(_trajectory[1:])
     return trajectory
 
 
@@ -208,6 +236,14 @@ def process_traj(data):
 
     traj = Trajectory(structure.lattice.matrix, structure.species, positions, 0.002)
     return i, traj.as_dict()
+
+
+def load_trajectory(fs_id, db, fs=None):
+    if not fs:
+        fs = gridfs.GridFS(db, 'trajectories_fs')
+    trajectories_json = zlib.decompress(fs.get(fs_id).read())
+    trajectories_dict = json.loads(trajectories_json.decode())
+    return Trajectory.from_dict(trajectories_dict)
 
 
 def load_ionic_steps(fs_id, db, fs):
