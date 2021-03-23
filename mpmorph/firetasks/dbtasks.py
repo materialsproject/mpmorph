@@ -185,41 +185,41 @@ def load_trajectories_from_gfs(runs, db_file):
             gfs_keys.append((run["calcs_reversed"][0]["output"]["ionic_steps_fs_id"], 'structures_fs'))
 
     trajectory = None
-    with VaspMDCalcDb.from_db_file(db_file, admin=False) as mmdb:
-        for fs_id, fs in enumerate(gfs_keys):
+    mmdb = VaspMDCalcDb.from_db_file(db_file, admin=False)
+    for fs_id, fs in enumerate(gfs_keys):
 
-            if fs == 'trajectories_fs':
-                # Load stored Trajectory
-                _trajectory = load_trajectory(fs_id=fs_id, db=mmdb.db, fs=fs)
-            else:
-                # This is compatibility code for when
-                # Load Ionic steps from gfs, then convert to trajectory before extending (compatibility code)
-                ionic_steps_dict = load_ionic_steps(fs_id=fs_id, db=mmdb.db, fs=fs)
-                ionic_steps_defaultdict = defaultdict(list)
-                for d in ionic_steps_dict:
-                    for key, val in d.items():
-                        ionic_steps_defaultdict[key].append(val)
-                ionic_steps = dict(ionic_steps_defaultdict.items())
+        if fs == 'trajectories_fs':
+            # Load stored Trajectory
+            _trajectory = load_trajectory(fs_id=fs_id, db=mmdb.db, fs=fs)
+        else:
+            # This is compatibility code for when
+            # Load Ionic steps from gfs, then convert to trajectory before extending (compatibility code)
+            ionic_steps_dict = load_ionic_steps(fs_id=fs_id, db=mmdb.db, fs=fs)
+            ionic_steps_defaultdict = defaultdict(list)
+            for d in ionic_steps_dict:
+                for key, val in d.items():
+                    ionic_steps_defaultdict[key].append(val)
+            ionic_steps = dict(ionic_steps_defaultdict.items())
 
-                # extract structures from dictionary
-                structures = [Structure.from_dict(struct) for struct in ionic_steps['structure']]
-                del ionic_steps['structure']
+            # extract structures from dictionary
+            structures = [Structure.from_dict(struct) for struct in ionic_steps['structure']]
+            del ionic_steps['structure']
 
-                frame_properties = {}
-                for key in ['e_fr_energy', 'e_wo_entrp', 'e_0_energy', 'kinetic', 'lattice kinetic', 'nosepot',
-                            'nosekinetic', 'total']:
-                    frame_properties[key] = ionic_steps[key]
+            frame_properties = {}
+            for key in ['e_fr_energy', 'e_wo_entrp', 'e_0_energy', 'kinetic', 'lattice kinetic', 'nosepot',
+                        'nosekinetic', 'total']:
+                frame_properties[key] = ionic_steps[key]
 
-                # Create trajectory
-                _trajectory = Trajectory.from_structures(structures, constant_lattice=True,
-                                                         frame_properties=frame_properties,
-                                                         time_step=run[0]['input']['incar']['POTIM'])
-            if trajectory is None:
-                trajectory = _trajectory
-            else:
-                # Eliminate duplicate structure at the start of each trajectory
-                # (since vasp will output the input structure)
-                trajectory.extend(_trajectory[1:])
+            # Create trajectory
+            _trajectory = Trajectory.from_structures(structures, constant_lattice=True,
+                                                     frame_properties=frame_properties,
+                                                     time_step=run[0]['input']['incar']['POTIM'])
+        if trajectory is None:
+            trajectory = _trajectory
+        else:
+            # Eliminate duplicate structure at the start of each trajectory
+            # (since vasp will output the input structure)
+            trajectory.extend(_trajectory[1:])
     return trajectory
 
 
