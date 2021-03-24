@@ -120,7 +120,7 @@ class TrajectoryDBTask(FiretaskBase):
         # get the database connection
         db_file = env_chk(self.get('db_file'), fw_spec)
         mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
-        mmdb.db.trajectories.find_one_and_delete({"runs_label": tag_id})
+        # mmdb.db.trajectories.find_one_and_delete({"runs_label": tag_id})
         runs = mmdb.db['tasks'].find(
             {"task_label": re.compile(f'.*prod_run.*{tag_id}.*')})
 
@@ -186,12 +186,14 @@ def load_trajectories_from_gfs(runs, db_file):
 
     trajectory = None
     mmdb = VaspMDCalcDb.from_db_file(db_file, admin=False)
-    for fs_id, fs in enumerate(gfs_keys):
+    for i, (fs_id, fs) in enumerate(gfs_keys[:3]):
 
         if fs == 'trajectories_fs':
             # Load stored Trajectory
+            print(fs_id, 'is stored in trajectories_fs')
             _trajectory = load_trajectory(fs_id=fs_id, db=mmdb.db, fs=fs)
         else:
+            print(fs_id)
             # This is compatibility code for when
             # Load Ionic steps from gfs, then convert to trajectory before extending (compatibility code)
             ionic_steps_dict = load_ionic_steps(fs_id=fs_id, db=mmdb.db, fs=fs)
@@ -240,14 +242,25 @@ def process_traj(data):
 
 def load_trajectory(fs_id, db, fs=None):
     if not fs:
+        # Default to trajectories_fs
         fs = gridfs.GridFS(db, 'trajectories_fs')
+    elif not isinstance(fs, gridfs.GridFS):
+        # Handle fs supplied as str
+        fs = gridfs.GridFS(db, fs)
+
     trajectories_json = zlib.decompress(fs.get(fs_id).read())
     trajectories_dict = json.loads(trajectories_json.decode())
-    return Trajectory.from_dict(trajectories_dict)
+    try:
+        trajectory = Trajectory.from_dict(trajectories_dict)
+    except AttributeError:
+        trajectories_dict = json.loads(trajectories_dict)
+        trajectory = Trajectory.from_dict(trajectories_dict)
+    return trajectory
 
 
 def load_ionic_steps(fs_id, db, fs):
-    fs = gridfs.GridFS(db, fs)
+    if not isinstance(fs, gridfs.GridFS):
+        fs = gridfs.GridFS(db, fs)
     ionic_steps_json = zlib.decompress(fs.get(fs_id).read())
     ionic_steps_dict = json.loads(ionic_steps_json.decode())
     del ionic_steps_json
