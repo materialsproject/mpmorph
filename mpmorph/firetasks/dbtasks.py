@@ -149,9 +149,10 @@ def runs_to_trajectory_doc(runs, db_file, runs_label, notes=None):
     :param notes: (optional) any notes or comments on the specific run
     :return:
     """
-    trajectory = load_trajectories_from_gfs(runs, db_file)
-
     mmdb = VaspMDCalcDb.from_db_file(db_file, admin=True)
+
+    trajectory = load_trajectories_from_gfs(runs, mmdb)
+
     traj_dict = json.dumps(trajectory.as_dict(), cls=MontyEncoder)
     gfs_id, compression_type = insert_gridfs(traj_dict, mmdb.db, "trajectories_fs")
 
@@ -172,23 +173,24 @@ def runs_to_trajectory_doc(runs, db_file, runs_label, notes=None):
     return traj_doc
 
 
-def load_trajectories_from_gfs(runs, db_file):
-    gfs_keys = []
-    for run in runs:
-        # 3 cases to deal with: 1) Trajectory 2) previous_runs (old mpmorph) 3) structures_fs
-        if 'trajectory' in run.keys():
-            gfs_keys.append((run['trajectory']['fs_id'], 'trajectories_fs'))
-        elif "INCAR" in run.keys():
-            # for backwards compatibility with older version of mpmorph
-            gfs_keys.append((run["ionic_steps_fs_id"], 'previous_runs_gfs'))
-        elif "input" in run.keys():
-            gfs_keys.append((run["calcs_reversed"][0]["output"]["ionic_steps_fs_id"], 'structures_fs'))
+def load_trajectories_from_gfs(runs, mmdb, gfs_keys=None):
+    if gfs_keys is None:
+        # Attempt to automatically determine where the trajectory is stored
+        gfs_keys = []
+        for run in runs:
+            # 3 cases to deal with: 1) Trajectory 2) previous_runs (old mpmorph) 3) structures_fs
+            if 'trajectory' in run.keys():
+                gfs_keys.append((run['trajectory']['fs_id'], 'trajectories_fs'))
+            elif "INCAR" in run.keys():
+                # for backwards compatibility with older version of mpmorph
+                gfs_keys.append((run["ionic_steps_fs_id"], 'previous_runs_gfs'))
+            elif "input" in run.keys():
+                gfs_keys.append((run["calcs_reversed"][0]["output"]["ionic_steps_fs_id"], 'structures_fs'))
 
     trajectory = None
-    mmdb = VaspMDCalcDb.from_db_file(db_file, admin=False)
-    for i, (fs_id, fs) in enumerate(gfs_keys[:3]):
+    for i, (fs_id, fs) in enumerate(gfs_keys):
 
-        if fs == 'trajectories_fs':
+        if fs == 'trajectories_fs' or fs == 'rebuild_trajectories_fs':
             # Load stored Trajectory
             print(fs_id, 'is stored in trajectories_fs')
             _trajectory = load_trajectory(fs_id=fs_id, db=mmdb.db, fs=fs)
