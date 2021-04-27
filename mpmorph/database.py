@@ -7,7 +7,7 @@ import gridfs
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from monty.json import MontyEncoder
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.core.trajectory import Trajectory
 from collections import defaultdict
 import numpy as np

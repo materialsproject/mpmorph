@@ -5,7 +5,8 @@ import shutil
 from collections import OrderedDict
 
 import numpy as np
-from pymatgen import Structure, MPRester, Composition
+from pymatgen.core import Structure, Composition
+from pymatgen.ext.matproj import MPRester
 from pymatgen.io.vasp.inputs import Poscar
 
 __author__ = 'Eric Sivonxay, Jianli Cheng, and Muratahan Aykol'

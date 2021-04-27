@@ -13,7 +13,7 @@ from mpmorph.database import VaspMDCalcDb
 from fireworks import explicit_serialize, FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from monty.json import MontyEncoder
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.core.trajectory import Trajectory
 from collections import defaultdict
 
