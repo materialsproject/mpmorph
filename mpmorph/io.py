@@ -1,6 +1,5 @@
 import itertools
 
-import numpy as np
 from monty.io import zopen
 
 __author__ = 'Eric Sivonxay'
@@ -62,14 +61,16 @@ class Xdatcar_Writer_Trajectory():
             f.write(self.get_string(**kwargs))
 
     def get_string(self, system="unknown system", significant_figures=6):
-        lines = [system, "1.0", str(self.trajectory.lattice)]
+        lines = [system, "1.0"]
+        for direction in self.trajectory.lattice:
+            lines.append(' '.join([str(i) for i in direction]))
         lines.append(" ".join(self.get_site_symbols()))
         lines.append(" ".join([str(x) for x in self.get_natoms()]))
 
         format_str = "{{:.{0}f}}".format(significant_figures)
-        #         positions = self.trajectory.positions
-        positions = np.add(self.trajectory.base_structure.frac_coords, self.trajectory.displacements)
-        atoms = [site.specie.symbol for site in self.trajectory.base_structure]
+        positions = self.trajectory.frac_coords
+        #         positions = np.add(self.trajectory[0].frac_coords, self.trajectory.displacements)
+        atoms = [site.specie.symbol for site in self.trajectory[0]]
 
         for (si, position_array) in enumerate(positions):
             lines.append("Direct configuration=     " + str(si + 1))
@@ -85,7 +86,7 @@ class Xdatcar_Writer_Trajectory():
         Sequence of symbols associated with the Poscar. Similar to 6th line in
         vasp 5+ POSCAR.
         """
-        syms = [site.specie.symbol for site in self.trajectory.base_structure]
+        syms = [site.specie.symbol for site in self.trajectory[0]]
         return [a[0] for a in itertools.groupby(syms)]
 
     def get_natoms(self):
@@ -93,5 +94,5 @@ class Xdatcar_Writer_Trajectory():
         Sequence of number of sites of each type associated with the Poscar.
         Similar to 7th line in vasp 5+ POSCAR or the 6th line in vasp 4 POSCAR.
         """
-        syms = [site.specie.symbol for site in self.trajectory.base_structure]
+        syms = [site.specie.symbol for site in self.trajectory[0]]
         return [len(tuple(a[1])) for a in itertools.groupby(syms)]
