@@ -90,7 +90,7 @@ class VaspMDCalcDb(VaspCalcDb):
             trajectory = Trajectory.from_structures(structures, constant_lattice=True,
                                                     frame_properties=frame_properties,
                                                     time_step=task_doc['input']['incar']['POTIM'])
-            traj_dict = json.dumps(trajectory.as_dict(), cls=MontyEncoder)
+            traj_dict = json.dumps(trajectory, cls=MontyEncoder)
             gfs_id, compression_type = self.insert_gridfs(traj_dict, "trajectories_fs")
 
             task_doc['trajectory'] = {

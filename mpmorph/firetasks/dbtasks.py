@@ -153,7 +153,7 @@ def runs_to_trajectory_doc(runs, db_file, runs_label, notes=None):
 
     trajectory = load_trajectories_from_gfs(runs, mmdb)
 
-    traj_dict = json.dumps(trajectory.as_dict(), cls=MontyEncoder)
+    traj_dict = json.dumps(trajectory, cls=MontyEncoder)
     gfs_id, compression_type = insert_gridfs(traj_dict, mmdb.db, "trajectories_fs")
 
     traj_doc = {
