@@ -60,12 +60,6 @@ class VaspMDCalcDb(VaspCalcDb):
 
         # insert structures  at each ionic step into GridFS
         if md_structures and "calcs_reversed" in task_doc:
-            # insert ionic steps into gridfs
-            # #TODO: Deprecate this and move to only storing trajectory
-            # ionic_steps_json = json.dumps(task_doc["calcs_reversed"][0]['output']['ionic_steps'], cls=MontyEncoder)
-            # gfs_id, compression_type = self.insert_gridfs(ionic_steps_json, "structures_fs")
-            # task_doc["calcs_reversed"][0]['output']['ionic_steps_compression'] = compression_type
-            # task_doc["calcs_reversed"][0]['output']['ionic_steps_fs_id'] = gfs_id
 
             # Aggregate a trajectory
             ## Convert from a list of dictionaries to a dictionary of lists
@@ -77,19 +71,38 @@ class VaspMDCalcDb(VaspCalcDb):
                     ionic_steps_defaultdict[key].append(val)
             ionic_steps = dict(ionic_steps_defaultdict.items())
 
-            ## extract structures from dictionary
-            structures = [Structure.from_dict(struct) for struct in ionic_steps['structure']]
-            del ionic_steps['structure']
+            frac_coords = []
+            site_properties = []
+            read_site_props = False
+            if 'properties' in ionic_steps_dict[0]['structure']['sites'][0].keys():
+                read_site_props = True
+
+            for ionic_step in ionic_steps_dict:
+                _frac_coords = [site['abc'] for site in ionic_step['structure']['sites']]
+                frac_coords.append(_frac_coords)
+
+                if read_site_props:
+                    _site_properties = {}
+                    for key in ionic_step['structure']['sites'][0]['properties']:
+                        _prop = [site['properties'][key] for site in ionic_step['structure']['sites']]
+                        _site_properties[key] = _prop
+                    site_properties.append(_site_properties)
+                else:
+                    site_properties.append(None)
+            lattice = ionic_steps_dict[0]['structure']['lattice']['matrix']
+            species = [site['species'][0]['element'] for site in ionic_step['structure']['sites']]
 
             frame_properties = {}
-            for key in ['e_fr_energy', 'e_wo_entrp', 'e_0_energy', 'kinetic', 'lattice kinetic', 'nosepot',
-                        'nosekinetic', 'total']:
-                frame_properties[key] = ionic_steps[key]
+            keys = set(ionic_steps_dict[0].keys()) - set(['structure'])
+            for key in keys:
+                if key in ['forces', 'stress']:
+                    frame_properties[key] = np.array(ionic_steps[key])
+                else:
+                    frame_properties[key] = ionic_steps[key]
 
-            # Create trajectory
-            trajectory = Trajectory.from_structures(structures, constant_lattice=True,
-                                                    frame_properties=frame_properties,
-                                                    time_step=task_doc['input']['incar']['POTIM'])
+            trajectory = Trajectory(lattice, species, frac_coords, site_properties=site_properties,
+                                    constant_lattice=True, frame_properties=frame_properties,
+                                    time_step=task_doc['input']['incar']['POTIM'])
             traj_dict = json.dumps(trajectory, cls=MontyEncoder)
             gfs_id, compression_type = self.insert_gridfs(traj_dict, "trajectories_fs")
 
