@@ -163,11 +163,13 @@ def runs_to_trajectory_doc(runs, db_file, runs_label, notes=None):
         'runs_label': runs_label,
         'compression': compression_type,
         'fs_id': gfs_id,
+        'fs': 'trajectories_fs',
         'step_fs_ids': [i["calcs_reversed"][0]["output"]['ionic_steps_fs_id']
                         for i in runs],
         'structure': trajectory[0].as_dict(),
         'dimension': list(np.shape(trajectory.frac_coords)),
         'time_step': runs[0]["input"]["incar"]["POTIM"] * 1e-3,
+        'frame_properties': list(trajectory[0].frame_properties.keys()),
         'notes': notes
     }
     return traj_doc
@@ -210,9 +212,12 @@ def load_trajectories_from_gfs(runs, mmdb, gfs_keys=None):
             del ionic_steps['structure']
 
             frame_properties = {}
-            for key in ['e_fr_energy', 'e_wo_entrp', 'e_0_energy', 'kinetic', 'lattice kinetic', 'nosepot',
-                        'nosekinetic', 'total']:
-                frame_properties[key] = ionic_steps[key]
+            keys = set(ionic_steps_dict[0].keys()) - set(['structure'])
+            for key in keys:
+                if key in ['forces', 'stress']:
+                    frame_properties[key] = np.array(ionic_steps[key])
+                else:
+                    frame_properties[key] = ionic_steps[key]
 
             # Create trajectory
             _trajectory = Trajectory.from_structures(structures, constant_lattice=True,

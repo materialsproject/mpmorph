@@ -113,6 +113,8 @@ class VaspMDCalcDb(VaspCalcDb):
                 'fs_id': gfs_id,
                 'dimension': list(np.shape(trajectory.frac_coords)),
                 'time_step': task_doc["input"]["incar"]["POTIM"],
+                'fs': 'trajectories_fs',
+                'frame_properties': list(trajectory[0].frame_properties.keys())
             }
 
         # insert the task document and return task_id
