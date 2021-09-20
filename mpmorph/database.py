@@ -28,14 +28,15 @@ class VaspMDCalcDb(VaspCalcDb):
                  password=None, **kwargs):
         super(VaspMDCalcDb, self).__init__(host, port, database, collection, user, password, **kwargs)
 
-    def insert_task(self, task_doc, parse_dos=False, parse_bs=False, md_structures=False):
+    def insert_task(self, task_doc, parse_dos=False, parse_bs=False, parse_ionic_steps=False):
         """
         Inserts a task document (e.g., as returned by Drone.assimilate()) into the database.
-        Handles putting DOS and band structure into GridFS as needed.
+        Handles putting DOS, band structure, and ionic_steps into GridFS as needed.
         Args:
             task_doc: (dict) the task document
             parse_dos: (bool) attempt to parse dos in task_doc and insert into Gridfs
             parse_bs: (bool) attempt to parse bandstructure in task_doc and insert into Gridfs
+            parse_ionic_steps: (bool) attempt to parse ionic steps in task_doc and insert into Gridfs
         Returns:
             (int) - task_id of inserted document
         """
@@ -59,76 +60,69 @@ class VaspMDCalcDb(VaspCalcDb):
                 del task_doc["calcs_reversed"][0]["bandstructure"]
 
         # insert structures  at each ionic step into GridFS
-        if md_structures and "calcs_reversed" in task_doc:
+        if parse_ionic_steps and "calcs_reversed" in task_doc:
 
-            # Aggregate a trajectory
-            ## Convert from a list of dictionaries to a dictionary of lists
+            # Convert from ionic steps dictionary to pymatgen.core.trajectory.Trajectory object
             ionic_steps_dict = task_doc["calcs_reversed"][0]['output']['ionic_steps']
+            time_step = task_doc['input']['incar']['POTIM']
+            trajectory = convert_ionic_steps_to_trajectory((ionic_steps_dict), time_step)
             del task_doc["calcs_reversed"][0]['output']['ionic_steps']
-            ionic_steps_defaultdict = defaultdict(list)
-            for d in ionic_steps_dict:
-                for key, val in d.items():
-                    ionic_steps_defaultdict[key].append(val)
-            ionic_steps = dict(ionic_steps_defaultdict.items())
 
-            frac_coords = []
-            site_properties = []
-            read_site_props = False
-            if 'properties' in ionic_steps_dict[0]['structure']['sites'][0].keys():
-                read_site_props = True
-
-            for ionic_step in ionic_steps_dict:
-                _frac_coords = [site['abc'] for site in ionic_step['structure']['sites']]
-                frac_coords.append(_frac_coords)
-
-                if read_site_props:
-                    _site_properties = {}
-                    for key in ionic_step['structure']['sites'][0]['properties']:
-                        _prop = [site['properties'][key] for site in ionic_step['structure']['sites']]
-                        _site_properties[key] = _prop
-                    site_properties.append(_site_properties)
-                else:
-                    site_properties.append(None)
-            lattice = ionic_steps_dict[0]['structure']['lattice']['matrix']
-            species = [site['species'][0]['element'] for site in ionic_step['structure']['sites']]
-
-            frame_properties = {}
-            keys = set(ionic_steps_dict[0].keys()) - set(['structure'])
-            for key in keys:
-                if key in ['forces', 'stress']:
-                    frame_properties[key] = np.array(ionic_steps[key])
-                else:
-                    frame_properties[key] = ionic_steps[key]
-
-            trajectory = Trajectory(lattice, species, frac_coords, site_properties=site_properties,
-                                    constant_lattice=True, frame_properties=frame_properties,
-                                    time_step=task_doc['input']['incar']['POTIM'])
             traj_dict = json.dumps(trajectory, cls=MontyEncoder)
             gfs_id, compression_type = self.insert_gridfs(traj_dict, "trajectories_fs")
 
             task_doc['trajectory'] = {
+                'formula_pretty': trajectory[0].composition.reduced_formula,
                 'formula': trajectory[0].composition.formula.replace(' ', ''),
                 'temperature': int(task_doc["input"]["incar"]["TEBEG"]),
                 'compression': compression_type,
                 'fs_id': gfs_id,
+                'fs': 'trajectories_fs',
                 'dimension': list(np.shape(trajectory.frac_coords)),
                 'time_step': task_doc["input"]["incar"]["POTIM"],
-                'fs': 'trajectories_fs',
-                'frame_properties': list(frame_properties.keys())
+                'frame_properties': list(trajectory.frame_properties.keys())
             }
 
         # insert the task document and return task_id
         return self.insert(task_doc)
 
-    # def get_ionic_steps(self, task_id):
-    #     m_task = self.collection.find_one({"task_id": task_id}, {"calcs_reversed": 1})
-    #     fs_id = m_task["calcs_reversed"][0]["output"]["ionic_steps_fs_id"]
-    #     fs = gridfs.GridFS(self.db, "structures_fs")
-    #     ionic_steps_json = zlib.decompress(fs.get(fs_id).read())
-    #     ionic_steps_dict = json.loads(ionic_steps_json.decode())
-    #     return ionic_steps_dict
-    #
-    # def get_structures(self, task_id):
-    #     ionic_steps_dict = self.get_ionic_steps(task_id)
-    #     structures = [Structure.from_dict(step["structure"]) for step in ionic_steps_dict]
-    #     return structures
+def convert_ionic_steps_to_trajectory(ionic_steps_dict, time_step):
+    ## Convert from a list of dictionaries to a dictionary of lists
+    ionic_steps_defaultdict = defaultdict(list)
+    for d in ionic_steps_dict:
+        for key, val in d.items():
+            ionic_steps_defaultdict[key].append(val)
+    ionic_steps = dict(ionic_steps_defaultdict.items())
+
+    frac_coords = []
+    site_properties = []
+    read_site_props = False
+    if 'properties' in ionic_steps_dict[0]['structure']['sites'][0].keys():
+        read_site_props = True
+
+    for ionic_step in ionic_steps_dict:
+        _frac_coords = [site['abc'] for site in ionic_step['structure']['sites']]
+        frac_coords.append(_frac_coords)
+
+        if read_site_props:
+            _site_properties = {}
+            for key in ionic_step['structure']['sites'][0]['properties']:
+                _prop = [site['properties'][key] for site in ionic_step['structure']['sites']]
+                _site_properties[key] = _prop
+            site_properties.append(_site_properties)
+        else:
+            site_properties.append(None)
+    lattice = ionic_steps_dict[0]['structure']['lattice']['matrix']
+    species = [site['species'][0]['element'] for site in ionic_step['structure']['sites']]
+
+    frame_properties = {}
+    keys = set(ionic_steps_dict[0].keys()) - set(['structure'])
+    for key in keys:
+        if key in ['forces', 'stress']:
+            frame_properties[key] = np.array(ionic_steps[key])
+        else:
+            frame_properties[key] = ionic_steps[key]
+
+    return Trajectory(lattice, species, frac_coords, site_properties=site_properties,
+                            constant_lattice=True, frame_properties=frame_properties,
+                            time_step=time_step)

@@ -16,6 +16,7 @@ from monty.json import MontyEncoder
 from pymatgen.core import Structure
 from pymatgen.core.trajectory import Trajectory
 from collections import defaultdict
+from mpmorph.database import convert_ionic_steps_to_trajectory
 
 __author__ = 'Eric Sivonxay and Jianli Cheng'
 
@@ -91,7 +92,7 @@ class VaspMDToDb(FiretaskBase):
             t_id = mmdb.insert_task(task_doc,
                                     parse_dos=self.get("parse_dos", False),
                                     parse_bs=bool(self.get("bandstructure_mode", False)),
-                                    md_structures=self.get("md_structures", True))
+                                    parse_ionic_steps=self.get("md_structures", True))
 
             logger.info("Finished parsing with task_id: {}".format(t_id))
 
@@ -107,8 +108,8 @@ class VaspMDToDb(FiretaskBase):
 @explicit_serialize
 class TrajectoryDBTask(FiretaskBase):
     """
-    Obtain all production runs and insert them into the db. This is done by
-    searching for a unique tag
+    Obtain all production runs with the same uuid, stitch together the trajectory, and then insert them into the db.
+    This is done by searching for the unique tag
     """
     required_params = ["tag_id", "db_file"]
     optional_params = ['notes']
@@ -174,7 +175,6 @@ def runs_to_trajectory_doc(runs, db_file, runs_label, notes=None):
     }
     return traj_doc
 
-
 def load_trajectories_from_gfs(runs, mmdb, gfs_keys=None):
     if gfs_keys is None:
         # Attempt to automatically determine where the trajectory is stored (for compatibility with older mpmorph)
@@ -197,32 +197,10 @@ def load_trajectories_from_gfs(runs, mmdb, gfs_keys=None):
             print(fs_id, 'is stored in trajectories_fs')
             _trajectory = load_trajectory(fs_id=fs_id, db=mmdb.db, fs=fs)
         else:
-            print(fs_id)
-            # This is compatibility code for when
-            # Load Ionic steps from gfs, then convert to trajectory before extending (compatibility code)
+            # Load Ionic steps from gfs, then convert to trajectory before extending
+            # (compatibility code for when mpmorph stored trajectories as a list of structure dicts)
             ionic_steps_dict = load_ionic_steps(fs_id=fs_id, db=mmdb.db, fs=fs)
-            ionic_steps_defaultdict = defaultdict(list)
-            for d in ionic_steps_dict:
-                for key, val in d.items():
-                    ionic_steps_defaultdict[key].append(val)
-            ionic_steps = dict(ionic_steps_defaultdict.items())
-
-            # extract structures from dictionary
-            structures = [Structure.from_dict(struct) for struct in ionic_steps['structure']]
-            del ionic_steps['structure']
-
-            frame_properties = {}
-            keys = set(ionic_steps_dict[0].keys()) - set(['structure'])
-            for key in keys:
-                if key in ['forces', 'stress']:
-                    frame_properties[key] = np.array(ionic_steps[key])
-                else:
-                    frame_properties[key] = ionic_steps[key]
-
-            # Create trajectory
-            _trajectory = Trajectory.from_structures(structures, constant_lattice=True,
-                                                     frame_properties=frame_properties,
-                                                     time_step=run[0]['input']['incar']['POTIM'])
+            _trajectory = convert_ionic_steps_to_trajectory((ionic_steps_dict))
         if trajectory is None:
             trajectory = _trajectory
         else:
