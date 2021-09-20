@@ -16,7 +16,7 @@ __email__ = 'esivonxay@lbl.gov'
 
 class AmorphousMaker(object):
     def __init__(self, el_num_dict, box_scale, tol=2.0, packmol_path="packmol",
-                 clean=True, xyz_paths=None, time_seed=False):
+                 clean=True, xyz_paths=None, time_seed=True):
         """
         Class for generating initial constrained-random packed structures for the
         simulation of amorphous or liquid structures. This is a wrapper for "packmol" package.
