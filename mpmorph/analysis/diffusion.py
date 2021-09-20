@@ -9,7 +9,7 @@ __author__ = 'Muratahan Aykol <maykol@lbl.gov>'
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.integrate as integrate
-from pymatgen import Element
+from pymatgen.core import Element
 from pymatgen.io.vasp import Xdatcar
 from scipy import stats
 

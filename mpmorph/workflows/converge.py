@@ -13,7 +13,7 @@ __email__ = 'esivonxay@lbl.gov'
 
 def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None,
                     max_steps=5000, target_steps=10000, preconverged=False,
-                    notes=None, save_data="all", aggregate_trajectory=True, **kwargs):
+                    notes=None, save_data="all", **kwargs):
     """
 
     Args:
@@ -27,7 +27,6 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
             or volume rescaling not desired
         notes: Any additional comments to propagate with this run
         save_data: Level to save job outputs. Options are "all", 'production', and None
-        aggregate_trajectory: Whether to aggregate trajectory to database
         **kwargs: Arguments such as spawner_args, converge_args, convergence_criteria,
             tag_id, prod_count, etc.
 
@@ -38,10 +37,6 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
     tag_id = kwargs.get('tag_id', uuid.uuid4())
     prod_count = kwargs.get('prod_count', 0)
     wf_name = kwargs.get('wf_name', f'{structure.composition.reduced_formula}_{temperature}_diffusion')
-
-    # To aggregate trajectory, the job output from the production runs must be saved.
-    if aggregate_trajectory and save_data is None:
-        save_data = "production"
 
     fw_list = []
 
@@ -138,10 +133,6 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
 
         prod_steps += max_steps
         prod_count += 1
-
-    if aggregate_trajectory:
-        fw_list[-1] = powerups.aggregate_trajectory(fw_list[-1], tag_id=tag_id, notes=notes,
-                                                    db_file=run_args["run_specs"]["db_file"])
 
     wf = Workflow(fireworks=fw_list, name=wf_name)
     return wf

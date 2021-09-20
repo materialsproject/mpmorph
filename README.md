@@ -43,8 +43,10 @@ Before diving headfirst into mpmorph, one should get familiar with how to run fi
 A sample of using mpmorph to run an AIMD simulation at 1500K for 200ps (100k steps at 2fs/step) is shown below:
 
 ```python
-from mpmorph.workflows.converge import get_converge_wf
-from pymatgen import MPRester
+
+from mpmorph.workflow.converge import get_converge_wf
+from pymatgen.ext.matproj import MPRester
+
 from fireworks import LaunchPad
 
 mpr = MPRester()

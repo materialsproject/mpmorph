@@ -5,7 +5,8 @@ import shutil
 from collections import OrderedDict
 
 import numpy as np
-from pymatgen import Structure, MPRester, Composition
+from pymatgen.core import Structure, Composition
+from pymatgen.ext.matproj import MPRester
 from pymatgen.io.vasp.inputs import Poscar
 
 __author__ = 'Eric Sivonxay, Jianli Cheng, and Muratahan Aykol'
@@ -15,7 +16,7 @@ __email__ = 'esivonxay@lbl.gov'
 
 class AmorphousMaker(object):
     def __init__(self, el_num_dict, box_scale, tol=2.0, packmol_path="packmol",
-                 clean=True, xyz_paths=None, time_seed=False):
+                 clean=True, xyz_paths=None, time_seed=True):
         """
         Class for generating initial constrained-random packed structures for the
         simulation of amorphous or liquid structures. This is a wrapper for "packmol" package.
