@@ -177,7 +177,7 @@ def runs_to_trajectory_doc(runs, db_file, runs_label, notes=None):
 
 def load_trajectories_from_gfs(runs, mmdb, gfs_keys=None):
     if gfs_keys is None:
-        # Attempt to automatically determine where the trajectory is stored
+        # Attempt to automatically determine where the trajectory is stored (for compatibility with older mpmorph)
         gfs_keys = []
         for run in runs:
             # 3 cases to deal with: 1) Trajectory 2) previous_runs (old mpmorph) 3) structures_fs
