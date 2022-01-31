@@ -9,14 +9,22 @@ from pymatgen.core import Structure, Composition
 from pymatgen.ext.matproj import MPRester
 from pymatgen.io.vasp.inputs import Poscar
 
+from typing import Union, Optional, List
+
 __author__ = 'Eric Sivonxay, Jianli Cheng, and Muratahan Aykol'
 __maintainer__ = 'Eric Sivonxay'
 __email__ = 'esivonxay@lbl.gov'
 
 
 class AmorphousMaker(object):
-    def __init__(self, el_num_dict, box_scale, tol=2.0, packmol_path="packmol",
-                 clean=True, xyz_paths=None, time_seed=True):
+    def __init__(self,
+                 el_num_dict:dict,
+                 box_scale:Union[float, List[float]],
+                 tol:float=2.0,
+                 packmol_path:str="packmol",
+                 clean:bool=True,
+                 xyz_paths:List=None,
+                 time_seed:bool=True):
         """
         Class for generating initial constrained-random packed structures for the
         simulation of amorphous or liquid structures. This is a wrapper for "packmol" package.
@@ -118,7 +126,8 @@ class AmorphousMaker(object):
             os.system("rm packmol.input")
         return self.xyz_to_dict("mixture.xyz")
 
-    def xyz_to_dict(self, filename):
+    def xyz_to_dict(self,
+                    filename:str):
         """
         This is a generic xyz to dictionary convertor.
         Used to get the structure from packmol output.
@@ -141,7 +150,8 @@ class AmorphousMaker(object):
         return self._el_dict
 
     @staticmethod
-    def get_structure(el_dict, lattice):
+    def get_structure(el_dict:dict,
+                      lattice:List[List]):
         """
         Args:
             el_dict (dict): coordinates of atoms for each element type
@@ -162,7 +172,9 @@ class AmorphousMaker(object):
         return Poscar(self.random_packed_structure)
 
     @staticmethod
-    def xyzdict_to_poscar(el_dict, lattice, filepath="POSCAR"):
+    def xyzdict_to_poscar(el_dict:dict,
+                          lattice:List[List],
+                          filepath:str="POSCAR"):
         """
         Generates XYZ file from element coordinate dictionary and lattice
         Args:
@@ -191,10 +203,32 @@ class AmorphousMaker(object):
                     f.write(" ".join([str(i) for i in atom]) + "\n")
 
 
-def get_random_packed(composition, add_specie=None, target_atoms=100,
-                      vol_per_atom=None, vol_exp=1.0, modify_species=None,
-                      use_random_seed=True):
-    mpr = MPRester()
+
+
+def get_random_packed(composition: Union[Composition, str],
+                      add_specie=None,
+                      target_atoms: int = 100,
+                      vol_per_atom:float=None,
+                      vol_exp:float=1.0,
+                      modify_species: dict = None,
+                      use_time_seed: bool = True,
+                      mpr: Optional[MPRester] = None):
+    """
+    Helper method to use the AmorphousMaker to generate a randomly packed unit cell. If the volume (per atom) of the
+    unit cell is not provided, the volume per atom will be predicted using structures from the materials project.
+
+    :param composition: Formula or composition of the desired unit cell
+    :param add_specie:
+    :param target_atoms: Desired number of atoms in the unit cell. Generated unit cell will have at least this many
+    atoms, although may be greater if the number of atoms in the specified formula/composition is evenly
+    divide target_atoms.
+    :param vol_per_atom: Volume of the unit cell in cubic Angstroms per atom (A^3/atom)
+    :param vol_exp: Factor to multiply the volume by.
+    :param modify_species:
+    :param use_time_seed: Whether or not to use a time based random seed. Defaults to true
+    :param mpr: custom MPRester object if additional specifications needed (such as API or endpoint)
+    :return:
+    """
 
     if type(composition) == str:
         composition = Composition(composition)
@@ -202,6 +236,9 @@ def get_random_packed(composition, add_specie=None, target_atoms=100,
         add_specie = Composition(add_specie)
 
     if vol_per_atom is None:
+        if mpr is None:
+            mpr = MPRester()
+
         comp_entries = mpr.get_entries(composition.reduced_formula,
                                        inc_structure=True)
         if len(comp_entries) > 0:
@@ -225,24 +262,23 @@ def get_random_packed(composition, add_specie=None, target_atoms=100,
 
     # Find total composition of atoms in the unit cell
     formula, factor = composition.get_integer_formula_and_factor()
-    composition = Composition(formula)
-    comp = composition * np.ceil(target_atoms / composition.num_atoms)
+    integer_composition = Composition(formula)
+    full_cell_composition = integer_composition * np.ceil(target_atoms / integer_composition.num_atoms)
     if add_specie is not None:
-        comp += add_specie
-        # comp = Composition(comp)
+        full_cell_composition += add_specie
 
     # Generate dict of elements and amounts for AmorphousMaker
     structure = {}
-    for el in comp:
-        structure[str(el)] = int(comp.element_composition.get(el))
+    for el in full_cell_composition:
+        structure[str(el)] = int(full_cell_composition.element_composition.get(el))
 
     if modify_species is not None:
         for i, v in modify_species.items():
             structure[i] += v
     # use packmol to get a random configured structure
     packmol_path = os.environ['PACKMOL_PATH']
-    amorphous_maker_params = {'box_scale': (vol_per_atom * comp.num_atoms * vol_exp) ** (1 / 3),
-                              'packmol_path': packmol_path, 'xyz_paths': None, 'time_seed' : use_random_seed}
+    amorphous_maker_params = {'box_scale': (vol_per_atom * full_cell_composition.num_atoms * vol_exp) ** (1 / 3),
+                              'packmol_path': packmol_path, 'xyz_paths': None, 'time_seed': use_time_seed}
 
     glass = AmorphousMaker(structure, **amorphous_maker_params)
     structure = glass.random_packed_structure
