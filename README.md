@@ -29,7 +29,7 @@ Before installing mpmorph, install the latest version of [pymatgen](http://www.p
 
 clone the repository to your computer and install using 
 ```bash
-python setup.py install
+python setup.py develop
 ```
 
 If you wish to make amorphous structures, please install [packmol](http://m3g.iqm.unicamp.br/packmol/home.shtml) on your machine and add the following line to your bash profile. 
