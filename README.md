@@ -44,7 +44,7 @@ A sample of using mpmorph to run an AIMD simulation at 1500K for 200ps (100k ste
 
 ```python
 
-from mpmorph.workflow.converge import get_converge_wf
+from mpmorph.workflows.converge import get_converge_wf
 from pymatgen.ext.matproj import MPRester
 
 from fireworks import LaunchPad
