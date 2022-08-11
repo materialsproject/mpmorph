@@ -11,7 +11,7 @@ __maintainer__ = 'Eric Sivonxay'
 __email__ = 'esivonxay@lbl.gov'
 
 
-def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None,
+def get_converge_wf(structure, temperature, converge_scheme='EOS', ml_ff=False, priority=None,
                     max_steps=5000, target_steps=10000, preconverged=False,
                     notes=None, save_data="all", **kwargs):
     """
@@ -49,6 +49,17 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
                     "spec": {'_priority': priority}
                 }
                 }
+    if ml_ff:
+        run_args['optional_fw_params'] = {
+                    "override_default_vasp_params": {'user_incar_settings': {
+                                                                             'NPAR': 4,
+                                                                             'ML_LMLFF': True,
+                                                                             'ML_ISTART': 0,
+                                                                             'ML_MB': 5000,
+                                                                             }},
+                    "spec": {'_priority': priority}
+                }
+
     run_args = recursive_update(run_args, kwargs.get('converge_args', {}))
 
     # Setup Dictionary specifying parameters of the spawner for convergence tasks
