@@ -57,42 +57,8 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        conda install -c conda-forge graph-tool
-        pip install -r requirements.txt
-        pip install -r requirements-optional.txt
-        pip install -r requirements-testing.txt
         pip install -e .
 
     - name: Test with pytest
       run: |
-        pytest --cov=src/rxn_network --cov-report=xml
-
-    - uses: codecov/codecov-action@v1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage.xml
-  
-  docs:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -l {0}
-    steps:
-    - uses: actions/checkout@v2.4.0
-    - uses: conda-incubator/setup-miniconda@v2
-      with:
-        miniconda-version: "latest"
-        python-version: 3.9
-        activate-environment: foo
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        conda install -c conda-forge graph-tool
-        pip install -r requirements.txt
-        pip install -r requirements-optional.txt
-        pip install -r requirements-docs.txt
-        pip install -e .
-
-    - name: Build docs
-      run: mkdocs build
+        pytest --cov=src/mpmorph --cov-report=xml
