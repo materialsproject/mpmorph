@@ -41,20 +41,25 @@ def PV_rescale(md_jobs):
 
 #flow
 
-#obtains all the structures
-rescaler = [0.8, 1, 1.2]
-structures = [structure.copy() for factor in rescaler]
-for index, factor in enumerate(rescaler):
-    structures[index].scale_lattice(structure.volume * factor)
+def get_converge_flow(structure):
+    #obtains all the structures
+    rescaler = [0.8, 1, 1.2]
+    structures = [structure.copy() for factor in rescaler]
+    for index, factor in enumerate(rescaler):
+        structures[index].scale_lattice(structure.volume * factor)
     
-#runs an aimd calc for each structure
-md_jobs = []
-for i, struc in enumerate(structure):
-    md_job= MDMaker(name = 'unique identifier_struc_scaler').make(structure)
-    md_job.maker.input_set_generator.user_incar_settings["NSW"] = 10  
-    md_job.StorePressureVolumeDatainTaskDoc #
-    md_jobs.append(md_job)
+    #runs an aimd calc for each structure
+    md_jobs = []
+    for i, struc in enumerate(structure):
+        md_job= MDMaker(name = 'unique identifier_struc_scaler').make(structure)
+        md_job.maker.input_set_generator.user_incar_settings["NSW"] = 10  
+        md_job.StorePressureVolumeDatainTaskDoc #
+        md_jobs.append(md_job)
 
-PV_rescale_job = PV_rescale([job.output for job in md_jobs])
-production_run_md_job = MDMaker(name = 'unique identifier_struc_scaler').make(PV_rescale_job.output)
-
+    #Dynamic job
+    PV_rescale_job = PV_rescale([job.output for job in md_jobs])
+    production_run_md_job = MDMaker(name = 'unique identifier_struc_scaler').make(PV_rescale_job.output)
+    
+    flow = Flow([md_jobs, static_flow, datapoint_job])
+    
+    return flow 
