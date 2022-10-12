@@ -1,4 +1,3 @@
-import glob
 
 import pytest
 from pymatgen.io.vasp.outputs import Xdatcar
