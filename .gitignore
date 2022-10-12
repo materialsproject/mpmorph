@@ -10,3 +10,8 @@ mpmorph/\.idea/mpmorph\.iml
 mpmorph/\.idea/workspace\.xml
 
 *.pyc
+
+.idea/
+build/
+dist/
+mpmorph.egg-info/
