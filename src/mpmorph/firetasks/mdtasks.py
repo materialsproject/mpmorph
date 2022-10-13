@@ -4,7 +4,7 @@ import numpy as np
 from fireworks import explicit_serialize, Workflow, FireTaskBase, FWAction
 from mpmorph.analysis import md_data
 from mpmorph.runners.rescale_volume import RescaleVolume, fit_BirchMurnaghanPV_EOS
-from mpmorph.util import recursive_update
+from mpmorph.utils import recursive_update
 from pymatgen.core import Structure
 from pymatgen.io.vasp import Poscar
 from pymatgen.io.vasp.outputs import Vasprun
