@@ -5,9 +5,10 @@ from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
 from atomate.vasp.fireworks.core import StaticFW
 from fireworks import Firework
+from pymatgen.io.vasp.sets import MPMDSet, MPRelaxSet, MPStaticSet
+
 from mpmorph.firetasks.dbtasks import VaspMDToDb
 from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask
-from pymatgen.io.vasp.sets import MPMDSet, MPStaticSet, MPRelaxSet
 
 """
 These fireworks were adapted from atomate.vasp.fireworks.core specifically for this package. 
@@ -19,10 +20,25 @@ __email__ = "esivonxay@lbl.gov"
 
 
 class MDFW(Firework):
-    def __init__(self, structure, start_temp, end_temp, nsteps, name="molecular dynamics",
-                 vasp_input_set=None, vasp_cmd="vasp", override_default_vasp_params=None,
-                 wall_time=None, db_file=None, parents=None, copy_vasp_outputs=False,
-                 previous_structure=False, insert_db=False, save_structure=True, **kwargs):
+    def __init__(
+        self,
+        structure,
+        start_temp,
+        end_temp,
+        nsteps,
+        name="molecular dynamics",
+        vasp_input_set=None,
+        vasp_cmd="vasp",
+        override_default_vasp_params=None,
+        wall_time=None,
+        db_file=None,
+        parents=None,
+        copy_vasp_outputs=False,
+        previous_structure=False,
+        insert_db=False,
+        save_structure=True,
+        **kwargs,
+    ):
         """
         This Firework is modified from atomate.vasp.fireworks.core.MDFW to fit the needs of mpmorph
         Standard firework for a single MD run.
@@ -47,36 +63,65 @@ class MDFW(Firework):
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
         override_default_vasp_params = override_default_vasp_params or {}
-        vasp_input_set = vasp_input_set or MPMDSet(structure, start_temp=start_temp,
-                                                   end_temp=end_temp, nsteps=nsteps,
-                                                   **override_default_vasp_params)
+        vasp_input_set = vasp_input_set or MPMDSet(
+            structure,
+            start_temp=start_temp,
+            end_temp=end_temp,
+            nsteps=nsteps,
+            **override_default_vasp_params,
+        )
 
         t = []
 
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         if previous_structure:
             t.append(PreviousStructureTask())
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, gamma_vasp_cmd=">>gamma_vasp_cmd<<",
-                                  handler_group="md", wall_time=wall_time))
+        t.append(
+            RunVaspCustodian(
+                vasp_cmd=vasp_cmd,
+                gamma_vasp_cmd=">>gamma_vasp_cmd<<",
+                handler_group="md",
+                wall_time=wall_time,
+            )
+        )
         t.append(PassCalcLocs(name=name))
         if save_structure:
             t.append(SaveStructureTask())
-        name = f'{structure.composition.reduced_formula}-{name}'
+        name = f"{structure.composition.reduced_formula}-{name}"
         if insert_db:
-            t.append(VaspMDToDb(db_file=db_file, additional_fields={"task_label": name},
-                                defuse_unsuccessful=False, md_structures=True))
+            t.append(
+                VaspMDToDb(
+                    db_file=db_file,
+                    additional_fields={"task_label": name},
+                    defuse_unsuccessful=False,
+                    md_structures=True,
+                )
+            )
         super(MDFW, self).__init__(t, parents=parents, name=name, **kwargs)
 
 
 class OptimizeFW(Firework):
-    def __init__(self, structure, name="structure optimization", vasp_input_set=None,
-                 insert_db=True, vasp_cmd="vasp", override_default_vasp_params=None,
-                 ediffg=None, db_file=None, force_gamma=True,
-                 job_type="double_relaxation_run", max_force_threshold=None,
-                 previous_structure=False, auto_npar=">>auto_npar<<",
-                 half_kpts_first_relax=False, parents=None,
-                 handler_group="default",
-                 prev_calc_loc=False, **kwargs):
+    def __init__(
+        self,
+        structure,
+        name="structure optimization",
+        vasp_input_set=None,
+        insert_db=True,
+        vasp_cmd="vasp",
+        override_default_vasp_params=None,
+        ediffg=None,
+        db_file=None,
+        force_gamma=True,
+        job_type="double_relaxation_run",
+        max_force_threshold=None,
+        previous_structure=False,
+        auto_npar=">>auto_npar<<",
+        half_kpts_first_relax=False,
+        parents=None,
+        handler_group="default",
+        prev_calc_loc=False,
+        **kwargs,
+    ):
         """
         Optimize the given structure.
         Args:
@@ -99,40 +144,59 @@ class OptimizeFW(Firework):
         """
         override_default_vasp_params = override_default_vasp_params or {}
         vasp_input_set = vasp_input_set or MPRelaxSet(
-            structure, force_gamma=force_gamma, **override_default_vasp_params)
+            structure, force_gamma=force_gamma, **override_default_vasp_params
+        )
 
         t = []
         if prev_calc_loc:
             additional_files = kwargs.get("additional_files", [])
             if "additional_files" in kwargs.keys():
                 del kwargs["additional_files"]
-            t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, contcar_to_poscar=True, additional_files=additional_files))
-        t.append(WriteVaspFromIOSet(structure=structure,
-                                    vasp_input_set=vasp_input_set))
+            t.append(
+                CopyVaspOutputs(
+                    calc_loc=prev_calc_loc,
+                    contcar_to_poscar=True,
+                    additional_files=additional_files,
+                )
+            )
+        t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
         if previous_structure:
             t.append(PreviousStructureTask())
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, job_type=job_type,
-                                  max_force_threshold=max_force_threshold,
-                                  ediffg=ediffg,
-                                  auto_npar=auto_npar,
-                                  half_kpts_first_relax=half_kpts_first_relax,
-                                  handler_group=handler_group))
+        t.append(
+            RunVaspCustodian(
+                vasp_cmd=vasp_cmd,
+                job_type=job_type,
+                max_force_threshold=max_force_threshold,
+                ediffg=ediffg,
+                auto_npar=auto_npar,
+                half_kpts_first_relax=half_kpts_first_relax,
+                handler_group=handler_group,
+            )
+        )
         t.append(PassCalcLocs(name=name))
         t.append(SaveStructureTask())
 
         if insert_db:
             t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-        name = f'{structure.composition.reduced_formula}-{name}'
+        name = f"{structure.composition.reduced_formula}-{name}"
         super(OptimizeFW, self).__init__(t, parents=parents, name=name, **kwargs)
 
 
 class StaticFW(Firework):
-    def __init__(self, structure, name="static",
-                 previous_structure=False, vasp_input_set=None,
-                 vasp_cmd="vasp", db_file=None, parents=None,
-                 override_default_vasp_params=None,
-                 pass_structure=True,
-                 prev_calc_loc=False, **kwargs):
+    def __init__(
+        self,
+        structure,
+        name="static",
+        previous_structure=False,
+        vasp_input_set=None,
+        vasp_cmd="vasp",
+        db_file=None,
+        parents=None,
+        override_default_vasp_params=None,
+        pass_structure=True,
+        prev_calc_loc=False,
+        **kwargs,
+    ):
         """
         This Firework is modified from atomate.vasp.fireworks.core.StaticFW to fit the needs of mpmorph
         Standard static calculation Firework - either from a previous location or from a structure.
@@ -154,7 +218,9 @@ class StaticFW(Firework):
 
         t = []
         override_default_vasp_params = override_default_vasp_params or {}
-        vasp_input_set = vasp_input_set or MPStaticSet(structure, **override_default_vasp_params)
+        vasp_input_set = vasp_input_set or MPStaticSet(
+            structure, **override_default_vasp_params
+        )
         if prev_calc_loc:
             t.append(CopyVaspOutputs(calc_loc=prev_calc_loc, contcar_to_poscar=True))
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
@@ -164,5 +230,5 @@ class StaticFW(Firework):
         t.append(SaveStructureTask())
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-        name = f'{structure.composition.reduced_formula}-{name}'
+        name = f"{structure.composition.reduced_formula}-{name}"
         super(StaticFW, self).__init__(t, parents=parents, name=name, **kwargs)

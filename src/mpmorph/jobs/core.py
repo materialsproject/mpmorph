@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from jobflow import SETTINGS, Maker, job
+from jobflow import Maker, job
 from m3gnet.models import MolecularDynamics
-from pymatgen.core import Lattice, Structure
+from pymatgen.core import Structure
 
 from mpmorph.jobs.schema import M3GNetCalculation
 

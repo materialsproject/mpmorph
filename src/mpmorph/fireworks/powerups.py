@@ -1,10 +1,17 @@
-from mpmorph.firetasks.dbtasks import VaspMDToDb, TrajectoryDBTask
-from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask, \
-    PassPVTask
-from mpmorph.firetasks.mdtasks import RescaleVolumeTask, ConvergeTask, PVRescaleTask, \
-    DiffusionTask
+from mpmorph.firetasks.dbtasks import TrajectoryDBTask, VaspMDToDb
+from mpmorph.firetasks.glue_tasks import (
+    PassPVTask,
+    PreviousStructureTask,
+    SaveStructureTask,
+)
+from mpmorph.firetasks.mdtasks import (
+    ConvergeTask,
+    DiffusionTask,
+    PVRescaleTask,
+    RescaleVolumeTask,
+)
 
-__author__ = 'Eric Sivonxay and Jianli Cheng'
+__author__ = "Eric Sivonxay and Jianli Cheng"
 __maintainer__ = "Eric Sivonxay"
 __email__ = "esivonxay@lbl.gov"
 
@@ -90,9 +97,12 @@ def replace_pass_structure(fw, **kwargs):
     # look for rescale_volume task
     replaced = False
     fw_dict = fw.to_dict()
-    for i in range(len(fw_dict['spec']['_tasks'])):
-        if fw_dict['spec']['_tasks'][i]["_fw_name"] == '{{mpmorph.firetasks.glue_tasks.SaveStructureTask}}':
-            del fw_dict['spec']['_tasks'][i]["_fw_name"]
+    for i in range(len(fw_dict["spec"]["_tasks"])):
+        if (
+            fw_dict["spec"]["_tasks"][i]["_fw_name"]
+            == "{{mpmorph.firetasks.glue_tasks.SaveStructureTask}}"
+        ):
+            del fw_dict["spec"]["_tasks"][i]["_fw_name"]
             fw.tasks[i] = SaveStructureTask(**kwargs)
             replaced = True
             break
@@ -108,10 +118,13 @@ def replace_vaspmdtodb(fw):
     # look for vaspdb task
     replaced = False
     fw_dict = fw.to_dict()
-    for i in range(len(fw_dict['spec']['_tasks'])):
-        if fw_dict['spec']['_tasks'][i]["_fw_name"] == '{{atomate.vasp.firetasks.parse_outputs.VaspToDb}}':
-            del fw_dict['spec']['_tasks'][i]["_fw_name"]
-            fw.tasks[i] = VaspMDToDb(**fw_dict['spec']['_tasks'][i])
+    for i in range(len(fw_dict["spec"]["_tasks"])):
+        if (
+            fw_dict["spec"]["_tasks"][i]["_fw_name"]
+            == "{{atomate.vasp.firetasks.parse_outputs.VaspToDb}}"
+        ):
+            del fw_dict["spec"]["_tasks"][i]["_fw_name"]
+            fw.tasks[i] = VaspMDToDb(**fw_dict["spec"]["_tasks"][i])
             replaced = True
             break
     # TODO: Replace with real error handling

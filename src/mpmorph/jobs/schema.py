@@ -37,7 +37,7 @@ class M3GNetCalculation(BaseModel):
         """
         dir_name = Path(dir_name)
 
-        trajectory = AseTrajectory(filename=dir_name / trajectory_fn)
+        trajectory = AseTrajectory(filename=str(dir_name / trajectory_fn))
 
         return cls.from_trajectory(trajectory)
 
@@ -49,17 +49,15 @@ class M3GNetCalculation(BaseModel):
             metadata: The metadata dictionary. like the temperature and timestep of the MD run.
             **kwargs: Additional keyword arguments to pass to the M3GNetCalculation.
         """
-        traj = AseTrajectory(trajectory)
-        structure_list = []
-        for _, atoms in enumerate(traj[:]):  # first MD run
-            structure = AseAtomsAdaptor.get_structure(atoms)
-            structure_list.append(structure)
+        structures = []
+        for atoms in trajectory:
+            struct = AseAtomsAdaptor.get_structure(atoms)
+            structures.append(struct)
 
-        traj_pmg = PmgTrajectory.from_structures(structure_list)
-        traj_dict = traj_pmg.as_dict()
+        traj_pmg = PmgTrajectory.from_structures(structures)
 
         metadata = {}
 
-        d = {"trajectory": traj_dict, "metadata": metadata}
+        d = {"trajectory": traj_pmg, "metadata": metadata}
 
         return cls(**d, **kwargs)

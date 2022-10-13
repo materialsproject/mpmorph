@@ -5,11 +5,11 @@ import shutil
 
 import numpy as np
 
-__author__ = 'Muratahan Aykol <maykol@lbl.gov>'
+__author__ = "Muratahan Aykol <maykol@lbl.gov>"
 
 
 def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
-    '''
+    """
     Extracts the pressure, kinetic energy and total energy data from
     VASP MD OUTCAR.
 
@@ -22,7 +22,7 @@ def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
     Returns:
         - A nested list of MD steps where each search key value is
           listed.
-    '''
+    """
     # Initial map of keywords to serach for and data to map out from that line in OUTCAR
     # search_keys = ['external', 'kinetic energy EKIN', 'ETOTAL']
     # index of stripped column of data in that line, starts from 0
@@ -30,11 +30,11 @@ def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
     if search_data_column is None:
         search_data_column = [3, 4, 4, 4]
     if search_keys is None:
-        search_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
+        search_keys = ["external", "kinetic energy EKIN", "% ion-electron", "ETOTAL"]
 
     if "OUTCAR.gz" in outcar_path:
-        with gzip.open(outcar_path, 'rb') as f_in:
-            with open(outcar_path[:-3], 'wb') as f_out:
+        with gzip.open(outcar_path, "rb") as f_in:
+            with open(outcar_path[:-3], "wb") as f_out:
                 shutil.copyfileobj(f_in, f_out)
         outcar_path = outcar_path[:-3]
 
@@ -49,10 +49,14 @@ def get_MD_data(outcar_path, search_keys=None, search_data_column=None):
             if re.search(search_keys[key_index], line):
                 if key_index == 0:
                     data_list.append([[]] * len(search_keys))
-                    data_list[md_step][0] = float(line.split()[search_data_column[key_index]])
+                    data_list[md_step][0] = float(
+                        line.split()[search_data_column[key_index]]
+                    )
                 else:
                     try:
-                        data_list[md_step][key_index] = float(line.split()[search_data_column[key_index]])
+                        data_list[md_step][key_index] = float(
+                            line.split()[search_data_column[key_index]]
+                        )
                     except IndexError:
                         break
                 if key_index == len(search_keys) - 1:
@@ -73,8 +77,8 @@ def autocorrelation(data_list, search_keys=None, skip_first=0):
 
     """
     if search_keys is None:
-        search_keys = ['external', 'kinetic energy EKIN', '% ion-electron', 'ETOTAL']
-    pressures = [x[search_keys.index('external')] for x in data_list][skip_first:]
+        search_keys = ["external", "kinetic energy EKIN", "% ion-electron", "ETOTAL"]
+    pressures = [x[search_keys.index("external")] for x in data_list][skip_first:]
     pres_fluc = pressures - np.mean(pressures)
     correlation = np.zeros(len(pressures) - 1)
     for i in range(0, len(pressures) - 1):
@@ -94,7 +98,7 @@ def get_correlation_time(data_list, skip_first=0):
     for i in range(len(autocorr)):
         if autocorr[i] <= 0:
             return i
-    raise ReferenceError('Simulation too short')
+    raise ReferenceError("Simulation too short")
 
 
 def get_MD_stats(data_list):
@@ -111,15 +115,19 @@ def get_MD_stats(data_list):
 
 
 def parse_pressure(path, averaging_fraction=0.5):
-    os.system("grep external " + path + "/OUTCAR | awk '{print $4}' > " + path + "/pres")
-    os.system("grep volume/ion " + path + "/OUTCAR | awk '{print $5}' > " + path + "/vol")
+    os.system(
+        "grep external " + path + "/OUTCAR | awk '{print $4}' > " + path + "/pres"
+    )
+    os.system(
+        "grep volume/ion " + path + "/OUTCAR | awk '{print $5}' > " + path + "/vol"
+    )
     if os.path.isfile(path + "/OUTCAR"):
         with open(path + "/pres") as f:
             p = [float(line.rstrip()) for line in f]
         with open(path + "/vol") as f:
             vol = [float(line.rstrip()) for line in f][0]
         pressure = np.array(p)
-        avg_pres = np.mean(pressure[int(averaging_fraction * (len(pressure) - 1)):])
+        avg_pres = np.mean(pressure[int(averaging_fraction * (len(pressure) - 1)) :])
     else:
         raise ValueError("No OUTCAR found.")
     return avg_pres, vol, pressure
