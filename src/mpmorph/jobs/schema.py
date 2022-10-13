@@ -1,9 +1,10 @@
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Iterable, Union
 
 from ase.io.trajectory import Trajectory as AseTrajectory
 from pydantic import BaseModel, Field
+from pymatgen.core.composition import Composition
 from pymatgen.core.trajectory import Trajectory as PmgTrajectory
 from pymatgen.io.ase import AseAtomsAdaptor
 
@@ -19,9 +20,16 @@ class M3GNetCalculation(BaseModel):
     trajectory: PmgTrajectory = Field(
         None, description="The pymatgen Trajectory object stored ad dictionary"
     )
+    composition: Composition = Field(description="The composition of the structure.")
+    reduced_formula: str = Field(
+        description="The reduced formula of the structure's composition."
+    )
     metadata: dict = Field(
         None,
-        description="The key info of the MD run like the temperature and time step",
+        description=(
+            "Important info about the calculation, including ensemble type,"
+            " temperature, etc."
+        ),
     )
 
     @classmethod
@@ -29,6 +37,12 @@ class M3GNetCalculation(BaseModel):
         cls,
         dir_name: Union[Path, str],
         trajectory_fn="out.traj",
+        frame_properties=(
+            "total_energy",
+            "potential_energy",
+            "kinetic_energy",
+        ),
+        **kwargs,
     ):
 
         """
@@ -39,10 +53,22 @@ class M3GNetCalculation(BaseModel):
 
         trajectory = AseTrajectory(filename=str(dir_name / trajectory_fn))
 
-        return cls.from_trajectory(trajectory)
+        return cls.from_trajectory(
+            trajectory, frame_properties=frame_properties, **kwargs
+        )
 
     @classmethod
-    def from_trajectory(cls, trajectory: AseTrajectory, **kwargs):
+    def from_trajectory(
+        cls,
+        trajectory: AseTrajectory,
+        frame_properties: Iterable[str] = (
+            "total_energy",
+            "potential_energy",
+            "kinetic_energy",
+            "temperature",
+        ),
+        **kwargs,
+    ):
         """
         Args:
             trajectory: the trajectory file saved from  MolecularDynamics to out.traj
@@ -50,14 +76,27 @@ class M3GNetCalculation(BaseModel):
             **kwargs: Additional keyword arguments to pass to the M3GNetCalculation.
         """
         structures = []
+        frame_properties = []
+
+        initial_structure = AseAtomsAdaptor.get_structure(trajectory[0])
+
         for atoms in trajectory:
             struct = AseAtomsAdaptor.get_structure(atoms)
+            frame_props = {k: getattr(atoms, f"get_{k}")() for k in frame_properties}
+
             structures.append(struct)
+            frame_properties.append(frame_props)
 
-        traj_pmg = PmgTrajectory.from_structures(structures)
+        traj_pmg = PmgTrajectory.from_structures(
+            structures,
+            frame_properties=frame_properties,
+            time_step=trajectory.description["timestep"],
+        )
 
-        metadata = {}
-
-        d = {"trajectory": traj_pmg, "metadata": metadata}
+        d = {
+            "trajectory": traj_pmg,
+            "composition": initial_structure.composition,
+            "reduced_formula": initial_structure.composition.reduced_formula,
+        }
 
         return cls(**d, **kwargs)
