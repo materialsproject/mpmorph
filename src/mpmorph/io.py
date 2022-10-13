@@ -2,10 +2,8 @@ import itertools
 
 from monty.io import zopen
 
-__author__ = 'Eric Sivonxay'
 
-
-class Xdatcar_Writer():
+class Xdatcar_Writer:
     def write_xdatcar(self, filename, **kwargs):
         """
         Writes Xdatcar to a file. The supported kwargs are the same as those for
@@ -14,7 +12,9 @@ class Xdatcar_Writer():
         with zopen(filename, "wt") as f:
             f.write(self.get_string_from_struct(**kwargs))
 
-    def get_string_from_struct(self, structures, system="unknown system", significant_figures=6):
+    def get_string_from_struct(
+        self, structures, system="unknown system", significant_figures=6
+    ):
         format_str = "{{:.{0}f}}".format(significant_figures)
 
         for (si, structure) in enumerate(structures):
@@ -48,7 +48,7 @@ class Xdatcar_Writer():
         return [len(tuple(a[1])) for a in itertools.groupby(syms)]
 
 
-class Xdatcar_Writer_Trajectory():
+class Xdatcar_Writer_Trajectory:
     def __init__(self, trajectory):
         self.trajectory = trajectory
 
@@ -63,13 +63,13 @@ class Xdatcar_Writer_Trajectory():
     def get_string(self, system="unknown system", significant_figures=6):
         lines = [system, "1.0"]
         for direction in self.trajectory.lattice:
-            lines.append(' '.join([str(i) for i in direction]))
+            lines.append(" ".join([str(i) for i in direction]))
         lines.append(" ".join(self.get_site_symbols()))
         lines.append(" ".join([str(x) for x in self.get_natoms()]))
 
         format_str = "{{:.{0}f}}".format(significant_figures)
         positions = self.trajectory.frac_coords
-        #         positions = np.add(self.trajectory[0].frac_coords, self.trajectory.displacements)
+        #  positions = np.add(self.trajectory[0].frac_coords, self.trajectory.displacements)
         atoms = [site.specie.symbol for site in self.trajectory[0]]
 
         for (si, position_array) in enumerate(positions):

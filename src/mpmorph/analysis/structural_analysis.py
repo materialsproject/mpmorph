@@ -8,8 +8,6 @@ from pymatgen.io.vasp.outputs import Xdatcar
 from pymatgen.util.coord import get_angle
 from scipy.spatial import Voronoi
 
-__author__ = 'Muratahan Aykol <maykol@lbl.gov>'
-
 
 def polyhedra_connectivity(structures, pair, cutoff, step_freq=1):
     """
@@ -59,15 +57,32 @@ def polyhedra_connectivity(structures, pair, cutoff, step_freq=1):
 
             if shared_vertices:
                 if polyhedra_pair_type in connectivity_sub_categories:
-                    if shared_vertices in connectivity_sub_categories[polyhedra_pair_type]:
-                        connectivity_sub_categories[polyhedra_pair_type][shared_vertices] += 1
+                    if (
+                        shared_vertices
+                        in connectivity_sub_categories[polyhedra_pair_type]
+                    ):
+                        connectivity_sub_categories[polyhedra_pair_type][
+                            shared_vertices
+                        ] += 1
                 elif polyhedra_pair_type[::-1] in connectivity_sub_categories:
-                    if shared_vertices in connectivity_sub_categories[polyhedra_pair_type[::-1]]:
-                        connectivity_sub_categories[polyhedra_pair_type[::-1]][shared_vertices] += 1
+                    if (
+                        shared_vertices
+                        in connectivity_sub_categories[polyhedra_pair_type[::-1]]
+                    ):
+                        connectivity_sub_categories[polyhedra_pair_type[::-1]][
+                            shared_vertices
+                        ] += 1
                 else:
-                    connectivity_sub_categories[polyhedra_pair_type] = deepcopy(connectivity_template)
-                    if shared_vertices in connectivity_sub_categories[polyhedra_pair_type]:
-                        connectivity_sub_categories[polyhedra_pair_type][shared_vertices] = 1
+                    connectivity_sub_categories[polyhedra_pair_type] = deepcopy(
+                        connectivity_template
+                    )
+                    if (
+                        shared_vertices
+                        in connectivity_sub_categories[polyhedra_pair_type]
+                    ):
+                        connectivity_sub_categories[polyhedra_pair_type][
+                            shared_vertices
+                        ] = 1
     return connectivity, connectivity_sub_categories
 
 
@@ -135,12 +150,14 @@ class BondAngleDistribution(object):
         self.unique_triplets = self.get_unique_triplets(structures[0])
         if isinstance(cutoffs, dict):
             self.cutoffs = cutoffs
-            self._cutoff_type = 'dict'
+            self._cutoff_type = "dict"
         elif isinstance(cutoffs, float):
             self.cutoffs = cutoffs
-            self._cutoff_type = 'constant'
+            self._cutoff_type = "constant"
         else:
-            raise ValueError("Cutoffs must be specified as dict of pairs or globally as a single flaot.")
+            raise ValueError(
+                "Cutoffs must be specified as dict of pairs or globally as a single flaot."
+            )
 
     @property
     def n_frames(self):
@@ -160,7 +177,9 @@ class BondAngleDistribution(object):
             (float) Angle in degrees.
         """
         structure = self.structures[s_index]
-        lat_vec = np.array([structure.lattice.a, structure.lattice.b, structure.lattice.c])
+        lat_vec = np.array(
+            [structure.lattice.a, structure.lattice.b, structure.lattice.c]
+        )
 
         v1 = structure[i].coords - structure[j].coords
         v2 = structure[k].coords - structure[j].coords
@@ -176,6 +195,7 @@ class BondAngleDistribution(object):
     def get_unique_triplets(s):
         central_atoms = s.symbol_set
         import itertools
+
         possible_end_members = []
         for i in itertools.combinations_with_replacement(central_atoms, 2):
             possible_end_members.append(i)
@@ -220,7 +240,7 @@ class BondAngleDistribution(object):
             s = self.structures[s_index]
 
             # Narrow down the search space around a given atom for neighbors
-            if self._cutoff_type == 'dict':
+            if self._cutoff_type == "dict":
                 neighbor_search_cutoff = max(self.cutoffs.values())
             else:
                 neighbor_search_cutoff = self.cutoffs
@@ -233,7 +253,7 @@ class BondAngleDistribution(object):
                 for p in itertools.combinations(neighbors[i], 2):
 
                     # check if pairs are within the defined cutoffs
-                    if self._cutoff_type == 'dict':
+                    if self._cutoff_type == "dict":
                         if self._check_skip_triplet(s_index, i, p[0][2], p[1][2]):
                             continue
                     else:
@@ -260,13 +280,14 @@ class BondAngleDistribution(object):
 
     def plot_bond_angle_distribution(self):
         import matplotlib.pyplot as plt
+
         if not self.bond_angle_distribution:
             self.get_bond_angle_distribution()
         plt.figure()
         triplets = self.bond_angle_distribution.keys()
         legend = []
         for trip in triplets:
-            legend.append('-'.join(trip))
+            legend.append("-".join(trip))
         for triplet in triplets:
             plt.plot(range(180 + 1), self.bond_angle_distribution[triplet])
 
@@ -277,6 +298,7 @@ class BondAngleDistribution(object):
 
     def get_binary_angle_dist_plot(self, title=None):
         import matplotlib.pyplot as plt
+
         fig = plt.figure(figsize=(12, 6))
         c = 0
         maxes = []
@@ -286,17 +308,19 @@ class BondAngleDistribution(object):
             ax = fig.add_subplot(2, 3, c)
             ax.plot(range(len(p)), p)
             maxes.append(max(p))
-            ax.annotate('-'.join(triplet), (0.75, 0.88), xycoords='axes fraction', size=16)
+            ax.annotate(
+                "-".join(triplet), (0.75, 0.88), xycoords="axes fraction", size=16
+            )
             ax.set_yticklabels([])
             ax.xaxis.set_ticks(np.arange(0, 181, 30))
             plt.gca().set_ylim([0, 0.1])
             if c in [1, 2, 3]:
                 ax.set_xticklabels([])
             else:
-                plt.xlabel('Angle (degrees)', fontsize=16)
+                plt.xlabel("Angle (degrees)", fontsize=16)
             if c in [1, 4]:
-                plt.ylabel('Intensity (a.u.)', fontsize=16)
-            ax.tick_params(axis='both', which='major', labelsize=16)
+                plt.ylabel("Intensity (a.u.)", fontsize=16)
+            ax.tick_params(axis="both", which="major", labelsize=16)
             if c == 2:
                 if title:
                     plt.title(title)
@@ -308,7 +332,7 @@ class BondAngleDistribution(object):
 
 
 def compute_mean_coord(structures, freq=100):
-    '''
+    """
     NOTE: This function will be removed as it has been migrated
     to pymatgen.
     Calculate average coordination numbers
@@ -318,7 +342,7 @@ def compute_mean_coord(structures, freq=100):
         - freq: sampling frequency of coord number [every freq steps]
     returns:
         - a dictionary of elements and corresponding mean coord numbers
-    '''
+    """
     cn_dict = {}
     for el in structures[0].composition.elements:
         cn_dict[el.name] = 0.0
@@ -385,7 +409,9 @@ class VoronoiAnalysis(object):
                         pass
         return vor_index
 
-    def from_structures(self, structures, cutoff=4.0, step_freq=10, qhull_options="Qbb Qc Qz"):
+    def from_structures(
+        self, structures, cutoff=4.0, step_freq=10, qhull_options="Qbb Qc Qz"
+    ):
         """
         A constructor to perform Voronoi analysis on a list of pymatgen structrue objects
 
@@ -407,30 +433,38 @@ class VoronoiAnalysis(object):
 
             v = []
             for n in range(len(structure)):
-                v.append(str(self.voronoi_analysis(structure, n=n, cutoff=cutoff,
-                                                   qhull_options=qhull_options).view()))
+                v.append(
+                    str(
+                        self.voronoi_analysis(
+                            structure, n=n, cutoff=cutoff, qhull_options=qhull_options
+                        ).view()
+                    )
+                )
             for voro in v:
                 if voro in voro_dict:
                     voro_dict[voro] += 1
                 else:
                     voro_dict[voro] = 1
-        self.vor_ensemble = sorted(voro_dict.items(), key=lambda x: (x[1], x[0]), reverse=True)[:15]
+        self.vor_ensemble = sorted(
+            voro_dict.items(), key=lambda x: (x[1], x[0]), reverse=True
+        )[:15]
         return self.vor_ensemble
 
     @property
     def plot_vor_analysis(self):
         import matplotlib.pyplot as plt
+
         t = zip(*self.vor_ensemble)
         labels = t[0]
         val = list(t[1])
         tot = np.sum(val)
         val = [float(j) / tot for j in val]
-        pos = np.arange(len(val)) + .5  # the bar centers on the y axis
+        pos = np.arange(len(val)) + 0.5  # the bar centers on the y axis
         plt.figure(figsize=(4, 4))
-        plt.barh(pos, val, align='center', alpha=0.5)
+        plt.barh(pos, val, align="center", alpha=0.5)
         plt.yticks(pos, labels)
-        plt.xlabel('Fraction')
-        plt.title('Voronoi Spectra')
+        plt.xlabel("Fraction")
+        plt.title("Voronoi Spectra")
         plt.grid(True)
         return plt
 
@@ -456,8 +490,15 @@ class RadialDistributionFunction(object):
         RDFs themselves are arrays of length cutoff/bin_size.
     """
 
-    def __init__(self, structures, cutoff=5.0, bin_size=0.1, step_freq=2, smooth=1,
-                 title="Radial distribution functions"):
+    def __init__(
+        self,
+        structures,
+        cutoff=5.0,
+        bin_size=0.1,
+        step_freq=2,
+        smooth=1,
+        title="Radial distribution functions",
+    ):
         self.structures = structures
         self.cutoff = cutoff
         self.bin_size = bin_size
@@ -490,8 +531,16 @@ class RadialDistributionFunction(object):
             Each RDF arrays of length cutoff/bin_size.
         """
 
-        frames = [(self.structures[i * self.step_freq], self.pairs, self.n_bins, self.cutoff, self.bin_size) for i in
-                  range(int(self.n_frames / self.step_freq))]
+        frames = [
+            (
+                self.structures[i * self.step_freq],
+                self.pairs,
+                self.n_bins,
+                self.cutoff,
+                self.bin_size,
+            )
+            for i in range(int(self.n_frames / self.step_freq))
+        ]
         self.counter = len(frames)
         pool = Pool(nproc)
         results = pool.map(_process_frame, frames)
@@ -508,14 +557,23 @@ class RadialDistributionFunction(object):
         self.get_pair_order = []
 
         for i in self.RDFs.keys():
-            self.get_pair_order.append('-'.join(list(i)))
+            self.get_pair_order.append("-".join(list(i)))
             density_of_atom2 = self.n_species[i[1]] / self.structures[0].volume
             for j in range(self.n_bins):
                 r = j * self.bin_size
                 if r == 0:
                     continue
-                self.RDFs[i][j] = self.RDFs[i][j] / self.n_species[
-                    i[0]] / 4.0 / np.pi / r / r / self.bin_size / density_of_atom2 / self.counter
+                self.RDFs[i][j] = (
+                    self.RDFs[i][j]
+                    / self.n_species[i[0]]
+                    / 4.0
+                    / np.pi
+                    / r
+                    / r
+                    / self.bin_size
+                    / density_of_atom2
+                    / self.counter
+                )
 
         if self.smooth:
             self.RDFs = get_smooth_rdfs(self.RDFs, passes=self.smooth)
@@ -526,6 +584,7 @@ class RadialDistributionFunction(object):
         :return: a plot of RDFs
         """
         import matplotlib.pyplot as plt
+
         x = []
         for j in range(self.n_bins):
             r = j * self.bin_size
@@ -537,8 +596,13 @@ class RadialDistributionFunction(object):
 
         plt.xlabel("$r$, distance (Angstrom)")
         plt.ylabel("g($r$)")
-        plt.legend(self.get_pair_order, bbox_to_anchor=(0.975, 0.975), loc=0,
-                   borderaxespad=0., prop={'family': 'sans-serif', 'size': 13})
+        plt.legend(
+            self.get_pair_order,
+            bbox_to_anchor=(0.975, 0.975),
+            loc=0,
+            borderaxespad=0.0,
+            prop={"family": "sans-serif", "size": 13},
+        )
         plt.title(self.title)
         return plt
 
@@ -547,8 +611,13 @@ def _process_frame(data):
     """
     Helper function for parallel rdf computation
     """
-    coord_frame, pairs, n_bins, cutoff, bin_size = \
-        data[0], data[1], data[2], data[3], data[4]
+    coord_frame, pairs, n_bins, cutoff, bin_size = (
+        data[0],
+        data[1],
+        data[2],
+        data[3],
+        data[4],
+    )
     process_RDFs = {}
     n_atoms = len(coord_frame)
 
@@ -591,8 +660,13 @@ def get_smooth_rdfs(RDFs, passes=1):
         for rdf in RDFs:
             smooth_RDF = deepcopy(RDFs[rdf])
             for j in range(2, len(RDFs[rdf]) - 2):
-                smooth_RDF[j] = (-3 * RDFs[rdf][j - 2] + 12 * RDFs[rdf][j - 1]
-                                 + 17 * RDFs[rdf][j] + 12 * RDFs[rdf][j + 1] - 3 * RDFs[rdf][j + 2]) / 35.0
+                smooth_RDF[j] = (
+                    -3 * RDFs[rdf][j - 2]
+                    + 12 * RDFs[rdf][j - 1]
+                    + 17 * RDFs[rdf][j]
+                    + 12 * RDFs[rdf][j + 1]
+                    - 3 * RDFs[rdf][j + 2]
+                ) / 35.0
             RDFs[rdf] = smooth_RDF
         passes -= 1
         return get_smooth_rdfs(RDFs, passes=passes)
@@ -614,8 +688,13 @@ def get_smooth_rdfs(RDFs, passes=1):
         for rdf in RDFs:
             smooth_RDF = deepcopy(RDFs[rdf])
             for j in range(2, len(RDFs[rdf]) - 2):
-                smooth_RDF[j] = (-3 * RDFs[rdf][j - 2] + 12 * RDFs[rdf][j - 1]
-                                 + 17 * RDFs[rdf][j] + 12 * RDFs[rdf][j + 1] - 3 * RDFs[rdf][j + 2]) / 35.0
+                smooth_RDF[j] = (
+                    -3 * RDFs[rdf][j - 2]
+                    + 12 * RDFs[rdf][j - 1]
+                    + 17 * RDFs[rdf][j]
+                    + 12 * RDFs[rdf][j + 1]
+                    - 3 * RDFs[rdf][j + 2]
+                ) / 35.0
             RDFs[rdf] = smooth_RDF
         passes -= 1
         return get_smooth_rdfs(RDFs, passes=passes)

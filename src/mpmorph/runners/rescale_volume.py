@@ -1,9 +1,9 @@
 import numpy as np
 from pymatgen.io.vasp import Poscar
 
-__author__ = 'Eric Sivonxay and Muratahan Aykol'
-__maintainer__ = 'Eric Sivonxay'
-__email__ = 'esivonxay@lbl.gov'
+__author__ = "Eric Sivonxay and Muratahan Aykol"
+__maintainer__ = "Eric Sivonxay"
+__email__ = "esivonxay@lbl.gov"
 
 
 class RescaleVolume(object):
@@ -11,9 +11,17 @@ class RescaleVolume(object):
     Class for adjusting the volume of an input simulation box based on conditions.
     """
 
-    def __init__(self, structure, initial_pressure=0.0, initial_temperature=1,
-                 target_pressure=0.0, target_temperature=1,
-                 alpha=10e-6, beta=10e-7, poscar=None):
+    def __init__(
+        self,
+        structure,
+        initial_pressure=0.0,
+        initial_temperature=1,
+        target_pressure=0.0,
+        target_temperature=1,
+        alpha=10e-6,
+        beta=10e-7,
+        poscar=None,
+    ):
         """
         Args:
             structure:
@@ -50,7 +58,7 @@ class RescaleVolume(object):
         else:
             return self.structure.scale_lattice(self.structure.volume * v2_v1)
 
-    def by_thermo(self, scale='pressure'):
+    def by_thermo(self, scale="pressure"):
         """
         Scales the volume of structure using thermodynamic functions, which basically give linear
         Equations of State. For more advanced EOS, one should use the by_EOS method.
@@ -60,20 +68,24 @@ class RescaleVolume(object):
             rescaled structure
 
         """
-        if scale == 'pressure':
+        if scale == "pressure":
             v2_v1 = np.exp(-self.beta * (self.target_pressure - self.initial_pressure))
             self.rescale_structure_volume(v2_v1)
             self.initial_pressure = self.target_pressure
-        elif scale == 'temperature':
-            v2_v1 = np.exp(self.alpha * (self.target_temperature - self.initial_temperature))
+        elif scale == "temperature":
+            v2_v1 = np.exp(
+                self.alpha * (self.target_temperature - self.initial_temperature)
+            )
             self.rescale_structure_volume(v2_v1)
             self.initial_temperature = self.target_temperature
         else:
-            raise ValueError("scale function must be specified as temperature or pressure.")
+            raise ValueError(
+                "scale function must be specified as temperature or pressure."
+            )
 
         return self.structure
 
-    def by_EOS(self, p_v, eos='polynomial'):
+    def by_EOS(self, p_v, eos="polynomial"):
         """
         Args:
             p_v (numpy array): an array of pressure-volume pairs; e.g. p_v = [[p1,v1],[p2,v2],...]
@@ -85,14 +97,16 @@ class RescaleVolume(object):
             self.structure
         """
         v1 = self.structure.volume
-        if eos == 'polynomial':
+        if eos == "polynomial":
             v2_v1 = poly_rescale(p_v, target_pressure=self.target_pressure) / v1
             self.rescale_structure_volume(v2_v1)
             self.initial_pressure = self.target_pressure
-        elif eos == 'Murnaghan':
+        elif eos == "Murnaghan":
             raise ValueError("not implemented yet")
-        elif eos == 'BirchMurnaghan':
-            v2_v1 = BirchMurnaghan_rescale(p_v, target_pressure=self.target_pressure) / v1
+        elif eos == "BirchMurnaghan":
+            v2_v1 = (
+                BirchMurnaghan_rescale(p_v, target_pressure=self.target_pressure) / v1
+            )
             self.rescale_structure_volume(v2_v1)
             self.initial_pressure = self.target_pressure
         else:
@@ -100,17 +114,31 @@ class RescaleVolume(object):
         return self.structure
 
     @classmethod
-    def of_poscar(cls, poscar_path, initial_pressure=0.0, initial_temperature=1000.0,
-                  target_pressure=0.0, target_temperature=1000.0,
-                  alpha=10e-5, beta=10e-7):
+    def of_poscar(
+        cls,
+        poscar_path,
+        initial_pressure=0.0,
+        initial_temperature=1000.0,
+        target_pressure=0.0,
+        target_temperature=1000.0,
+        alpha=10e-5,
+        beta=10e-7,
+    ):
         """
         Convenience constructor that accepts a poscar file as input
 
         """
         poscar = Poscar.from_file(poscar_path)
-        return cls(poscar.structure, initial_pressure=initial_pressure, initial_temperature=initial_temperature,
-                   target_pressure=target_pressure, target_temperature=target_temperature,
-                   alpha=alpha, beta=beta, poscar=poscar)
+        return cls(
+            poscar.structure,
+            initial_pressure=initial_pressure,
+            initial_temperature=initial_temperature,
+            target_pressure=target_pressure,
+            target_temperature=target_temperature,
+            alpha=alpha,
+            beta=beta,
+            poscar=poscar,
+        )
 
 
 def poly_rescale(p_v, target_pressure=0.0):
@@ -138,8 +166,14 @@ def BirchMurnaghanPV_EOS(V, params):
         Pressure of Birch-Murnaghan EOS at V with given parameters E0, B0, V0 and B0p
     """
     V0, B0, B0p = params[0], params[1], params[2]
-    n = (V0 / V) ** (1. / 3)  # Note this definition is different from the Energy EOS
-    p = 3.0 / 2.0 * B0 * (n ** 7 - n ** 5) * (1. + 3. / 4 * (B0p - 4) * (n ** 2 - 1.0))
+    n = (V0 / V) ** (1.0 / 3)  # Note this definition is different from the Energy EOS
+    p = (
+        3.0
+        / 2.0
+        * B0
+        * (n**7 - n**5)
+        * (1.0 + 3.0 / 4 * (B0p - 4) * (n**2 - 1.0))
+    )
     return p
 
 
@@ -147,9 +181,10 @@ def fit_BirchMurnaghanPV_EOS(p_v):
     # Borrows somewhat from pymatgen/io/abinitio/EOS
     # Initial guesses for the parameters
     from scipy.optimize import leastsq
+
     eqs = np.polyfit(p_v[:, 1], p_v[:, 0], 2)
     V0 = np.mean(p_v[:, 1])  # still use mean to ensure we are at reasonable volumes
-    B0 = -1 * (2 * eqs[0] * V0 ** 2 + eqs[1] * V0)
+    B0 = -1 * (2 * eqs[0] * V0**2 + eqs[1] * V0)
     B0p = 4.0
     initial_params = (V0, B0, B0p)
     Error = lambda params, x, y: BirchMurnaghanPV_EOS(x, params) - y

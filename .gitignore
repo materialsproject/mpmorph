@@ -109,3 +109,4 @@ venv.bak/
 /dask-worker-space/
 
 .vscode/
+out.traj
