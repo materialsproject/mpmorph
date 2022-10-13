@@ -1,4 +1,6 @@
 from datetime import datetime
+from pathlib import Path
+from typing import Union
 
 from ase.io.trajectory import Trajectory as AseTrajectory
 from pydantic import BaseModel, Field
@@ -23,24 +25,40 @@ class M3GNetCalculation(BaseModel):
     )
 
     @classmethod
-    def from_directory(cls, trajectory, metadata: dict, **kwargs):
+    def from_directory(
+        cls,
+        dir_name: Union[Path, str],
+        trajectory_fn="out.traj",
+    ):
 
         """
-        Create a M3GnetCalculation document from the output files of a M3GNet run.
+        Create a M3GnetCalculation document from a directory containing output files of
+        a M3GNet MD run.
+        """
+        dir_name = Path(dir_name)
+
+        trajectory = AseTrajectory(filename=dir_name / trajectory_fn)
+
+        return cls.from_trajectory(trajectory)
+
+    @classmethod
+    def from_trajectory(cls, trajectory: AseTrajectory, **kwargs):
+        """
         Args:
             trajectory: the trajectory file saved from  MolecularDynamics to out.traj
             metadata: The metadata dictionary. like the temperature and timestep of the MD run.
-            **kwargs: Additional keyword arguments to pass to the M3GNetMDCalculation.
+            **kwargs: Additional keyword arguments to pass to the M3GNetCalculation.
         """
-
         traj = AseTrajectory(trajectory)
         structure_list = []
-        for i, atoms in enumerate(traj[:]):  # first MD run
+        for _, atoms in enumerate(traj[:]):  # first MD run
             structure = AseAtomsAdaptor.get_structure(atoms)
             structure_list.append(structure)
 
         traj_pmg = PmgTrajectory.from_structures(structure_list)
         traj_dict = traj_pmg.as_dict()
+
+        metadata = {}
 
         d = {"trajectory": traj_dict, "metadata": metadata}
 
