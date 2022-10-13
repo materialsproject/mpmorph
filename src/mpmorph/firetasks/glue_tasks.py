@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 import numpy as np
 from fireworks import FireTaskBase, FWAction, explicit_serialize
@@ -10,8 +11,8 @@ from mpmorph.analysis import md_data
 
 @explicit_serialize
 class PreviousStructureTask(FireTaskBase):
-    required_params = []
-    optional_params = ["rescale_volume"]
+    required_params: List[str] = []
+    optional_params: List[str] = ["rescale_volume"]
 
     def run_task(self, fw_spec):
         structure_dict = fw_spec["structure"]
@@ -30,8 +31,8 @@ class PreviousStructureTask(FireTaskBase):
 
 @explicit_serialize
 class SaveStructureTask(FireTaskBase):
-    required_params = []
-    optional_params = []
+    required_params: List[str] = []
+    optional_params: List[str] = []
 
     def run_task(self, fw_spec):
         osw = list(os.walk("."))[0]

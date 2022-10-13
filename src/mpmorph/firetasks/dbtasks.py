@@ -3,6 +3,7 @@ import os
 import re
 import zlib
 from collections import defaultdict
+from typing import List
 
 import gridfs
 import numpy as np
@@ -46,7 +47,7 @@ class VaspMDToDb(FiretaskBase):
             Defaults to True.
     """
 
-    optional_params = [
+    optional_params: List[str] = [
         "calc_dir",
         "calc_loc",
         "parse_dos",

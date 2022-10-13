@@ -1,4 +1,5 @@
 import warnings
+from typing import List
 
 import numpy as np
 from fireworks import FireTaskBase, FWAction, Workflow, explicit_serialize
@@ -14,14 +15,14 @@ from mpmorph.utils import recursive_update
 
 @explicit_serialize
 class DiffusionTask(FireTaskBase):
-    required_params = [
+    required_params: List[str] = [
         "temperatures",
         "max_steps",
         "target_steps",
         "num_samples" "trajectory_to_db",
         "notes",
     ]
-    optional_params = []
+    optional_params: List[str] = []
 
     def run_task(self, fw_spec):
         from mpmorph.workflows.converge import get_converge_wf
