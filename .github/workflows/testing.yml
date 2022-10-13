@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .[strict,tests]
+          pip install .[strict,tests,with_m3gnet]
           pip install prospector[with_mypy,with_bandit]
 
       - name: Lint with prospector
@@ -54,6 +54,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .[strict,tests]
+          pip install .[strict,tests,with_m3gnet]
       - name: Test
         run: pytest
