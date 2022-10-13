@@ -11,10 +11,6 @@ from mpmorph.firetasks.mdtasks import (
     RescaleVolumeTask,
 )
 
-__author__ = "Eric Sivonxay and Jianli Cheng"
-__maintainer__ = "Eric Sivonxay"
-__email__ = "esivonxay@lbl.gov"
-
 
 def add_diffusion_task(fw, **kwargs):
     spawner_task = DiffusionTask(**kwargs)

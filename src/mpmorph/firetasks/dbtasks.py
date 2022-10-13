@@ -2,6 +2,7 @@ import json
 import os
 import re
 import zlib
+from collections import defaultdict
 
 import gridfs
 import numpy as np
@@ -9,16 +10,13 @@ from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_logger
 from atomate.vasp.drones import VaspDrone
 from bson import ObjectId
-from mpmorph.database import VaspMDCalcDb
-from fireworks import explicit_serialize, FiretaskBase, FWAction
+from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from monty.json import MontyEncoder
 from pymatgen.core import Structure
 from pymatgen.core.trajectory import Trajectory
-from collections import defaultdict
-from mpmorph.database import convert_ionic_steps_to_trajectory
 
-__author__ = "Eric Sivonxay and Jianli Cheng"
+from mpmorph.database import VaspMDCalcDb, convert_ionic_steps_to_trajectory
 
 logger = get_logger(__name__)
 

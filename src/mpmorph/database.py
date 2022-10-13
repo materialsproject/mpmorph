@@ -1,20 +1,18 @@
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import json
 import zlib
+from collections import defaultdict
 
 import gridfs
+import numpy as np
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb
 from monty.json import MontyEncoder
 from pymatgen.core import Structure
 from pymatgen.core.trajectory import Trajectory
-from collections import defaultdict
-import numpy as np
 
 logger = get_logger(__name__)
-
-__author__ = "Eric Sivonxay <esivonxay@lbl.gov>"
 
 
 class VaspMDCalcDb(VaspCalcDb):

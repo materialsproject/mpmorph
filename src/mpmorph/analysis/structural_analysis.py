@@ -8,8 +8,6 @@ from pymatgen.io.vasp.outputs import Xdatcar
 from pymatgen.util.coord import get_angle
 from scipy.spatial import Voronoi
 
-__author__ = "Muratahan Aykol <maykol@lbl.gov>"
-
 
 def polyhedra_connectivity(structures, pair, cutoff, step_freq=1):
     """

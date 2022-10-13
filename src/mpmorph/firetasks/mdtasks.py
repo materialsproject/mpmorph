@@ -1,18 +1,15 @@
 import warnings
 
 import numpy as np
-from fireworks import explicit_serialize, Workflow, FireTaskBase, FWAction
-from mpmorph.analysis import md_data
-from mpmorph.runners.rescale_volume import RescaleVolume, fit_BirchMurnaghanPV_EOS
-from mpmorph.utils import recursive_update
+from fireworks import FireTaskBase, FWAction, Workflow, explicit_serialize
 from pymatgen.core import Structure
 from pymatgen.io.vasp import Poscar
 from pymatgen.io.vasp.outputs import Vasprun
 from scipy import stats
 
-__author__ = "Eric Sivonxay and Muratahan Aykol"
-__maintainer__ = "Eric Sivonxay"
-__email__ = "esivonxay@lbl.gov"
+from mpmorph.analysis import md_data
+from mpmorph.runners.rescale_volume import RescaleVolume, fit_BirchMurnaghanPV_EOS
+from mpmorph.utils import recursive_update
 
 
 @explicit_serialize

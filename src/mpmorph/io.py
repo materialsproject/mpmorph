@@ -2,8 +2,6 @@ import itertools
 
 from monty.io import zopen
 
-__author__ = "Eric Sivonxay"
-
 
 class Xdatcar_Writer:
     def write_xdatcar(self, filename, **kwargs):

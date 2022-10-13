@@ -7,8 +7,6 @@ from pymatgen.io.vasp import Poscar
 
 from mpmorph.analysis import md_data
 
-__author__ = "Eric Sivonxay <esivonxay@lbl.gov>"
-
 
 @explicit_serialize
 class PreviousStructureTask(FireTaskBase):

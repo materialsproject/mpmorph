@@ -10,10 +10,6 @@ from pymatgen.core import Composition, Structure
 from pymatgen.ext.matproj import MPRester
 from pymatgen.io.vasp.inputs import Poscar
 
-__author__ = "Eric Sivonxay, Jianli Cheng, and Muratahan Aykol"
-__maintainer__ = "Eric Sivonxay"
-__email__ = "esivonxay@lbl.gov"
-
 
 class AmorphousMaker(object):
     def __init__(

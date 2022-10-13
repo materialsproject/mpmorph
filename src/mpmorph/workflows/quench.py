@@ -5,10 +5,6 @@ from mpmorph.fireworks import powerups
 from mpmorph.fireworks.core import MDFW, OptimizeFW, StaticFW
 from mpmorph.utils import recursive_update
 
-__author__ = "Eric Sivonxay and Muratahan Aykol"
-__maintainer__ = "Eric Sivonxay"
-__email__ = "esivonxay@lbl.gov"
-
 
 def get_quench_wf(
     structures, priority=None, quench_type="slow_quench", descriptor="", **kwargs

@@ -11,12 +11,9 @@ from mpmorph.firetasks.dbtasks import VaspMDToDb
 from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask
 
 """
-These fireworks were adapted from atomate.vasp.fireworks.core specifically for this package. 
-Slight modifications were made to each.
+These fireworks were adapted from atomate.vasp.fireworks.core specifically for this 
+package. Slight modifications were made to each.
 """
-
-__maintainer__ = "Eric Sivonxay"
-__email__ = "esivonxay@lbl.gov"
 
 
 class MDFW(Firework):
@@ -33,7 +30,6 @@ class MDFW(Firework):
         wall_time=None,
         db_file=None,
         parents=None,
-        copy_vasp_outputs=False,
         previous_structure=False,
         insert_db=False,
         save_structure=True,
