@@ -69,7 +69,7 @@ class Xdatcar_Writer_Trajectory:
 
         format_str = "{{:.{0}f}}".format(significant_figures)
         positions = self.trajectory.frac_coords
-        #         positions = np.add(self.trajectory[0].frac_coords, self.trajectory.displacements)
+        #  positions = np.add(self.trajectory[0].frac_coords, self.trajectory.displacements)
         atoms = [site.specie.symbol for site in self.trajectory[0]]
 
         for (si, position_array) in enumerate(positions):

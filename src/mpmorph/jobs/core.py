@@ -7,7 +7,7 @@ from jobflow import Maker, job
 from m3gnet.models import MolecularDynamics
 from pymatgen.core import Structure
 
-from mpmorph.jobs.schema import M3GNetCalculation
+from mpmorph.jobs.schema import M3GNetMDCalculation
 
 
 @dataclass
@@ -52,7 +52,7 @@ class M3GNetMaker(Maker):
     loginterval: int = 10
     append_trajectory: bool = False
 
-    @job(trajectory="trajectory", output_schema=M3GNetCalculation)
+    @job(trajectory="trajectory", output_schema=M3GNetMDCalculation)
     def make(self, structure: Structure, steps: int = 1000, **kwargs):
         """
         Run MD using the M3GNet Molecular Dynamics interface. This runs molecular
@@ -84,7 +84,7 @@ class M3GNetMaker(Maker):
 
         md.run(steps=steps)
 
-        d = M3GNetCalculation.from_directory(Path.cwd())
+        d = M3GNetMDCalculation.from_directory(Path.cwd())
         d.task_label = self.name
         d.metadata = self.as_dict()
 

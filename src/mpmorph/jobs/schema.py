@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Union
+from typing import Any, Dict, Iterable, List, Union
 
 from ase.io.trajectory import Trajectory as AseTrajectory
 from pydantic import BaseModel, Field
@@ -11,8 +11,11 @@ from pymatgen.io.ase import AseAtomsAdaptor
 from mpmorph.utils import datetime_str
 
 
-class M3GNetCalculation(BaseModel):
+class M3GNetMDCalculation(BaseModel):
     task_label: str = Field(None, description="The name of the task.")
+    dir_name: str = Field(
+        None, description="The directory where the M3GNet calculation was run"
+    )
     last_updated: datetime = Field(
         default_factory=datetime_str,
         description="Timestamp of when the document was last updated.",
@@ -36,8 +39,8 @@ class M3GNetCalculation(BaseModel):
     def from_directory(
         cls,
         dir_name: Union[Path, str],
-        trajectory_fn="out.traj",
-        frame_properties=(
+        trajectory_fn: str = "out.traj",
+        frame_properties: Iterable[str] = (
             "total_energy",
             "potential_energy",
             "kinetic_energy",
@@ -54,7 +57,10 @@ class M3GNetCalculation(BaseModel):
         trajectory = AseTrajectory(filename=str(dir_name / trajectory_fn))
 
         return cls.from_trajectory(
-            trajectory, frame_properties=frame_properties, **kwargs
+            trajectory,
+            frame_properties=frame_properties,
+            dir_name=str(dir_name),
+            **kwargs,
         )
 
     @classmethod
@@ -70,13 +76,17 @@ class M3GNetCalculation(BaseModel):
         **kwargs,
     ):
         """
+        Create a M3GnetCalculation document from an ASE trajectory object.
+
         Args:
-            trajectory: the trajectory file saved from  MolecularDynamics to out.traj
-            metadata: The metadata dictionary. like the temperature and timestep of the MD run.
-            **kwargs: Additional keyword arguments to pass to the M3GNetCalculation.
+            trajectory: the ASE trajectory file loaded from the out.traj file
+            metadata: The metadata dictionary. like the temperature and timestep of the
+                MD run.
+            **kwargs: Additional keyword arguments to pass to the M3GNetCalculation
+                constructor.
         """
         structures = []
-        frame_properties = []
+        frame_properties_list: List[Dict[str, Any]] = []
 
         initial_structure = AseAtomsAdaptor.get_structure(trajectory[0])
 
@@ -85,11 +95,11 @@ class M3GNetCalculation(BaseModel):
             frame_props = {k: getattr(atoms, f"get_{k}")() for k in frame_properties}
 
             structures.append(struct)
-            frame_properties.append(frame_props)
+            frame_properties_list.append(frame_props)
 
         traj_pmg = PmgTrajectory.from_structures(
             structures,
-            frame_properties=frame_properties,
+            frame_properties=frame_properties_list,
             time_step=trajectory.description["timestep"],
         )
 
