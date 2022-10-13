@@ -11,7 +11,7 @@ from mpmorph.jobs.schema import M3GNetMDCalculation
 
 
 @dataclass
-class M3GNetMaker(Maker):
+class M3GNetMDMaker(Maker):
     """
     Maker to create M3GNet MD calculation jobs.
 

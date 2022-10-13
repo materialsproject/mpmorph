@@ -1,12 +1,12 @@
 import pytest
 from jobflow.managers.local import run_locally
 
-from mpmorph.jobs.core import M3GNetMaker
+from mpmorph.jobs.core import M3GNetMDMaker
 
 
 @pytest.fixture
 def m3gnet_job(al_structure):
-    return M3GNetMaker().make(al_structure, steps=10)
+    return M3GNetMDMaker().make(al_structure, steps=10)
 
 
 def test_m3gnet_job(m3gnet_job, job_store):
