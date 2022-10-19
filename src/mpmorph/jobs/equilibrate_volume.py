@@ -32,19 +32,20 @@ class EquilibriumVolumeSearchMaker(Maker):
             raise RuntimeError("Maximum number of jobs for equilibrium volume search exceeded")
 
 
+
         volumes = [doc.volume for doc in md_pv_data_docs]
         pressures = [doc.pressure for doc in md_pv_data_docs]
-        vp_pairs = np.array(list(zip(volumes, pressures)))
+        pv_pairs = np.array(list(zip(pressures, volumes)))
 
         max_explored_volume = max(volumes)
         min_explored_volume = min(volumes)
 
-        params = rescale_volume.fit_BirchMurnaghanPV_EOS(vp_pairs)
+        params = rescale_volume.fit_BirchMurnaghanPV_EOS(pv_pairs)
         equil_volume = params[0]
-        
         if equil_volume < max_explored_volume and equil_volume > min_explored_volume:
             final_structure = original_structure.copy()
-            return final_structure.scale_lattice(equil_volume)
+            final_structure.scale_lattice(equil_volume)
+            return final_structure
 
         elif equil_volume > max_explored_volume: 
             new_vol_scale = get_new_max_volume(equil_volume, original_structure)
@@ -68,7 +69,7 @@ class EquilibriumVolumeSearchMaker(Maker):
 
         flow = Flow([new_job, expanded_search_job])
 
-        return Response(replace = flow)
+        return Response(replace = flow, output = expanded_search_job.output)
 
 def get_new_max_volume(equil_guess, original_structure):
     return equil_guess / original_structure.volume + OFFSET

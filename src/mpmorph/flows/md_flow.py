@@ -24,6 +24,8 @@ def get_converge_flow_m3gnet(structure, temp):
     return get_converge_flow(structure, md_maker, pv_extract_maker)
 
 def get_converge_flow(structure: Structure, md_maker: Maker, pv_extract_maker: Maker):
+    # TODO: Make this initial range tunable - in some cases, these may lead
+    # to unwanted(?) phase changes
     initial_scale_factors = [0.8, 1, 1.2]
     
     initial_vol_search_jobs = [
