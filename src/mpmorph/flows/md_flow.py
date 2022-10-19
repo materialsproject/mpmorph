@@ -9,6 +9,19 @@ from mpmorph.jobs.extract_pv_m3gnet import ExtractPVDataM3gnet
 
 from mpmorph.jobs.extract_pv_vasp import ExtractPVDataFromVASPMDMaker
 
+def get_volume_at_temp_m3gnet_flow(structure: Structure,
+                          temp: int,
+                          steps: int = 1000):
+    converge_flow = get_converge_flow_m3gnet(
+        structure,
+        temp,
+        steps
+    )
+    pv_extract_maker = ExtractPVDataM3gnet()
+    pv_extract_job =  pv_extract_maker.make(converge_flow.output)
+    return Flow([converge_flow, pv_extract_job], output=pv_extract_job.output)
+
+
 # TODO: Fix all of this (e.g. steps default)
 def get_converge_flow_vasp(structure, temperature, steps = 10):
     md_maker = MDMaker()
@@ -47,6 +60,6 @@ def get_converge_flow(structure: Structure, md_maker: Maker, pv_extract_maker: M
     
     final_md_job = md_maker.make(equil_vol_job.output)
 
-    flow = Flow([*initial_vol_search_jobs, equil_vol_job, final_md_job])
+    flow = Flow([*initial_vol_search_jobs, equil_vol_job, final_md_job], output=final_md_job.output)
     
     return flow 
