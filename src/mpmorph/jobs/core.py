@@ -7,7 +7,7 @@ from jobflow import Maker, job
 from m3gnet.models import MolecularDynamics
 from pymatgen.core import Structure
 
-from mpmorph.jobs.schema import M3GNetMDCalculation
+from ..schemas.m3gnet_md_calc import M3GNetMDCalculation
 
 
 @dataclass

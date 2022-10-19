@@ -37,6 +37,34 @@ If you wish to make amorphous structures, please install [packmol](http://m3g.iq
 export PACKMOL_PATH="path_to_packmol_executable_here"
 ```
 
+## Installation with M3Gnet
+
+This gets tricky. m3gnet is difficult to install on Apple silicon (M1) because of the tensorflow dependency. The most reliable method is as follows:
+
+1) Create and activate a new conda environment/virtualenv. Python 3.10.6 works well.
+2) ```conda install -c apple tensorflow-deps```
+3) ```pip install tensorflow-macos```
+4) Perform a test here by opening a python REPL and running ```import tensorflow```. If you see an issue regarding a numpy datatype not being convertible to a python datatype, reinstall numpy:
+```
+conda uninstall numpy
+conda install numpy
+```
+7) Install mpmorph
+```
+pip install mpmorph
+```
+6) Next, install m3gnet without dependencies (because it will break when it reaches tensorflow)
+```
+pip install --no-deps m3gnet
+```
+7) Finally, install the other m3gnet dependencies manually:
+```
+pip install protobuf==3.19.6 pymatgen ase cython
+```
+8) Test your installation by opening a python REPL and running:
+```import m3gnet```
+
+
 # Using MPmorph
 Before diving headfirst into mpmorph, one should get familiar with how to run fireworks before jumping into mpmorph. Relevant features of fireworks include setting up a fireworks database, adding workflows to the database, configuring a conda environment for running fireworks on a supercomputer, launching jobs to a workload manager (using qlaunch), and monitoring fireworks jobs. For a quick tutorial, check out [beginner](https://www.youtube.com/watch?v=-MalOMJt34U) and [intermediate](https://www.youtube.com/watch?v=zYA_BbKwVO4) atomate/fireworks tutorials from our 2019 Materials project workshop. 
 
