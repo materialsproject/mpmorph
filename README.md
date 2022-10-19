@@ -49,7 +49,7 @@ This gets tricky. m3gnet is difficult to install on Apple silicon (M1) because o
 conda uninstall numpy
 conda install numpy
 ```
-7) Install mpmorph
+5) Install mpmorph
 ```
 pip install mpmorph
 ```

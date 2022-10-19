@@ -11,6 +11,7 @@ from mpmorph.jobs.extract_pv_vasp import ExtractPVDataFromVASPMDMaker
 
 def get_converge_flow_vasp(structure, temperature):
     md_maker = MDMaker()
+    NSW = 10
     md_maker.input_set_generator.user_incar_settings["NSW"] = NSW  #runs it for short timestep (designed for debugging)
     pv_extract_maker = ExtractPVDataFromVASPMDMaker()
     return get_converge_flow(structure, md_maker, pv_extract_maker)
@@ -25,7 +26,7 @@ def get_converge_flow_m3gnet(structure, temp):
 def get_converge_flow(structure: Structure, md_maker: Maker, pv_extract_maker: Maker):
     initial_scale_factors = [0.8, 1, 1.2]
     
-    md_jobs = [
+    initial_vol_search_jobs = [
         md_to_volume_flow(
             structure,
             factor,
@@ -38,16 +39,11 @@ def get_converge_flow(structure: Structure, md_maker: Maker, pv_extract_maker: M
         md_maker = md_maker,
         pv_maker = pv_extract_maker
     )
-    
-    equil_vol_job = eq_vol_maker.make(structure, [job.output for job in md_jobs])
-    
-    production_run_md_job = MDMaker().make(equil_vol_job.output)
-    production_run_md_job.maker.input_set_generator.user_incar_settings["NSW"] = NSW  #runs it for short timestep (designed for debugging)
 
-    flow = Flow([*md_jobs, equil_vol_job, production_run_md_job])
+    equil_vol_job = eq_vol_maker.make(structure, [job.output for job in initial_vol_search_jobs])
+    
+    final_md_job = md_maker.make(equil_vol_job.output)
+
+    flow = Flow([*initial_vol_search_jobs, equil_vol_job, final_md_job])
     
     return flow 
-
-
-#Params list
-NSW = 10
