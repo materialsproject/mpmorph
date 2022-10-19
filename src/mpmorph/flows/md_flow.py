@@ -9,16 +9,17 @@ from mpmorph.jobs.extract_pv_m3gnet import ExtractPVDataM3gnet
 
 from mpmorph.jobs.extract_pv_vasp import ExtractPVDataFromVASPMDMaker
 
-def get_converge_flow_vasp(structure, temperature):
+# TODO: Fix all of this (e.g. steps default)
+def get_converge_flow_vasp(structure, temperature, steps = 10):
     md_maker = MDMaker()
-    NSW = 10
-    md_maker.input_set_generator.user_incar_settings["NSW"] = NSW  #runs it for short timestep (designed for debugging)
+    md_maker.input_set_generator.user_incar_settings["NSW"] = steps
     pv_extract_maker = ExtractPVDataFromVASPMDMaker()
     return get_converge_flow(structure, md_maker, pv_extract_maker)
 
-def get_converge_flow_m3gnet(structure, temp):
+def get_converge_flow_m3gnet(structure, temp, steps: int = 1000):
     md_maker = M3GNetMDMaker(
-        temperature=temp
+        temperature = temp,
+        steps = steps
     )
     pv_extract_maker = ExtractPVDataM3gnet()
     return get_converge_flow(structure, md_maker, pv_extract_maker)
@@ -33,7 +34,7 @@ def get_converge_flow(structure: Structure, md_maker: Maker, pv_extract_maker: M
             structure,
             factor,
             md_maker,
-            pv_extract_maker
+            pv_extract_maker,
         ) for factor in initial_scale_factors
     ]
 

@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+import os
+
 from ase import units
 from jobflow import Maker, job
 from m3gnet.models import MolecularDynamics
@@ -49,42 +51,60 @@ class M3GNetMDMaker(Maker):
     compressibility_au: Optional[float] = None
     trajectory_fn: str = "out.traj"
     logfile_fn: str = "out.log"
-    loginterval: int = 10
+    loginterval: int = 1
     append_trajectory: bool = False
+    steps: int = 1000
 
     @job(trajectory="trajectory", output_schema=M3GNetMDCalculation)
-    def make(self, structure: Structure, steps: int = 1000, **kwargs):
+    def make(self, structure: Structure, **kwargs):
         """
         Run MD using the M3GNet Molecular Dynamics interface. This runs molecular
         dynamics through the ASE interface with the default M3GNet potential.
 
         Args:
             structure: the input structure
-            steps: number of steps to run
         """
 
         if self.potential is not None:
             kwargs["potential"] = self.potential
 
+        outfile_name = f'{structure.composition.to_pretty_string()}-{self.temperature}K-{round(structure.volume, 3)}'
+        traj_fn = f'{outfile_name}.traj'
+        log_fn = f'{outfile_name}.log'
+
+        print("Inputs for m3gnet:")
+        print(f'temp: {self.temperature}')
+        print(f'steps: {self.steps}')
+
+        taut = 10 * units.fs
+        
         md = MolecularDynamics(
             atoms=structure,
             ensemble=self.ensemble,
             temperature=self.temperature,
             timestep=self.timestep,
             pressure=self.pressure,
-            taut=self.taut,
+            taut=taut,
             taup=self.taup,
             compressibility_au=self.compressibility_au,
-            trajectory=self.trajectory_fn,
-            logfile=self.logfile_fn,
+            trajectory=traj_fn,
+            logfile=log_fn,
             loginterval=self.loginterval,
             append_trajectory=self.append_trajectory,
             **kwargs
         )
 
-        md.run(steps=steps)
+        md.run(
+            steps = self.steps,
+        )
 
-        d = M3GNetMDCalculation.from_directory(Path.cwd())
+        d = M3GNetMDCalculation.from_directory(
+            Path.cwd(),
+            trajectory_fn=traj_fn
+        )
+
+        d.trajectory.write_Xdatcar(f'{outfile_name}.xdatcar')
+
         d.task_label = self.name
         d.metadata = self.as_dict()
 

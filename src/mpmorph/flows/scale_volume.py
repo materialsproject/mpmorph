@@ -1,6 +1,10 @@
-from jobflow import Flow
+from jobflow import Flow, Maker
+from pymatgen.core.structure import Structure
 
-def md_to_volume_flow(structure, scale_factor, md_maker, pv_maker): 
+def md_to_volume_flow(structure: Structure,
+                      scale_factor: float,
+                      md_maker: Maker,
+                      pv_maker: Maker): 
     struct = structure.copy()
     struct.scale_lattice(struct.volume * scale_factor)    
     md_job = md_maker.make(struct)
