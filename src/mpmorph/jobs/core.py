@@ -54,6 +54,7 @@ class M3GNetMDMaker(Maker):
     loginterval: int = 1
     append_trajectory: bool = False
     steps: int = 1000
+    save_files: bool = False
 
     @job(trajectory="trajectory", output_schema=M3GNetMDCalculation)
     def make(self, structure: Structure, **kwargs):
@@ -71,10 +72,6 @@ class M3GNetMDMaker(Maker):
         outfile_name = f'{structure.composition.to_pretty_string()}-{self.temperature}K-{round(structure.volume, 3)}'
         traj_fn = f'{outfile_name}.traj'
         log_fn = f'{outfile_name}.log'
-
-        print("Inputs for m3gnet:")
-        print(f'temp: {self.temperature}')
-        print(f'steps: {self.steps}')
 
         taut = 10 * units.fs
         
@@ -103,7 +100,9 @@ class M3GNetMDMaker(Maker):
             trajectory_fn=traj_fn
         )
 
-        d.trajectory.write_Xdatcar(f'{outfile_name}.xdatcar')
+        if not self.save_files:
+            os.remove(traj_fn)
+            os.remove(log_fn)
 
         d.task_label = self.name
         d.metadata = self.as_dict()

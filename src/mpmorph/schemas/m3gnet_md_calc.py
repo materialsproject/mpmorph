@@ -16,7 +16,7 @@ class M3GNetMDCalculation(BaseModel):
     dir_name: str = Field(
         None, description="The directory where the M3GNet calculation was run"
     )
-    last_updated: datetime = Field(
+    last_updated: str = Field(
         default_factory=datetime_str,
         description="Timestamp of when the document was last updated.",
     )
