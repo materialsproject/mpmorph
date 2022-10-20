@@ -1,6 +1,8 @@
 import numpy as np
 from pymatgen.io.vasp import Poscar
 
+from scipy.optimize import leastsq
+
 __author__ = "Eric Sivonxay and Muratahan Aykol"
 __maintainer__ = "Eric Sivonxay"
 __email__ = "esivonxay@lbl.gov"
@@ -177,11 +179,9 @@ def BirchMurnaghanPV_EOS(V, params):
     return p
 
 
-def fit_BirchMurnaghanPV_EOS(p_v):
+def fit_BirchMurnaghanPV_EOS(p_v: np.ndarray):
     # Borrows somewhat from pymatgen/io/abinitio/EOS
     # Initial guesses for the parameters
-    from scipy.optimize import leastsq
-
     eqs = np.polyfit(p_v[:, 1], p_v[:, 0], 2)
     V0 = np.mean(p_v[:, 1])  # still use mean to ensure we are at reasonable volumes
     B0 = -1 * (2 * eqs[0] * V0**2 + eqs[1] * V0)
