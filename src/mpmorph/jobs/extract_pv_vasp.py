@@ -1,4 +1,4 @@
-from jobflow import Maker
+from jobflow import Maker, job
 import numpy as np
 
 from atomate2.vasp.schemas.task import TaskDocument
@@ -9,6 +9,9 @@ class ExtractPVDataFromVASPMDMaker(Maker):
     """Simple job for extracting pressure-volume data from a VASP AIMD run.
     """
 
+    name: str = "EXTRACT_PV_VASP"
+
+    @job
     def make(self, task_doc: TaskDocument):
         volume_data = task_doc_to_volume(task_doc)
         pressure_data = task_doc_to_pressure(task_doc)
@@ -18,10 +21,10 @@ class ExtractPVDataFromVASPMDMaker(Maker):
         )
 
 def task_doc_to_volume(task_doc: TaskDocument) -> float:
-    volume = task_doc.calcs_reversed[-1].output.ionic_steps[-1].structure.lattice.volume
+    volume = task_doc.output.structure.volume
     return volume
 
 def task_doc_to_pressure(task_doc: TaskDocument) -> float: #TODO
-    stress_tensor = task_doc.calcs_reversed[-1].output.ionic_steps[-1].stress
+    stress_tensor = np.array(task_doc.output.stress)
     pressure = 1/3 * np.trace(stress_tensor)
     return pressure
