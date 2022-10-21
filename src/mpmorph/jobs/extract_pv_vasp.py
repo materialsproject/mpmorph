@@ -24,7 +24,7 @@ def task_doc_to_volume(task_doc: TaskDocument) -> float:
     volume = task_doc.output.structure.volume
     return volume
 
-def task_doc_to_pressure(task_doc: TaskDocument) -> float: #TODO
+def task_doc_to_pressure(task_doc: TaskDocument) -> float: 
     stress_tensor = np.array(task_doc.output.stress)
     pressure = 1/3 * np.trace(stress_tensor)
     return pressure
