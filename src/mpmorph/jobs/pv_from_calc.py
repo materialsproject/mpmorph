@@ -26,8 +26,9 @@ class PVFromCalc(Maker):
             calc_job.output,
         )
 
-        return Response(replace=Flow([calc_job, doc_job], output=doc_job.output))
-
+        return Response(
+            addition = Flow([calc_job, doc_job], output = doc_job.output)
+        )
 
 @dataclass
 class PVFromM3GNet(PVFromCalc):
