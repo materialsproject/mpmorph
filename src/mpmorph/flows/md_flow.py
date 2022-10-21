@@ -1,65 +1,40 @@
 from atomate2.vasp.jobs.core import MDMaker
 from jobflow import Flow, Maker
-from mpmorph.flows.scale_volume import md_to_volume_flow
 from mpmorph.jobs.core import M3GNetMDMaker
 
 from mpmorph.jobs.equilibrate_volume import EquilibriumVolumeSearchMaker
 from pymatgen.core.structure import Structure
-from mpmorph.jobs.extract_pv_m3gnet import ExtractPVDataM3gnet
 
-from mpmorph.jobs.extract_pv_vasp import ExtractPVDataFromVASPMDMaker
-
-def get_volume_at_temp_m3gnet_flow(structure: Structure,
-                          temp: int,
-                          steps: int = 1000):
-    converge_flow = get_converge_flow_m3gnet(
-        structure,
-        temp,
-        steps
-    )
-    pv_extract_maker = ExtractPVDataM3gnet()
-    pv_extract_job =  pv_extract_maker.make(converge_flow.output)
-    return Flow([converge_flow, pv_extract_job], output=pv_extract_job.output)
-
+from mpmorph.jobs.pv_from_calc import PVFromM3GNet, PVFromVasp
 
 # TODO: Fix all of this (e.g. steps default)
 def get_converge_flow_vasp(structure, temperature, steps = 10):
     md_maker = MDMaker()
+    pv_md_maker = PVFromVasp(
+        maker = md_maker
+    )
     md_maker.input_set_generator.user_incar_settings["NSW"] = steps
-    pv_extract_maker = ExtractPVDataFromVASPMDMaker()
-    return get_converge_flow(structure, md_maker, pv_extract_maker)
+    return get_converge_flow(structure, pv_md_maker)
 
 def get_converge_flow_m3gnet(structure, temp, steps: int = 1000):
     md_maker = M3GNetMDMaker(
         temperature = temp,
         steps = steps
     )
-    pv_extract_maker = ExtractPVDataM3gnet()
-    return get_converge_flow(structure, md_maker, pv_extract_maker)
+    pv_md_maker = PVFromM3GNet(
+        md_maker = md_maker
+    )
+    return get_converge_flow(structure, pv_md_maker)
 
-def get_converge_flow(structure: Structure, md_maker: Maker, pv_extract_maker: Maker):
-    # TODO: Make this initial range tunable - in some cases, these may lead
-    # to unwanted(?) phase changes
-    initial_scale_factors = [0.8, 1, 1.2]
-    
-    initial_vol_search_jobs = [
-        md_to_volume_flow(
-            structure,
-            factor,
-            md_maker,
-            pv_extract_maker,
-        ) for factor in initial_scale_factors
-    ]
-
+def get_converge_flow(structure: Structure, pv_md_maker: Maker):
     eq_vol_maker = EquilibriumVolumeSearchMaker(
-        md_maker = md_maker,
-        pv_maker = pv_extract_maker
+        pv_md_maker = pv_md_maker
     )
 
-    equil_vol_job = eq_vol_maker.make(structure, [job.output for job in initial_vol_search_jobs])
+    equil_vol_job = eq_vol_maker.make(structure)
     
-    final_md_job = md_maker.make(equil_vol_job.output)
+    final_md_job = pv_md_maker.md_maker.make(equil_vol_job.output)
 
-    flow = Flow([*initial_vol_search_jobs, equil_vol_job, final_md_job], output=final_md_job.output, name=f'Converge flow with {structure.formula}')
+    flow = Flow([equil_vol_job, final_md_job], output=final_md_job.output)
     
     return flow 
