@@ -60,6 +60,6 @@ def get_converge_flow(structure: Structure, md_maker: Maker, pv_extract_maker: M
     
     final_md_job = md_maker.make(equil_vol_job.output)
 
-    flow = Flow([*initial_vol_search_jobs, equil_vol_job, final_md_job], output=final_md_job.output)
+    flow = Flow([*initial_vol_search_jobs, equil_vol_job, final_md_job], output=final_md_job.output, name=f'Converge flow with {structure.formula}')
     
     return flow 
