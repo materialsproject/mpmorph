@@ -1,4 +1,3 @@
-from symbol import factor
 from jobflow import Flow, Maker
 from pymatgen.core.structure import Structure
 
