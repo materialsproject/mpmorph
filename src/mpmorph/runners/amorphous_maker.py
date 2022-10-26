@@ -28,18 +28,21 @@ class AmorphousMaker(object):
         Only works for cubic boxes for now.
         Args:
             el_num_dict (dict): dictionary of number of atoms of each species. If
-                number of molecules is specified, an xyz file with the same name needs to be provided as xyz_paths.
+                number of molecules is specified, an xyz file with the same name
+                needs to be provided as xyz_paths.
                 e.g. {"V":22, "Li":10, "O":75, "B":10}
                 e.g. {"H2O": 20}
             box_scale (float) or (numpy array): all lattice vectors are multiplied with this.
-                e.g. if one scalar value is given, it is the edge length of a cubic simulation box
-                e.g. if np.array([1.2, 0.9, 1.0]) is given, the unit lattice vectors will be multiplied with this.
+                e.g. if one scalar value is given, it is the edge length of a cubic
+                simulation box (e.g. if np.array([1.2, 0.9, 1.0]) is given, the unit
+                lattice vectors will be multiplied with this. 
             tol (float): tolerance factor for how close the atoms can get (angstroms).
                 e.g. tol = 2.0 angstroms
             packmol_path (str): path to the packmol executable
             clean (bool): whether the intermedite files generated are deleted.
-            xyz_paths (list): list of paths (str) to xyz files correpsonding to molecules, if given so in el_num_dict.
-                file names must match the molecule formula.
+            xyz_paths (list): list of paths (str) to xyz files correpsonding to
+                molecules, if given so in el_num_dict. File names must match the
+                molecule formula. 
             time_seed (bool): whether to generate a random seed based on system time
         """
         self.el_num_dict = el_num_dict
@@ -57,7 +60,10 @@ class AmorphousMaker(object):
             self.clean = False
 
     def __repr__(self):
-        return "AmorphousMaker: generates constrained-random packed initial structure for MD using packmol."
+        return (
+            "AmorphousMaker: generates constrained-random packed initial structure for"
+            " MD using packmol."
+        )
 
     @property
     def box(self):

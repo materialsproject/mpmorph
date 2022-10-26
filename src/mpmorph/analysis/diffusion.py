@@ -8,15 +8,15 @@ __author__ = "Muratahan Aykol <maykol@lbl.gov>"
 
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.integrate as integrate
 from pymatgen.core import Element
 from pymatgen.io.vasp import Xdatcar
-from scipy import stats
+from scipy import integrate, stats
 
 
 class Diffusion(object):
     """
-    Robust calculation of diffusion coefficients with different statistical analysis techniques:
+    Robust calculation of diffusion coefficients with different statistical
+    analysis techniques:
         - Block averaging (default)
         - Jackknife (to be implemented)
         - Bootstrap (to be implemented)
@@ -25,10 +25,11 @@ class Diffusion(object):
         structures: (list) list of Structures
         corr_t: (float) correlation time (in terms of # of steps).
             Each time origin will be this many steps apart.
-        block_l: (int)  defines length of a block in terms of corr_t. (block_t = block_l * corr_t)
+        block_l: (int)  defines length of a block in terms of corr_t.
+            (block_t = block_l * corr_t)
         t_step: (float) time-step in MD simulation. Defaults to 2.0 fs.
-        l_lim: (int) this many time-steps are skipped in MSD while fitting D. I.e. approximate length of
-            ballistic and cage regions. Defaults to 50.
+        l_lim: (int) this many time-steps are skipped in MSD while fitting D.
+            i.e. approximate length of ballistic and cage regions. Defaults to 50.
         skip_first: (int) this many initial time-steps are skipped. Defaults to 0.
         ci: (float) confidence interval desired estimating the mean D of population.
     """
