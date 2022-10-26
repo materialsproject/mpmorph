@@ -69,12 +69,12 @@ class M3GNetMDMaker(Maker):
         if self.potential is not None:
             kwargs["potential"] = self.potential
 
-        outfile_name = f'{structure.composition.to_pretty_string()}-{self.temperature}K-{round(structure.volume, 3)}'
-        traj_fn = f'{outfile_name}.traj'
-        log_fn = f'{outfile_name}.log'
+        outfile_name = f"{structure.composition.to_pretty_string()}-{self.temperature}K-{round(structure.volume, 3)}"
+        traj_fn = f"{outfile_name}.traj"
+        log_fn = f"{outfile_name}.log"
 
         taut = 10 * units.fs
-        
+
         md = MolecularDynamics(
             atoms=structure,
             ensemble=self.ensemble,
@@ -88,17 +88,14 @@ class M3GNetMDMaker(Maker):
             logfile=log_fn,
             loginterval=self.loginterval,
             append_trajectory=self.append_trajectory,
-            **kwargs
+            **kwargs,
         )
 
         md.run(
-            steps = self.steps,
+            steps=self.steps,
         )
 
-        d = M3GNetMDCalculation.from_directory(
-            Path.cwd(),
-            trajectory_fn=traj_fn
-        )
+        d = M3GNetMDCalculation.from_directory(Path.cwd(), trajectory_fn=traj_fn)
 
         if not self.save_files:
             os.remove(traj_fn)

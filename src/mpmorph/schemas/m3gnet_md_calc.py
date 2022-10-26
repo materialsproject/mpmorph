@@ -43,7 +43,7 @@ class M3GNetMDCalculation(BaseModel):
             "total_energy",
             "potential_energy",
             "kinetic_energy",
-            "stress"
+            "stress",
         ),
         **kwargs,
     ):

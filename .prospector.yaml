@@ -6,7 +6,7 @@ ignore-paths:
   - tests
 
 bandit:
-  run: true
+  run: false
 
 mccabe:
   run: false
