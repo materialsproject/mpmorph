@@ -29,7 +29,7 @@ Before installing mpmorph, install the latest version of [pymatgen](http://www.p
 
 clone the repository to your computer and install using 
 ```bash
-python setup.py install
+python setup.py develop
 ```
 
 If you wish to make amorphous structures, please install [packmol](http://m3g.iqm.unicamp.br/packmol/home.shtml) on your machine and add the following line to your bash profile. 
@@ -72,7 +72,7 @@ A sample of using mpmorph to run an AIMD simulation at 1500K for 200ps (100k ste
 
 ```python
 
-from mpmorph.workflow.converge import get_converge_wf
+from mpmorph.workflows.converge import get_converge_wf
 from pymatgen.ext.matproj import MPRester
 
 from fireworks import LaunchPad
