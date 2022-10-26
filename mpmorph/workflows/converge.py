@@ -11,7 +11,7 @@ __maintainer__ = 'Eric Sivonxay'
 __email__ = 'esivonxay@lbl.gov'
 
 
-def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None,
+def get_converge_wf(structure, start_temp, end_temp, converge_scheme='EOS', priority=None,
                     max_steps=5000, target_steps=10000, preconverged=False,
                     notes=None, save_data="all", **kwargs):
     """
@@ -36,12 +36,12 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
     # Generate a unique identifier for the fireworks belonging to this workflows
     tag_id = kwargs.get('tag_id', uuid.uuid4())
     prod_count = kwargs.get('prod_count', 0)
-    wf_name = kwargs.get('wf_name', f'{structure.composition.reduced_formula}_{temperature}_diffusion')
+    wf_name = kwargs.get('wf_name', f'{structure.composition.reduced_formula}_{start_temp}_{end_temp}_diffusion')
 
     fw_list = []
 
     # Setup initial Run and convergence of structure
-    run_args = {"md_params": {"start_temp": temperature, "end_temp": temperature, "nsteps": 2000},
+    run_args = {"md_params": {"start_temp": start_temp, "end_temp": end_temp, "nsteps": 2000},
                 "run_specs": {"vasp_input_set": None, "vasp_cmd": ">>vasp_cmd<<", "db_file": ">>db_file<<"},
                 "optional_fw_params": {
                     "override_default_vasp_params": {'user_incar_settings': {'ISIF': 1, 'LWAVE': False,
@@ -126,7 +126,7 @@ def get_converge_wf(structure, temperature, converge_scheme='EOS', priority=None
 
         parents = fw_list[-1] if len(fw_list) > 0 else []
         previous_structure = False if preconverged and prod_steps == 0 else True
-        fw = MDFW(structure=structure, name=f'{temperature}_prod_run_{prod_count}-{tag_id}',
+        fw = MDFW(structure=structure, name=f'{start_temp}_{end_temp}_prod_run_{prod_count}-{tag_id}',
                   previous_structure=previous_structure, insert_db=insert_prod_data, **run_args["md_params"],
                   **run_args["run_specs"], **run_args["optional_fw_params"], parents=parents)
         fw_list.append(fw)
