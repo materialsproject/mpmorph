@@ -1,8 +1,7 @@
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
-
-import os
 
 from ase import units
 from jobflow import Maker, job
@@ -38,6 +37,9 @@ class M3GNetMDMaker(Maker):
             Defaults to 10.
         append_trajectory: Whether to append to previous trajectory file if it already
             exists. Defaults to False.
+        steps: The number of MD steps to run. Defaults to 1000.
+        save_files: Whether to save the output and trajectory files. Defaults to False
+            (i.e., files are removed from the directory where M3GNet was run).
     """
 
     name: str = "m3gnet_run"
@@ -69,7 +71,9 @@ class M3GNetMDMaker(Maker):
         if self.potential is not None:
             kwargs["potential"] = self.potential
 
-        outfile_name = f"{structure.composition.to_pretty_string()}-{self.temperature}K-{round(structure.volume, 3)}"
+        outfile_name = (
+            f"{structure.composition.to_pretty_string()}-{self.temperature}K-{round(structure.volume, 3)}"
+        )
         traj_fn = f"{outfile_name}.traj"
         log_fn = f"{outfile_name}.log"
 
