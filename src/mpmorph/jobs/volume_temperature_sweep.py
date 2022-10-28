@@ -1,12 +1,15 @@
 from jobflow import Flow, Maker, Response, job
 import json
+
+from mpmorph.jobs.tasks.m3gnet_input import M3GNetMDInputs
 from .helpers import get_volume_at_temp_m3gnet_job
 
 
 class VolumeTemperatureSweepMaker(Maker):
 
     name: str = "VOLUME_TEMPERATURE_SWEEP"
-
+    md_parameters: M3GNetMDInputs = None
+    
     @job
     def make(
         self,
@@ -17,12 +20,20 @@ class VolumeTemperatureSweepMaker(Maker):
         output_name="vt.out",
         steps=2000,
     ):
+        if self.md_parameters is None:
+            self.md_parameters = M3GNetMDInputs()
+
         vs = []
         volume_jobs = []
         temps = list(range(lower_bound, upper_bound, temp_step))
 
+        
+
         for temp in temps:
-            job = get_volume_at_temp_m3gnet_job(structure, temp, steps=steps)
+            params = self.md_parameters.copy()
+            params.temperature = temp
+            params.steps = steps
+            job = get_volume_at_temp_m3gnet_job(structure, params)
             volume_jobs.append(job)
             vs.append(job.output.volume)
 
@@ -35,7 +46,7 @@ class VolumeTemperatureSweepMaker(Maker):
 @job
 def _collect_vt_results(vs, ts, structure, output_fn):
     result = {"structure": structure.as_dict(), "volumes": vs, "temps": ts}
-    print(result)
+
     with open(output_fn, "+w") as f:
         f.write(json.dumps(result))
     return result
