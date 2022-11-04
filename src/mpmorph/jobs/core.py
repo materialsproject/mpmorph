@@ -1,10 +1,13 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, Field
 from jobflow import Maker, job
 from pymatgen.core import Structure
 
 from .tasks.m3gnet_input import M3GNetMDInputs
 from .tasks.m3gnet_md_task import run_m3gnet
 from ..schemas.m3gnet_md_calc import M3GNetMDCalculation
+
+def empty_inputs():
+    return M3GNetMDInputs()
 
 @dataclass
 class M3GNetMDMaker(Maker):
@@ -18,7 +21,9 @@ class M3GNetMDMaker(Maker):
     """
 
     name: str = "m3gnet_run"
-    parameters: M3GNetMDInputs = None
+    parameters: M3GNetMDInputs = Field(
+        default_factory=empty_inputs
+    )
 
     @job(trajectory="trajectory", output_schema=M3GNetMDCalculation)
     def make(self, structure: Structure, **kwargs):
