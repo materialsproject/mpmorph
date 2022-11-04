@@ -1,6 +1,5 @@
 from atomate2.vasp.jobs.core import MDMaker
 from jobflow import Flow, Maker
-from mpmorph.jobs.core import M3GNetMDMaker
 
 from mpmorph.jobs.equilibrate_volume import EquilibriumVolumeSearchMaker
 from pymatgen.core.structure import Structure
