@@ -5,6 +5,7 @@ import os
 from ase import units
 from m3gnet.models import MolecularDynamics
 from pymatgen.core import Structure
+import dataclasses
 
 from mpmorph.jobs.tasks.m3gnet_input import M3GNetMDInputs
 
@@ -61,6 +62,6 @@ def run_m3gnet(structure: Structure,
         os.remove(log_fn)
 
     d.task_label = name
-    d.metadata = inputs.dict()
+    d.metadata = dataclasses.asdict(inputs)
 
     return d
