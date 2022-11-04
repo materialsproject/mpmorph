@@ -67,6 +67,7 @@ class EquilibriumVolumeSearchMaker(Maker):
 
             # This is specific to the type of MD run you're doing
             new_job = self.pv_md_maker.make(original_structure, new_vol_scale)
+            new_jobs = [new_job]
             md_pv_data_docs.append(new_job.output)
 
         expanded_search_job = EquilibriumVolumeSearchMaker(
