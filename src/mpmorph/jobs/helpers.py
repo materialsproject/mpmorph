@@ -1,7 +1,6 @@
 from pymatgen.core.structure import Structure
 
 from mpmorph.jobs.tasks.m3gnet_input import M3GNetMDInputs
-from .core import M3GNetMDMaker
 from .pv_from_calc import PVFromM3GNet
 from .equilibrate_volume import EquilibriumVolumeSearchMaker
 

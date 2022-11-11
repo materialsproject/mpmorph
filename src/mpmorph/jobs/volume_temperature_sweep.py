@@ -3,7 +3,7 @@ import json
 
 from mpmorph.jobs.tasks.m3gnet_input import M3GNetMDInputs
 from .helpers import get_volume_at_temp_m3gnet_job
-
+import dataclasses
 
 class VolumeTemperatureSweepMaker(Maker):
 
@@ -28,7 +28,7 @@ class VolumeTemperatureSweepMaker(Maker):
         temps = list(range(lower_bound, upper_bound, temp_step))
 
         for temp in temps:
-            params = self.md_parameters.copy()
+            params = dataclasses.replace(self.md_parameters)
             params.temperature = temp
             params.steps = steps
             job = get_volume_at_temp_m3gnet_job(structure, params)
