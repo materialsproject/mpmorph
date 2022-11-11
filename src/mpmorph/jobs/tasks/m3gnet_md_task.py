@@ -12,10 +12,9 @@ from mpmorph.jobs.tasks.m3gnet_input import M3GNetMDInputs
 from ...schemas.m3gnet_md_calc import M3GNetMDCalculation
 
 
-def run_m3gnet(structure: Structure,
-               inputs: M3GNetMDInputs,
-               name: str = "m3gnet_run",
-               **kwargs):
+def run_m3gnet(
+    structure: Structure, inputs: M3GNetMDInputs, name: str = "m3gnet_run", **kwargs
+):
     """
     Run MD using the M3GNet Molecular Dynamics interface. This runs molecular
     dynamics through the ASE interface with the default M3GNet potential.

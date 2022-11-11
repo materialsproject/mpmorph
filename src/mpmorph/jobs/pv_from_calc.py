@@ -12,9 +12,9 @@ from ..schemas.m3gnet_md_calc import M3GNetMDCalculation
 from mpmorph.schemas.pv_data_doc import MDPVDataDoc
 import numpy as np
 
+
 @dataclass
 class PVFromCalc(Maker):
-    
     @job
     def make(self, structure, scale_factor=None):
         struct = structure.copy()
@@ -23,13 +23,10 @@ class PVFromCalc(Maker):
             struct.scale_lattice(struct.volume * scale_factor)
 
         calc_doc = self.run_md(struct)
-        pv_doc = self.build_doc(
-            calc_doc
-        )
+        pv_doc = self.build_doc(calc_doc)
 
-        return Response(
-            output = pv_doc
-        )
+        return Response(output=pv_doc)
+
 
 @dataclass
 class PVFromM3GNet(PVFromCalc):
@@ -38,12 +35,7 @@ class PVFromM3GNet(PVFromCalc):
     parameters: M3GNetMDInputs = None
 
     def run_md(self, structure: Structure, **kwargs):
-        calc_doc = run_m3gnet(
-            structure,
-            self.parameters,
-            self.name,
-            **kwargs
-        )
+        calc_doc = run_m3gnet(structure, self.parameters, self.name, **kwargs)
 
         return calc_doc
 
@@ -83,9 +75,7 @@ class PVFromVasp(PVFromCalc):
     def build_doc(self, task_document: M3GNetMDCalculation):
         v_data = task_doc_to_volume(task_document)
         p_data = task_doc_to_pressure(task_document)
-        return MDPVDataDoc(
-            volume=v_data, pressure=p_data
-        )
+        return MDPVDataDoc(volume=v_data, pressure=p_data)
 
 
 def task_doc_to_volume(task_doc: TaskDocument) -> float:

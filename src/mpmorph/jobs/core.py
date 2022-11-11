@@ -6,8 +6,10 @@ from .tasks.m3gnet_input import M3GNetMDInputs
 from .tasks.m3gnet_md_task import run_m3gnet
 from ..schemas.m3gnet_md_calc import M3GNetMDCalculation
 
+
 def empty_inputs():
     return M3GNetMDInputs()
+
 
 @dataclass
 class M3GNetMDMaker(Maker):
@@ -35,11 +37,6 @@ class M3GNetMDMaker(Maker):
             structure: the input structure
         """
 
-        calc_doc = run_m3gnet(
-            structure,
-            self.parameters,
-            self.name,
-            **kwargs
-        )
+        calc_doc = run_m3gnet(structure, self.parameters, self.name, **kwargs)
 
         return calc_doc

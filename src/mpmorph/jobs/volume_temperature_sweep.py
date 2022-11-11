@@ -9,7 +9,7 @@ class VolumeTemperatureSweepMaker(Maker):
 
     name: str = "VOLUME_TEMPERATURE_SWEEP"
     md_parameters: M3GNetMDInputs = None
-    
+
     @job
     def make(
         self,
@@ -26,8 +26,6 @@ class VolumeTemperatureSweepMaker(Maker):
         vs = []
         volume_jobs = []
         temps = list(range(lower_bound, upper_bound, temp_step))
-
-        
 
         for temp in temps:
             params = self.md_parameters.copy()

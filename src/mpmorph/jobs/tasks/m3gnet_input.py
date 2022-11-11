@@ -4,11 +4,13 @@ from dataclasses import dataclass
 
 from ase import units
 
+
 def one_atmosphere():
     return 1.01325 * units.bar
 
+
 @dataclass
-class M3GNetMDInputs():
+class M3GNetMDInputs:
 
     ensemble: str = "nvt"
     temperature: float = 2000.0

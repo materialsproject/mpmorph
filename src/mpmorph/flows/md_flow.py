@@ -16,10 +16,7 @@ def get_converge_flow_vasp(structure, temperature, steps=10):
 
 
 def get_converge_flow_m3gnet(structure, temp, steps: int = 1000):
-    inputs = M3GNetMDInputs(
-        temperature=temp,
-        steps=steps
-    )
+    inputs = M3GNetMDInputs(temperature=temp, steps=steps)
     print(inputs)
     pv_md_maker = PVFromM3GNet(parameters=inputs)
     return get_converge_flow(structure, pv_md_maker)

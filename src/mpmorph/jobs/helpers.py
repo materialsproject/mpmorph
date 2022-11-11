@@ -7,6 +7,6 @@ from .equilibrate_volume import EquilibriumVolumeSearchMaker
 
 
 def get_volume_at_temp_m3gnet_job(structure: Structure, md_inputs: M3GNetMDInputs):
-    pv_md_maker = PVFromM3GNet(parameters = md_inputs)
+    pv_md_maker = PVFromM3GNet(parameters=md_inputs)
     eq_vol_maker = EquilibriumVolumeSearchMaker(pv_md_maker=pv_md_maker)
     return eq_vol_maker.make(structure)

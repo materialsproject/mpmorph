@@ -35,14 +35,14 @@ class AmorphousMaker(object):
             box_scale (float) or (numpy array): all lattice vectors are multiplied with this.
                 e.g. if one scalar value is given, it is the edge length of a cubic
                 simulation box (e.g. if np.array([1.2, 0.9, 1.0]) is given, the unit
-                lattice vectors will be multiplied with this. 
+                lattice vectors will be multiplied with this.
             tol (float): tolerance factor for how close the atoms can get (angstroms).
                 e.g. tol = 2.0 angstroms
             packmol_path (str): path to the packmol executable
             clean (bool): whether the intermedite files generated are deleted.
             xyz_paths (list): list of paths (str) to xyz files correpsonding to
                 molecules, if given so in el_num_dict. File names must match the
-                molecule formula. 
+                molecule formula.
             time_seed (bool): whether to generate a random seed based on system time
         """
         self.el_num_dict = el_num_dict
