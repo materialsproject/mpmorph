@@ -7,11 +7,10 @@ from atomate2.vasp.jobs.core import MDMaker
 from .tasks.m3gnet_input import M3GNetMDInputs
 from .tasks.m3gnet_md_task import run_m3gnet
 
-from mpmorph.schemas.pv_data_doc import VaspPVDataDoc
 from ..schemas.m3gnet_md_calc import M3GNetMDCalculation
 
-from mpmorph.schemas.pv_data_doc import M3GnetPVDataDoc
-
+from mpmorph.schemas.pv_data_doc import MDPVDataDoc
+import numpy as np
 
 @dataclass
 class PVFromCalc(Maker):
@@ -51,7 +50,7 @@ class PVFromM3GNet(PVFromCalc):
     def build_doc(self, m3gnet_calc: M3GNetMDCalculation):
         v_data = m3gnet_calc_to_vol(m3gnet_calc)
         p_data = m3gnet_calc_to_pressure(m3gnet_calc)
-        return M3GnetPVDataDoc(volume=v_data, pressure=p_data, m3gnet_calc=m3gnet_calc)
+        return MDPVDataDoc(volume=v_data, pressure=p_data)
 
 
 def m3gnet_calc_to_vol(m3gnet_calc: M3GNetMDCalculation):
@@ -84,8 +83,8 @@ class PVFromVasp(PVFromCalc):
     def build_doc(self, task_document: M3GNetMDCalculation):
         v_data = task_doc_to_volume(task_document)
         p_data = task_doc_to_pressure(task_document)
-        return VaspPVDataDoc(
-            volume=v_data, pressure=p_data, task_document=task_document
+        return MDPVDataDoc(
+            volume=v_data, pressure=p_data
         )
 
 
