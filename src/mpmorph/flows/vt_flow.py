@@ -1,8 +1,10 @@
 from jobflow import Flow, job
 import json
 
-from .md_flow import get_md_flow_m3gnet
+from .md_flow import get_equil_vol_flow
 from ..jobs.pv_from_calc import m3gnet_calc_to_vol
+
+VOLUME_TEMPERATURE_SWEEP = "VOLUME_TEMPERATURE_SWEEP"
 
 def get_vt_sweep_flow(
     structure,
@@ -18,18 +20,17 @@ def get_vt_sweep_flow(
     temps = list(range(lower_bound, upper_bound, temp_step))
 
     for temp in temps:
-        job = get_md_flow_m3gnet(
+        job = get_equil_vol_flow(
             structure=structure,
             temp=temp,
-            steps=steps,
-            converge_first=True
+            steps=steps
         )
         volume_jobs.append(job)
-        vs.append(m3gnet_calc_to_vol(job.output))
+        vs.append(job.output.volume)
 
     collect_job = _collect_vt_results(vs, temps, structure, output_name)
 
-    new_flow = Flow([*volume_jobs, collect_job], output=collect_job.output)
+    new_flow = Flow([*volume_jobs, collect_job], output=collect_job.output, name=VOLUME_TEMPERATURE_SWEEP)
     return new_flow
 
 
