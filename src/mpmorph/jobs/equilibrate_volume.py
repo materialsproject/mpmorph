@@ -49,8 +49,11 @@ class EquilibriumVolumeSearchMaker(Maker):
             max_explored_volume = max(volumes)
             min_explored_volume = min(volumes)
 
-            params = rescale_volume.fit_BirchMurnaghanPV_EOS(pv_pairs)
-            equil_volume = params[0]
+            try:
+                params = rescale_volume.fit_BirchMurnaghanPV_EOS(pv_pairs)
+                equil_volume = params[0]
+            except ValueError:
+                return None
             if (
                 equil_volume < max_explored_volume
                 and equil_volume > min_explored_volume
