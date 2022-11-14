@@ -53,7 +53,7 @@ class EquilibriumVolumeSearchMaker(Maker):
                 params = rescale_volume.fit_BirchMurnaghanPV_EOS(pv_pairs)
                 equil_volume = params[0]
             except ValueError:
-                return None
+                return MDPVDataDoc()
             if (
                 equil_volume < max_explored_volume
                 and equil_volume > min_explored_volume

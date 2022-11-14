@@ -43,10 +43,17 @@ class VolumeTemperatureSweepMaker(Maker):
 
 @job
 def _collect_vt_results(vs, ts, structure, output_fn = None):
+    filtered_vs = []
+    filtered_ts = []
+    for v, t in zip(vs, ts):
+        if v is not None:
+            filtered_vs.append(v)
+            filtered_ts.append(t)
+
 
     result = VTSweepDoc(
-        volumes=vs,
-        temps=ts,
+        volumes=filtered_vs,
+        temps=filtered_ts,
         structure=structure
     )
 
