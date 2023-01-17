@@ -1,4 +1,3 @@
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Union
 
@@ -16,7 +15,7 @@ class M3GNetMDCalculation(BaseModel):
     dir_name: str = Field(
         None, description="The directory where the M3GNet calculation was run"
     )
-    last_updated: datetime = Field(
+    last_updated: str = Field(
         default_factory=datetime_str,
         description="Timestamp of when the document was last updated.",
     )
@@ -44,6 +43,7 @@ class M3GNetMDCalculation(BaseModel):
             "total_energy",
             "potential_energy",
             "kinetic_energy",
+            "stress",
         ),
         **kwargs,
     ):
@@ -71,6 +71,7 @@ class M3GNetMDCalculation(BaseModel):
             "total_energy",
             "potential_energy",
             "kinetic_energy",
+            "stress",
             "temperature",
         ),
         **kwargs,
@@ -80,8 +81,6 @@ class M3GNetMDCalculation(BaseModel):
 
         Args:
             trajectory: the ASE trajectory file loaded from the out.traj file
-            metadata: The metadata dictionary. like the temperature and timestep of the
-                MD run.
             **kwargs: Additional keyword arguments to pass to the M3GNetCalculation
                 constructor.
         """
