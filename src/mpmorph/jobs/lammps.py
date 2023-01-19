@@ -15,6 +15,8 @@ class RunLammpsMaker(Maker):
             e.g. 'mpirun -n 4 lmp_mpi'
     """
 
+    name = "RUN_LAMMPS"
+
     @job
     def make(self, lammps_cmd: str,
                    script_template_path: str,
