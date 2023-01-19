@@ -41,7 +41,7 @@ class RunLammpsMaker(Maker):
         # Run LAMMPS
         lmps_runner = LammpsRunner(input_name, lammps_cmd)
         stdout, stderr = lmps_runner.run()
-        logging.info(f"LAMMPS finished running: {stdout} \n {stderr}")
+        print(f"LAMMPS finished running: {stdout} \n {stderr}")
 
         dump_files = dump_files or []
         dump_files = [dump_files] if isinstance(dump_files, str) else dump_files
