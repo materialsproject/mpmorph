@@ -2,6 +2,8 @@ from jobflow import Maker, job
 from pymatgen.io.lammps.utils import LammpsRunner
 import logging
 
+from typing import List
+
 from pymatgen.io.lammps.inputs import LammpsTemplateGen
 from pymatgen.io.lammps.outputs import LammpsDump, parse_lammps_log
 from pymatgen.io.lammps.data import LammpsData
@@ -23,7 +25,8 @@ class RunLammpsMaker(Maker):
                    script_options: dict,
                    structure: Structure = None,
                    data_filename: str = None,
-                   log_filename: str = "log.lammps"):
+                   log_filename: str = "log.lammps",
+                   dump_files: List[str] = None):
 
         if data_filename is None:
             data = LammpsData.from_structure(structure)
