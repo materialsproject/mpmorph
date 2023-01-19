@@ -1,10 +1,8 @@
 from jobflow import Maker, job
 from pymatgen.io.lammps.utils import LammpsRunner
-from pymatgen.io.lammps.inputs import La
 import logging
-import os
 
-from pymatgen.io.lammps.inputs import TemplateInputGen, LammpsTemplateGen
+from pymatgen.io.lammps.inputs import LammpsTemplateGen
 from pymatgen.io.lammps.outputs import LammpsDump, parse_lammps_log
 from pymatgen.io.lammps.data import LammpsData
 from pymatgen.core.structure import Structure
@@ -55,5 +53,7 @@ class RunLammpsMaker(Maker):
         # Construct log object
         log = parse_lammps_log(log_filename)
 
-        logging.info(f"Getting task doc for base dir :{path}")
-        d = self.generate_doc(path, lmps_input, log, dumps)        
+        return {
+            "dumps": dumps,
+            "log": log
+        }
