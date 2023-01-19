@@ -28,7 +28,7 @@ class RunLammpsMaker(Maker):
                    data_filename: str = "data.lammps",
                    dump_files: List[str] = None):
 
-        data = LammpsData.from_structure(structure)
+        data = LammpsData.from_structure(structure, atom_style='atomic')
         # Write the input files
         linp = LammpsTemplateGen().get_input_set(script_template=script_template_path,
                                                  settings=script_options, 
