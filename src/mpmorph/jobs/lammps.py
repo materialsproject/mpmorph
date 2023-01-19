@@ -24,19 +24,16 @@ class RunLammpsMaker(Maker):
                    script_template_path: str,
                    script_options: dict,
                    structure: Structure = None,
-                   data_filename: str = None,
                    log_filename: str = "log.lammps",
+                   data_filename: str = "data.lammps",
                    dump_files: List[str] = None):
 
-        if data_filename is None:
-            data = LammpsData.from_structure(structure)
-        else:
-            data = LammpsData.from_file(data_filename)
+        data = LammpsData.from_structure(structure)
         # Write the input files
         linp = LammpsTemplateGen().get_input_set(script_template=script_template_path,
                                                  settings=script_options, 
                                                  data=data,
-                                                 data_filename='data.dump')
+                                                 data_filename=data_filename)
 
         input_name = f'lammps.in'
         linp.write_input(input_name)
