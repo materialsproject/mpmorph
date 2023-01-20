@@ -40,7 +40,7 @@ class RunLammpsMaker(Maker):
         input_name = "in.lammps"
         # Run LAMMPS
 
-        lammps_cmd = lammps_bin + ["-in", input_name]
+        lammps_cmd = [lammps_bin, "-in", input_name]
         print(f"Running: {' '.join(lammps_cmd)}")
         with Popen(lammps_cmd, stdout=PIPE, stderr=PIPE) as p:
             (stdout, stderr) = p.communicate()
