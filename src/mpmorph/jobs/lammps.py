@@ -1,16 +1,17 @@
 from subprocess import PIPE, Popen
 from jobflow import Maker, job
-from pymatgen.io.lammps.utils import LammpsRunner
-import logging
 
-from typing import List
+import pandas as pd
 
 from pymatgen.io.lammps.inputs import LammpsTemplateGen
-from pymatgen.io.lammps.outputs import LammpsDump, parse_lammps_log
 from pymatgen.io.lammps.data import LammpsData
 from pymatgen.core.structure import Structure
 
-class RunLammpsMaker(Maker):
+from mpmorph.schemas.pv_data_doc import MDPVDataDoc
+
+from pkg_resources import resource_filename
+
+class LammpsVolMaker(Maker):
     """
     Run LAMMPS directly (no custodian).
     Required params:
@@ -22,16 +23,16 @@ class RunLammpsMaker(Maker):
 
     @job
     def make(self, lammps_bin: str,
-                   script_template_path: str,
                    script_options: dict,
                    structure: Structure = None,
-                   log_filename: str = "log.lammps",
-                   data_filename: str = "data.lammps",
-                   dump_files: List[str] = None):
+                   data_filename: str = "data.lammps"):
+        
+        template_path = resource_filename('mpmorph', 'jobs/lammps-templates/template.lammps')
+
 
         data = LammpsData.from_structure(structure, atom_style='atomic')
         # Write the input files
-        linp = LammpsTemplateGen().get_input_set(script_template=script_template_path,
+        linp = LammpsTemplateGen().get_input_set(script_template=template_path,
                                                  settings=script_options, 
                                                  data=data,
                                                  data_filename=data_filename)
@@ -47,19 +48,8 @@ class RunLammpsMaker(Maker):
 
         print(f"LAMMPS finished running: {stdout} \n {stderr}")
 
-        dump_files = dump_files or []
-        dump_files = [dump_files] if isinstance(dump_files, str) else dump_files
 
-        # Construct various dumps objects
-        dumps = []
-        if dump_files:
-            for df in dump_files:
-                dumps.append((df, LammpsDump.from_file(df)))
+        filecontents = pd.read_csv("step_temp_vol_density.txt", delimiter=" ", skiprows=1, index_col="step", names=["step", "temp", "vol", "density"])
+        eq_vol = filecontents[["vol"]].iloc[-1].values[0]
 
-        # Construct log object
-        log = parse_lammps_log(log_filename)
-
-        return {
-            "dumps": dumps,
-            "log": log
-        }
+        return eq_vol
