@@ -57,7 +57,7 @@ def get_vt_sweep_flow_lammps(
             m3gnet_path=m3gnet_path
         )
         volume_jobs.append(job)
-        vs.append(job.output)
+        vs.append(job.output.output)
 
     collect_job = _collect_vt_results(vs, temps, structure, output_name)
 
