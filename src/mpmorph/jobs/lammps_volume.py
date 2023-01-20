@@ -28,10 +28,11 @@ class LammpsVolMaker(Maker):
                    total_steps: int,
                    structure: Structure = None):
 
+        chem_sys_str = " ".join(el.symbol for el in structure.composition.elements)
         script_options = {
             "temperature": temperature,
             "m3gnet_path": m3gnet_path,
-            "species": structure.composition.chemical_system.replace("-", " "),
+            "species": chem_sys_str,
             "total_steps": total_steps,
             "print_every_n_step": 10
         }                   
