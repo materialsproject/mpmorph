@@ -29,6 +29,18 @@ def get_md_flow_m3gnet(structure, temp, steps, converge_first = True, initial_vo
         initial_vol_scale=initial_vol_scale
     )
 
+def get_equil_vol_flow_lammps(structure, temp, steps):
+    inputs = M3GNetMDInputs(
+        temperature=temp,
+        steps=steps
+    )
+
+    pv_md_maker = PVFromM3GNet(parameters=inputs)
+    eq_vol_maker = EquilibriumVolumeSearchMaker(pv_md_maker=pv_md_maker)
+    equil_vol_job = eq_vol_maker.make(structure)
+    flow = Flow([equil_vol_job], output=equil_vol_job.output, name=EQUILIBRATE_VOLUME_FLOW)
+    return flow
+
 def get_equil_vol_flow(structure, temp, steps):
     inputs = M3GNetMDInputs(
         temperature=temp,
