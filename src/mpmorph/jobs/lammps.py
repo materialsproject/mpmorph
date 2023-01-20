@@ -1,3 +1,4 @@
+from subprocess import PIPE, Popen
 from jobflow import Maker, job
 from pymatgen.io.lammps.utils import LammpsRunner
 import logging
@@ -35,12 +36,17 @@ class RunLammpsMaker(Maker):
                                                  data=data,
                                                  data_filename=data_filename)
 
-        input_name = f'lammps.in'
-        linp.write_input(input_name)
-
+        linp.write_input(directory=".")
+        input_name = "in.lammps"
         # Run LAMMPS
         lmps_runner = LammpsRunner(input_name, lammps_cmd)
         stdout, stderr = lmps_runner.run()
+
+        lammps_cmd = self.lammps_bin + ["-in", input_name]
+        print(f"Running: {' '.join(lammps_cmd)}")
+        with Popen(lammps_cmd, stdout=PIPE, stderr=PIPE) as p:
+            (stdout, stderr) = p.communicate()
+
         print(f"LAMMPS finished running: {stdout} \n {stderr}")
 
         dump_files = dump_files or []
