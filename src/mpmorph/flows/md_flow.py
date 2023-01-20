@@ -33,14 +33,10 @@ def get_md_flow_m3gnet(structure, temp, steps, converge_first = True, initial_vo
 
 def get_equil_vol_flow_lammps(structure,
                               temp,
-                              steps,
-                              lammps_bin_path,
-                              m3gnet_path):
+                              steps):
     vol_maker = LammpsVolMaker()
     vol_job = vol_maker.make(
-        lammps_bin_path,
         temp,
-        m3gnet_path,
         steps,
         structure
     )
