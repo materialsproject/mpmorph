@@ -21,7 +21,7 @@ class RunLammpsMaker(Maker):
     name = "RUN_LAMMPS"
 
     @job
-    def make(self, lammps_cmd: str,
+    def make(self, lammps_bin: str,
                    script_template_path: str,
                    script_options: dict,
                    structure: Structure = None,
@@ -39,10 +39,8 @@ class RunLammpsMaker(Maker):
         linp.write_input(directory=".")
         input_name = "in.lammps"
         # Run LAMMPS
-        lmps_runner = LammpsRunner(input_name, lammps_cmd)
-        stdout, stderr = lmps_runner.run()
 
-        lammps_cmd = self.lammps_bin + ["-in", input_name]
+        lammps_cmd = lammps_bin + ["-in", input_name]
         print(f"Running: {' '.join(lammps_cmd)}")
         with Popen(lammps_cmd, stdout=PIPE, stderr=PIPE) as p:
             (stdout, stderr) = p.communicate()
