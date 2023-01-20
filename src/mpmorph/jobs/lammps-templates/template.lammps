@@ -14,18 +14,13 @@ units         metal
 boundary      p p p
 atom_style    atomic
 
-read_data       data.lammps 
+read_data     data.lammps 
 
 pair_style    m3gnet $m3gnet_path
 pair_coeff    * *  MP-2021.2.8-EFS  $species
 
-
-# Don't need actual positions
-# dump          myDump all custom 10 xyz.lammpstrj id element x y z
-# dump_modify   myDump sort id element $species
-
 thermo_style  custom step time cpu pe ke etotal temp press vol density
-thermo        10
+thermo        $print_every_n_step
 
 variable p1 equal "step"
 variable p2 equal "temp"

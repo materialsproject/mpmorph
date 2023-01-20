@@ -13,23 +13,33 @@ from pkg_resources import resource_filename
 
 class LammpsVolMaker(Maker):
     """
-    Run LAMMPS directly (no custodian).
+    Run LAMMPS directly using m3gnet (no custodian).
     Required params:
         lammsps_cmd (str): lammps command to run sans the input file name.
             e.g. 'mpirun -n 4 lmp_mpi'
     """
 
-    name = "RUN_LAMMPS"
+    name = "LAMMPS_TO_VOLUME"
 
     @job
     def make(self, lammps_bin: str,
-                   script_options: dict,
-                   structure: Structure = None,
-                   data_filename: str = "data.lammps"):
+                   temperature: int,
+                   m3gnet_path: str,
+                   total_steps: int,
+                   structure: Structure = None):
+
+        script_options = {
+            "temperature": temperature,
+            "m3gnet_path": m3gnet_path,
+            "species": structure.composition.chemical_system.replace("-", " "),
+            "total_steps": total_steps,
+            "print_every_n_step": 10
+        }                   
         
+
         template_path = resource_filename('mpmorph', 'jobs/lammps-templates/template.lammps')
 
-
+        data_filename: str = "data.lammps"
         data = LammpsData.from_structure(structure, atom_style='atomic')
         # Write the input files
         linp = LammpsTemplateGen().get_input_set(script_template=template_path,
