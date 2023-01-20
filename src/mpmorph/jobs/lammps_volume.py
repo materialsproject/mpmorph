@@ -1,4 +1,6 @@
 from subprocess import PIPE, Popen
+
+import os
 from jobflow import Maker, job
 
 import pandas as pd
@@ -22,11 +24,12 @@ class LammpsVolMaker(Maker):
     name = "LAMMPS_TO_VOLUME"
 
     @job
-    def make(self, lammps_bin: str,
-                   temperature: int,
-                   m3gnet_path: str,
+    def make(self, temperature: int,
                    total_steps: int,
                    structure: Structure = None):
+
+        lammps_bin = os.environ.get("LAMMPS_CMD")
+        m3gnet_path = os.environ.get("M3GNET_PATH")
 
         chem_sys_str = " ".join(el.symbol for el in structure.composition.elements)
         script_options = {
