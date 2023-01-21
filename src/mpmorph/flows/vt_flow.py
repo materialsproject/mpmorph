@@ -40,6 +40,7 @@ def get_vt_sweep_flow_lammps(
     temp_step=100,
     output_name="vt.out",
     steps=2000,
+    mp_id=None
 ):
 
     vs = []
@@ -55,15 +56,21 @@ def get_vt_sweep_flow_lammps(
         volume_jobs.append(job)
         vs.append(job.output.output)
 
-    collect_job = _collect_vt_results(vs, temps, structure, output_name)
+    collect_job = _collect_vt_results(vs, temps, structure, output_name, mp_id)
 
     new_flow = Flow([*volume_jobs, collect_job], output=collect_job.output, name=VOLUME_TEMPERATURE_SWEEP)
     return new_flow
 
 
 @job
-def _collect_vt_results(vs, ts, structure, output_fn):
-    result = {"structure": structure.as_dict(), "volumes": vs, "temps": ts}
+def _collect_vt_results(vs, ts, structure, output_fn, mp_id):
+    result = {
+        "structure": structure.as_dict(),
+        "volumes": vs,
+        "temps": ts,
+        "mp_id": mp_id,
+        "formula": structure.composition.reduced_formula
+    }
 
     with open(output_fn, "+w") as f:
         f.write(json.dumps(result))
