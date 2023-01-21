@@ -60,7 +60,9 @@ def get_vt_sweep_flow_lammps(
 
     collect_job = _collect_vt_results(v_outputs, temps, structure, output_name, mp_id)
 
-    new_flow = Flow([*volume_jobs, collect_job], output=collect_job.output, name=VOLUME_TEMPERATURE_SWEEP)
+
+    flow_name = f'{structure.composition.reduced_formula}-Melting Point'
+    new_flow = Flow([*volume_jobs, collect_job], output=collect_job.output, name=flow_name)
     return new_flow
 
 
