@@ -63,7 +63,8 @@ class LammpsVolMaker(Maker):
         print(f"LAMMPS finished running: {stdout} \n {stderr}")
 
 
-        filecontents = pd.read_csv("step_temp_vol_density.txt", delimiter=" ", skiprows=1, index_col="step", names=["step", "temp", "vol", "density"])
-        eq_vol = filecontents[["vol"]].iloc[-1].values[0]
+        avging_window = int(min(total_steps / 100, 50))
+        df = pd.read_csv("step_temp_vol_density.txt", delimiter=" ", skiprows=1, names=["step", "temp", "vol", "density"])
+        eq_vol = df.iloc[-avging_window::]['vol'].values.mean()
 
         return eq_vol
