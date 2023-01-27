@@ -67,7 +67,7 @@ class LammpsCalcMaker(Maker):
 
         # Build trajectory from LAMMPS output .xyz file
         with open("trajectory.lammpstrj", "r+") as f:
-            atoms = read_lammps_dump_text(f, index=slice(-1))
+            atoms = read_lammps_dump_text(f, index=slice(0, None))
 
         structs = []
 
