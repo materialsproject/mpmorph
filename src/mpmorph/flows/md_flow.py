@@ -4,7 +4,7 @@ from jobflow import Flow, Maker
 from mpmorph.jobs.core import M3GNetMDMaker
 
 from mpmorph.jobs.equilibrate_volume import EquilibriumVolumeSearchMaker
-from mpmorph.jobs.lammps_volume import LammpsVolMaker
+from mpmorph.jobs.lammps_volume import LammpsCalcMaker
 from pymatgen.core.structure import Structure
 
 from mpmorph.jobs.pv_from_calc import PVFromCalc, PVFromM3GNet, PVFromVasp
@@ -44,7 +44,7 @@ def get_equil_vol_flow(structure, temp, steps):
 def get_equil_vol_flow_lammps(structure,
                               temp,
                               steps):
-    vol_maker = LammpsVolMaker()
+    vol_maker = LammpsCalcMaker()
     vol_job = vol_maker.make(
         temp,
         steps,
