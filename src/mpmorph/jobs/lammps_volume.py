@@ -8,12 +8,15 @@ import pandas as pd
 from pymatgen.io.lammps.inputs import LammpsTemplateGen
 from pymatgen.io.lammps.data import LammpsData
 from pymatgen.core.structure import Structure
+from ase.io.lammpsrun import read_lammps_dump_text
+from pymatgen.io.ase import AseAtomsAdaptor
+from pymatgen.core.trajectory import Trajectory
 
-from mpmorph.schemas.pv_data_doc import MDPVDataDoc
+from mpmorph.schemas.lammps_calc import LammpsCalc
 
 from pkg_resources import resource_filename
 
-class LammpsVolMaker(Maker):
+class LammpsCalcMaker(Maker):
     """
     Run LAMMPS directly using m3gnet (no custodian).
     Required params:
@@ -21,9 +24,9 @@ class LammpsVolMaker(Maker):
             e.g. 'mpirun -n 4 lmp_mpi'
     """
 
-    name = "LAMMPS_TO_VOLUME"
+    name = "LAMMPS_CALCULATION"
 
-    @job
+    @job(trajectory="trajectory", output_schema=LammpsCalc)
     def make(self, temperature: int,
                    total_steps: int,
                    structure: Structure = None):
@@ -38,7 +41,7 @@ class LammpsVolMaker(Maker):
             "species": chem_sys_str,
             "total_steps": total_steps,
             "print_every_n_step": 10
-        }                   
+        }
         
 
         template_path = resource_filename('mpmorph', 'jobs/lammps-templates/template.lammps')
@@ -62,8 +65,30 @@ class LammpsVolMaker(Maker):
 
         print(f"LAMMPS finished running: {stdout} \n {stderr}")
 
+        # Build trajectory from LAMMPS output .xyz file
+        with open("trajectory.lammpstrj", "r+") as f:
+            atoms = read_lammps_dump_text(f, index=slice(-1))
 
-        
+        structs = []
+
+        for a in atoms:
+            structs.append(AseAtomsAdaptor().get_structure(a))
+
+        trajectory = Trajectory.from_structures(structs, constant_lattice=False)
+
         df = pd.read_csv("step_temp_vol_density.txt", delimiter=" ", index_col="step", skiprows=1, names=["step", "temp", "vol", "density"])
 
-        return df.to_dict()
+        metadata = {
+            "temperature": temperature,
+            "total_steps": total_steps
+        }
+
+        output = LammpsCalc(
+            dir_name=os.getcwd(),
+            trajectory=trajectory,
+            composition=structure.composition,
+            reduced_formula=structure.composition.reduced_formula,
+            metadata=metadata,
+            dump_data=df.to_dict()
+        )
+        return output
