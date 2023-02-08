@@ -1,0 +1,118 @@
+# Script originally made by Oscar Guerrero
+# Reference: https://orca.cardiff.ac.uk/id/eprint/101322/1/MRSPaper2.pdf
+units  metal
+atom_style atomic
+boundary p p p
+
+atom_modify map array
+
+#define variables
+
+variable tempstart equal $tempstart
+variable tempstop equal $tempstop 
+variable myseed equal 12345
+variable atomrate equal 1000
+variable time_step equal 0.002
+variable time_eq equal 1000
+#variable tdamp equal 1.
+
+variable tamp equal "v_time_step*1000" # DO NOT CHANGE
+variable pdamp equal "v_time_step*1000" # DO NOT CHANGE
+timestep ${time_step} # DO NOT CHANGE
+
+
+#Create structure
+read_data data.dump
+
+
+#Define Interatomic Potential
+
+pair_style    m3gnet /global/home/users/huizheng/repos/lammps/potentials/M3GNET
+pair_coeff    * *  MP-2021.2.8-EFS   $species
+
+# Equilibration
+reset_timestep 0
+velocity all create ${tempstart} ${myseed} mom yes rot no dist gaussian
+fix equilibration all npt temp ${tempstart} ${tempstart} $(100.0*dt) iso 1 1 ${pdamp} drag 0.2
+
+
+variable eq1 equal "step"
+variable eq2 equal "pxx"
+variable eq3 equal "pyy"
+variable eq4 equal "pzz"
+variable eq5 equal "lx"
+variable eq6 equal "ly"
+variable eq7 equal "lz"
+variable eq8 equal "vol"
+variable eq9 equal "temp"
+variable eq10 equal "etotal"
+
+fix data_equilibration all print 10 "${eq1} ${eq2} ${eq3} ${eq4} ${eq5} ${eq6} ${eq7} ${eq8} ${eq9} ${eq10}" file ${tempstart}K.data
+thermo 1000
+thermo_style custom step pxx pyy pzz lx ly lz temp etotal
+
+# RUN
+run 1000
+
+# store final volume Vo to calculate V/Vo (reduce units)
+variable tmp equal "vol"
+variable Vo equal ${tmp}
+print "Volume initial is , Vo: ${Vo}"
+
+#reset
+unfix equilibration
+unfix data_equilibration
+
+#----------------------------- Increase temperature------------------------------------
+reset_timestep 0
+fix melting all npt temp ${tempstart} ${tempstop} $(100.0*dt) iso 1 1 ${pdamp} drag 0.2
+# fix melting all nvt temp ${tempstart} ${tempstop} ${tdamp} drag 0.2
+
+variable eq1 equal "step"
+variable eq2 equal "pxx"
+variable eq3 equal "pyy"
+variable eq4 equal "pzz"
+variable eq5 equal "lx"
+variable eq6 equal "ly"
+variable eq7 equal "lz"
+variable eq8 equal "temp"
+variable eq9 equal "vol/v_Vo"
+variable eq10 equal "etotal"
+run 0 
+fix data_melting all print $print_every_n_step "${eq8} ${eq9}" file temp_vs_ref_vol.txt screen no
+
+dump 1 all cfg 100 HgF2.step*.cfg mass type xs ys zs id
+dump_modify 1 element  $species
+dump 2 all custom  100  dump.* id type x y z
+# Compute msd command and dump every 10 steps
+compute msd all msd com yes
+fix msd all ave/time 1 1 10 c_msd[4] file msd.txt
+
+
+# use velocity auto-correlation function (VACF) to calculate diffusion coefficient
+compute         2 all vacf
+fix             5 all vector 1 c_2[4]
+variable        diff equal dt*trap(f_5)
+fix    vacf all print 1 "${eq1} ${eq8} ${eq9} ${diff}"
+
+run $total_steps 
+thermo $print_every_n_step
+thermo_style    custom step v_diff
+
+
+# print to screen out
+
+#run 10000
+#reset 
+unfix melting 
+unfix data_melting 
+undump 1
+undump 2
+write_restart restart.equil
+write_data data.*
+# SAVE THE DATA OF THE CALCULATION OR ELSE YOU NEED TO START OVER = ( OUCH !
+# SIMULATION DONE
+clear
+print "You've done great job =)"
+
+
