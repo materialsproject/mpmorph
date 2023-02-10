@@ -7,15 +7,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-class MeltingPointClusterAnalyzer():
 
+class MeltingPointClusterAnalyzer:
     def _get_clusters(self, points):
         clustering = AgglomerativeClustering(n_clusters=2).fit(points)
         cluster1 = points[np.argwhere(clustering.labels_ == 1).squeeze()].T
         cluster2 = points[np.argwhere(clustering.labels_ == 0).squeeze()].T
         return cluster1, cluster2
 
-    def plot_vol_vs_temp(self, ts, vs, plot_title = None):
+    def plot_vol_vs_temp(self, ts, vs, plot_title=None):
         points = np.array(list(zip(ts, vs)))
         cluster1, cluster2 = self._get_clusters(points)
         plt.scatter(*cluster1)
@@ -23,13 +23,13 @@ class MeltingPointClusterAnalyzer():
         plt.xlabel("Temperature (K)")
         plt.ylabel("Volume (A^3)")
         Tm = self.estimate_melting_temp(ts, vs)
-        plt.plot([Tm, Tm], [min(vs), max(vs)], color='r')
-      
+        plt.plot([Tm, Tm], [min(vs), max(vs)], color="r")
+
         if plot_title is None:
             plt.title("Volume vs Temperature by Clustering")
         else:
             plt.title(plot_title)
-    
+
     def estimate_melting_temp(self, temps, vols):
         points = np.array(list(zip(temps, vols)))
         cluster1, cluster2 = self._get_clusters(points)
@@ -42,8 +42,8 @@ class MeltingPointClusterAnalyzer():
 
         return np.mean([max(solid_range), min(liquid_range)])
 
-class MeltingPointSlopeAnalyzer():
 
+class MeltingPointSlopeAnalyzer:
     def split_dset(self, pts, split_idx):
         return pts[0:split_idx], pts[split_idx:]
 
@@ -56,7 +56,7 @@ class MeltingPointSlopeAnalyzer():
         for idx in pt_idxs:
             _, _, _, _, total_err = self.get_split_fit(xs, ys, idx)
             errs.append(total_err)
-        
+
         return list(zip(pt_idxs, errs))
 
     def get_linear_ys(self, m, b, xs):
@@ -79,32 +79,31 @@ class MeltingPointSlopeAnalyzer():
 
         plt.scatter(rightxs, rightys)
         plt.plot(rightxs, right_fit_ys)
-        
+
     def get_best_split(self, xs, ys):
         split_errs = self.assess_splits(xs, ys)
         errs = [pt[1] for pt in split_errs]
         idxs = [pt[0] for pt in split_errs]
         best_split_idx = idxs[np.argmin(errs)]
         return best_split_idx
-    
+
     def plot_vol_vs_temp(self, temps, vols):
         split_idx = self.get_best_split(temps, vols)
         self.plot_split(temps, vols, split_idx)
         Tm = self.estimate_melting_temp(temps, vols)
         print(Tm)
-        plt.plot([Tm, Tm], [min(vols), max(vols)], color='r')        
-
+        plt.plot([Tm, Tm], [min(vols), max(vols)], color="r")
 
     def estimate_melting_temp(self, temps, vols):
         best_split_idx = self.get_best_split(temps, vols)
         return np.mean([temps[best_split_idx], temps[best_split_idx - 1]])
 
-class MeltingPointSlopeRMSEAnalyzer(MeltingPointSlopeAnalyzer):
 
+class MeltingPointSlopeRMSEAnalyzer(MeltingPointSlopeAnalyzer):
     def get_split_fit(self, xs, ys, split_idx):
         leftx, rightx = self.split_dset(xs, split_idx)
         lefty, righty = self.split_dset(ys, split_idx)
-        
+
         lslope, lintercept, r_value, p_value, std_err = linregress(leftx, lefty)
         left_y_pred = lintercept + lslope * np.array(leftx)
         lefterr = mean_squared_error(y_true=lefty, y_pred=left_y_pred, squared=False)
@@ -112,23 +111,29 @@ class MeltingPointSlopeRMSEAnalyzer(MeltingPointSlopeAnalyzer):
         rslope, rintercept, r_value, p_value, std_err = linregress(rightx, righty)
         right_y_pred = rintercept + rslope * np.array(rightx)
         righterr = mean_squared_error(y_true=righty, y_pred=right_y_pred, squared=False)
-        
-        combined_err = math.sqrt(lefterr ** 2 + righterr ** 2)
+
+        combined_err = math.sqrt(lefterr**2 + righterr**2)
         combined_err = lefterr + righterr
         return lslope, lintercept, rslope, rintercept, combined_err
 
-class MeltingPointSlopeStdErrAnalyzer(MeltingPointSlopeAnalyzer):
 
+class MeltingPointSlopeStdErrAnalyzer(MeltingPointSlopeAnalyzer):
     def get_split_fit(self, xs, ys, split_idx):
         leftx, rightx = self.split_dset(xs, split_idx)
         lefty, righty = self.split_dset(ys, split_idx)
-        
+
         leftfit = linregress(leftx, lefty)
         lefterr = leftfit.stderr
-        
+
         rightfit = linregress(rightx, righty)
         righterr = rightfit.stderr
-        
-        combined_err = math.sqrt(lefterr ** 2 + righterr ** 2)
+
+        combined_err = math.sqrt(lefterr**2 + righterr**2)
         combined_err = lefterr + righterr
-        return leftfit.slope, leftfit.intercept, rightfit.slope, rightfit.intercept, combined_err
+        return (
+            leftfit.slope,
+            leftfit.intercept,
+            rightfit.slope,
+            rightfit.intercept,
+            combined_err,
+        )

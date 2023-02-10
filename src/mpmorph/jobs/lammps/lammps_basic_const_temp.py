@@ -20,10 +20,7 @@ class BasicLammpsConstantTempMaker(Maker):
     name = "LAMMPS_CALCULATION"
 
     @job(trajectory="trajectory", output_schema=LammpsCalc)
-    def make(self, temperature: int,
-                   total_steps: int,
-                   structure: Structure = None):
-
+    def make(self, temperature: int, total_steps: int, structure: Structure = None):
         lammps_bin = os.environ.get("LAMMPS_CMD")
         m3gnet_path = os.environ.get("M3GNET_PATH")
 
@@ -33,9 +30,8 @@ class BasicLammpsConstantTempMaker(Maker):
             "m3gnet_path": m3gnet_path,
             "species": chem_sys_str,
             "total_steps": total_steps,
-            "print_every_n_step": 10
+            "print_every_n_step": 10,
         }
-        
 
         template_path = resource_filename('mpmorph', 'jobs/lammps-templates/basic_constant_temp.lammps')
 
@@ -43,12 +39,15 @@ class BasicLammpsConstantTempMaker(Maker):
 
         trajectory = trajectory_from_lammps_dump("trajectory.lammpstrj")
 
-        df = pd.read_csv("step_temp_vol_density.txt", delimiter=" ", index_col="step", skiprows=1, names=["step", "temp", "vol", "density"])
+        df = pd.read_csv(
+            "step_temp_vol_density.txt",
+            delimiter=" ",
+            index_col="step",
+            skiprows=1,
+            names=["step", "temp", "vol", "density"],
+        )
 
-        metadata = {
-            "temperature": temperature,
-            "total_steps": total_steps
-        }
+        metadata = {"temperature": temperature, "total_steps": total_steps}
 
         output = LammpsCalc(
             dir_name=os.getcwd(),
@@ -56,6 +55,6 @@ class BasicLammpsConstantTempMaker(Maker):
             composition=structure.composition,
             reduced_formula=structure.composition.reduced_formula,
             metadata=metadata,
-            dump_data=df.to_dict()
+            dump_data=df.to_dict(),
         )
         return output

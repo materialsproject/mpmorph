@@ -11,7 +11,6 @@ def one_atmosphere():
 
 @dataclass
 class M3GNetMDInputs:
-
     ensemble: str = "nvt"
     temperature: float = 2000.0
     pressure: float = 1.01325 * units.bar

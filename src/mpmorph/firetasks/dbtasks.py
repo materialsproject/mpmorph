@@ -222,7 +222,6 @@ def load_trajectories_from_gfs(runs, mmdb, gfs_keys=None):
 
     trajectory = None
     for i, (fs_id, fs) in enumerate(gfs_keys):
-
         if fs == "trajectories_fs" or fs == "rebuild_trajectories_fs":
             # Load stored Trajectory
             print(fs_id, "is stored in trajectories_fs")
