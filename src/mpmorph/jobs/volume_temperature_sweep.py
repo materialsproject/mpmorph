@@ -2,8 +2,8 @@ from jobflow import Flow, Maker, Response, job
 from mpmorph.jobs.tasks.m3gnet_input import M3GNetMDInputs
 import dataclasses
 
-class VolumeTemperatureSweepMaker(Maker):
 
+class VolumeTemperatureSweepMaker(Maker):
     name: str = "VOLUME_TEMPERATURE_SWEEP"
     md_parameters: M3GNetMDInputs = None
 
@@ -35,5 +35,3 @@ class VolumeTemperatureSweepMaker(Maker):
 
         new_flow = Flow([*volume_jobs, collect_job], output=collect_job.output)
         return Response(replace=new_flow)
-
-

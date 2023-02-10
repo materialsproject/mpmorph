@@ -22,8 +22,7 @@ class LammpsCalc(BaseModel):
         description="The reduced formula of the structure's composition."
     )
     dump_data: dict = Field(
-        None,
-        description="Any additional data collected via LAMMPS dump files"
+        None, description="Any additional data collected via LAMMPS dump files"
     )
     metadata: dict = Field(
         None,

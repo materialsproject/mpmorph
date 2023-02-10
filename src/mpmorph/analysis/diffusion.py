@@ -290,7 +290,7 @@ class Activation(object):
             self.y,
             yerr=self.yerr.T,
             label="Q[{}]: ".format(el) + tx + " K",
-            **kwargs
+            **kwargs,
         )
         plt.ylabel("ln(D cm$^2$/s)", fontsize=15)
         plt.xlabel("1000/T K$^{-1}$", fontsize=15)
