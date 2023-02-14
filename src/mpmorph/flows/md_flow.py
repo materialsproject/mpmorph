@@ -15,7 +15,7 @@ M3GNET_MD_CONVERGED_VOL_FLOW = "M3GNET_MD_CONVERGED_VOL_FLOW"
 LAMMPS_VOL_FLOW = "LAMMPS_VOL_FLOW"
 
 
-def get_md_temperature_sweeping(structure, temp, steps, converge_first = True, initial_vol_scale = 1, **input_kwargs):
+# def get_md_temperature_sweeping(structure, temp, steps, converge_first = True, initial_vol_scale = 1, **input_kwargs):
 
 
 def get_md_flow_m3gnet(structure, temp, steps, converge_first = True, initial_vol_scale = 1, **input_kwargs):
