@@ -105,7 +105,7 @@ dump_modify 1 element  $species
 dump 2 all custom 100 trajectory.lammpstrj id type x y z
 # dump all the dump files into one file
 # wildcard * is used to dump all the snapshots into invividual files
-dump 2 all custom  100  dump.* id type x y z
+dump 3 all custom  100  dump.* id type x y z
 
 # Compute msd command and dump every 10 steps
 compute msd all msd com yes
@@ -150,6 +150,7 @@ unfix melting
 unfix data_melting 
 undump 1
 undump 2
+undump 3
 write_restart restart.equil
 write_data data.*
 # SAVE THE DATA OF THE CALCULATION OR ELSE YOU NEED TO START OVER = ( OUCH !
