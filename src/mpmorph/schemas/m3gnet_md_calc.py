@@ -47,7 +47,6 @@ class M3GNetMDCalculation(BaseModel):
         ),
         **kwargs,
     ):
-
         """
         Create a M3GnetCalculation document from a directory containing output files of
         a M3GNet MD run.

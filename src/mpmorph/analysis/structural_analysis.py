@@ -47,7 +47,6 @@ def polyhedra_connectivity(structures, pair, cutoff, step_freq=1):
             polyhedra_list.append(set(current_poly))
 
         for polypair in itertools.combinations(polyhedra_list, 2):
-
             polyhedra_pair_type = (len(polypair[0]), len(polypair[1]))
 
             shared_vertices = len(polypair[0].intersection(polypair[1]))
@@ -143,7 +142,6 @@ class BondAngleDistribution(object):
     """
 
     def __init__(self, structures, cutoffs, step_freq=1):
-
         self.bond_angle_distribution = None
         self.structures = structures
         self.step_freq = step_freq
@@ -251,7 +249,6 @@ class BondAngleDistribution(object):
 
                 # get all pair combinations of neoghbor sites of i:
                 for p in itertools.combinations(neighbors[i], 2):
-
                     # check if pairs are within the defined cutoffs
                     if self._cutoff_type == "dict":
                         if self._check_skip_triplet(s_index, i, p[0][2], p[1][2]):

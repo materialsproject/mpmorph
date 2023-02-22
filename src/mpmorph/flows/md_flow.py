@@ -3,6 +3,7 @@ from jobflow import Flow, Maker
 from mpmorph.jobs.core import M3GNetMDMaker
 
 from mpmorph.jobs.equilibrate_volume import EquilibriumVolumeSearchMaker
+from mpmorph.jobs.lammps_volume import LammpsCalcMaker
 from pymatgen.core.structure import Structure
 
 from mpmorph.jobs.pv_from_calc import PVFromCalc, PVFromM3GNet, PVFromVasp
@@ -11,11 +12,17 @@ from mpmorph.jobs.tasks.m3gnet_input import M3GNetMDInputs
 EQUILIBRATE_VOLUME_FLOW = "EQUILIBRATE_VOLUME_FLOW"
 M3GNET_MD_FLOW = "M3GNET_MD_FLOW"
 M3GNET_MD_CONVERGED_VOL_FLOW = "M3GNET_MD_CONVERGED_VOL_FLOW"
+LAMMPS_VOL_FLOW = "LAMMPS_VOL_FLOW"
 
-def get_md_flow_m3gnet(structure, temp, steps, converge_first = True, initial_vol_scale = 1):
+
+# def get_md_temperature_sweeping(structure, temp, steps, converge_first = True, initial_vol_scale = 1, **input_kwargs):
+
+
+def get_md_flow_m3gnet(structure, temp, steps, converge_first = True, initial_vol_scale = 1, **input_kwargs):
     inputs = M3GNetMDInputs(
         temperature=temp,
-        steps=steps
+        steps=steps,
+        **input_kwargs
     )
 
     m3gnet_maker = M3GNetMDMaker(parameters = inputs)
@@ -27,6 +34,18 @@ def get_md_flow_m3gnet(structure, temp, steps, converge_first = True, initial_vo
         converge_first=converge_first,
         initial_vol_scale=initial_vol_scale
     )
+
+def get_equil_vol_flow_lammps(structure,
+                              temp,
+                              steps):
+    vol_maker = LammpsCalcMaker()
+    vol_job = vol_maker.make(
+        temp,
+        steps,
+        structure
+    )
+    flow = Flow([vol_job], output=vol_job, name=LAMMPS_VOL_FLOW)
+    return flow
 
 def get_equil_vol_flow(structure, temp, steps):
     inputs = M3GNetMDInputs(
@@ -76,3 +95,5 @@ def _get_converge_flow(structure: Structure, pv_md_maker: PVFromCalc, production
     flow = Flow([equil_vol_job, final_md_job], output=final_md_job.output, name=M3GNET_MD_CONVERGED_VOL_FLOW)
 
     return flow
+
+

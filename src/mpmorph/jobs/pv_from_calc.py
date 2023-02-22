@@ -30,7 +30,6 @@ class PVFromCalc(Maker):
 
 @dataclass
 class PVFromM3GNet(PVFromCalc):
-
     name: str = "PV_FROM_M3GNET"
     parameters: M3GNetMDInputs = None
 
@@ -43,6 +42,22 @@ class PVFromM3GNet(PVFromCalc):
         v_data = m3gnet_calc_to_vol(m3gnet_calc)
         p_data = m3gnet_calc_to_pressure(m3gnet_calc)
         return MDPVDataDoc(volume=v_data, pressure=p_data)
+
+
+@dataclass
+class PVFromM3GNetLammps(PVFromCalc):
+    """Generates a MDPVDataDoc using Lammps run with M3gnet and a npt ensemble."""
+
+    name: str = "PV_FROM_M3GNET_LAMMPS"
+    parameters: M3GNetMDInputs = None
+
+    def run_md(self, structure: Structure, **kwargs):
+        calc_doc = run_m3gnet(structure, self.parameters, self.name, **kwargs)
+
+        return calc_doc
+
+    def build_doc(self, pvdoc: MDPVDataDoc):
+        return pvdoc
 
 
 def m3gnet_calc_to_vol(m3gnet_calc: M3GNetMDCalculation):
@@ -60,7 +75,6 @@ def m3gnet_calc_to_pressure(m3gnet_calc: M3GNetMDCalculation):
 
 @dataclass
 class PVFromVasp(PVFromCalc):
-
     name: str = "PV_FROM_VASP"
     md_maker: Maker = MDMaker()
 

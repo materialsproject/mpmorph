@@ -1,13 +1,9 @@
 from jobflow import Flow, Maker, Response, job
-import json
-
 from mpmorph.jobs.tasks.m3gnet_input import M3GNetMDInputs
-from ..schemas.vt_sweep_doc import VTSweepDoc
-
 import dataclasses
 
-class VolumeTemperatureSweepMaker(Maker):
 
+class VolumeTemperatureSweepMaker(Maker):
     name: str = "VOLUME_TEMPERATURE_SWEEP"
     md_parameters: M3GNetMDInputs = None
 
@@ -39,26 +35,3 @@ class VolumeTemperatureSweepMaker(Maker):
 
         new_flow = Flow([*volume_jobs, collect_job], output=collect_job.output)
         return Response(replace=new_flow)
-
-
-@job
-def _collect_vt_results(vs, ts, structure, output_fn = None):
-    filtered_vs = []
-    filtered_ts = []
-    for v, t in zip(vs, ts):
-        if v is not None:
-            filtered_vs.append(v)
-            filtered_ts.append(t)
-
-
-    result = VTSweepDoc(
-        volumes=filtered_vs,
-        temps=filtered_ts,
-        structure=structure
-    )
-
-    if output_fn is not None:
-        with open(output_fn, "+w") as f:
-            f.write(json.dumps(result))
-        
-    return result
