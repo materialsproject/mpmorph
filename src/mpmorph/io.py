@@ -17,13 +17,13 @@ class Xdatcar_Writer:
     ):
         format_str = "{{:.{0}f}}".format(significant_figures)
 
-        for (si, structure) in enumerate(structures):
+        for si, structure in enumerate(structures):
             lines = [system, "1.0", str(structure.lattice)]
             lines.append(" ".join(self.get_site_symbols(structure)))
             lines.append(" ".join([str(x) for x in self.get_natoms(structure)]))
 
             lines.append("Direct configuration=     " + str(si + 1))
-            for (i, site) in enumerate(structure):
+            for i, site in enumerate(structure):
                 coords = site.frac_coords
                 line = " ".join([format_str.format(c) for c in coords])
                 line += " " + site.species_string
@@ -72,9 +72,9 @@ class Xdatcar_Writer_Trajectory:
         #  positions = np.add(self.trajectory[0].frac_coords, self.trajectory.displacements)
         atoms = [site.specie.symbol for site in self.trajectory[0]]
 
-        for (si, position_array) in enumerate(positions):
+        for si, position_array in enumerate(positions):
             lines.append("Direct configuration=     " + str(si + 1))
-            for (i, coords) in enumerate(position_array):
+            for i, coords in enumerate(position_array):
                 line = " ".join([format_str.format(c) for c in coords])
                 line += " " + atoms[i]
                 lines.append(line)

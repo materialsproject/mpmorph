@@ -46,7 +46,7 @@ def aggregate_trajectory(fw, **kwargs):
 def add_cont_structure(fw):
     prev_struct_task = PreviousStructureTask()
     insert_i = 2
-    for (i, task) in enumerate(fw.tasks):
+    for i, task in enumerate(fw.tasks):
         if task.fw_name == "{{atomate.vasp.firetasks.run_calc.RunVaspCustodian}}":
             insert_i = i
             break
@@ -68,7 +68,7 @@ def add_pass_pv(fw, **kwargs):
 
 def add_pv_volume_rescale(fw):
     insert_i = 2
-    for (i, task) in enumerate(fw.tasks):
+    for i, task in enumerate(fw.tasks):
         if task.fw_name == "{{atomate.vasp.firetasks.run_calc.RunVaspCustodian}}":
             insert_i = i
             break
@@ -80,7 +80,7 @@ def add_pv_volume_rescale(fw):
 def add_rescale_volume(fw, **kwargs):
     rsv_task = RescaleVolumeTask(**kwargs)
     insert_i = 2
-    for (i, task) in enumerate(fw.tasks):
+    for i, task in enumerate(fw.tasks):
         if task.fw_name == "{{atomate.vasp.firetasks.run_calc.RunVaspCustodian}}":
             insert_i = i
             break
