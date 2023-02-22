@@ -29,7 +29,6 @@ class EquilibriumVolumeSearchMaker(Maker):
     def make(
         self, original_structure: Structure, md_pv_data_docs: List[MDPVDataDoc] = None
     ):
-
         if md_pv_data_docs is not None and len(md_pv_data_docs) > MAX_MD_JOBS:
             raise RuntimeError(
                 "Maximum number of jobs for equilibrium volume search exceeded"

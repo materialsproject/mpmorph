@@ -30,7 +30,7 @@ class VaspMDCalcDb(VaspCalcDb):
         collection="tasks",
         user=None,
         password=None,
-        **kwargs
+        **kwargs,
     ):
         super(VaspMDCalcDb, self).__init__(
             host, port, database, collection, user, password, **kwargs
@@ -75,7 +75,6 @@ class VaspMDCalcDb(VaspCalcDb):
 
         # insert structures  at each ionic step into GridFS
         if parse_ionic_steps and "calcs_reversed" in task_doc:
-
             # Convert from ionic steps dictionary to pymatgen.core.trajectory.Trajectory object
             ionic_steps_dict = task_doc["calcs_reversed"][0]["output"]["ionic_steps"]
             time_step = task_doc["input"]["incar"]["POTIM"]
