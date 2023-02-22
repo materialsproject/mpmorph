@@ -1,5 +1,23 @@
 # Script originally made by Oscar Guerrero
 # Reference: https://orca.cardiff.ac.uk/id/eprint/101322/1/MRSPaper2.pdf
+
+#####################################################################
+# READ THIS BEFORE MAKING CHANGES
+#
+# NOTICE: ANY VARIABLES BEGINNING WITH _ ARE INTERNAL TO THE LAMMPS SCRIPT
+#         VARIABLES FOR USE REPLACEMENT BY TEMPLATE HAVE NO _ IN NAME
+#
+# Parameters for this template:
+#   tempstart - The starting temp for the simulation
+#   tempstop - The ending temp for the simulation
+#   species - A space-separated list of elements present in the system, e.g. "Y Mn O"
+#   m3gnet_path - The path to the m3gnet potential installation
+#   print_every_n_step - The frequency with which info should be printed to stdout
+#   total_steps - The total number of simulation steps
+##########################################################################
+
+
+
 units  metal
 atom_style atomic
 boundary p p p
@@ -27,7 +45,7 @@ read_data data.dump
 
 #Define Interatomic Potential
 
-pair_style    m3gnet /global/home/users/huizheng/repos/lammps/potentials/M3GNET
+pair_style    m3gnet $m3gnet_path
 pair_coeff    * *  MP-2021.2.8-EFS   $species
 
 # Equilibration
@@ -82,8 +100,11 @@ run 0
 fix data_melting all print $print_every_n_step "${eq8} ${eq9}" file temp_vs_ref_vol.txt screen no
 
 dump 1 all cfg 100 HgF2.step*.cfg mass type xs ys zs id
+# What does this do?
 dump_modify 1 element  $species
-dump 2 all custom  100  dump.* id type x y z
+
+dump 2 all custom 100 trajectory.lammpstrj id element x y z
+
 # Compute msd command and dump every 10 steps
 compute msd all msd com yes
 fix msd all ave/time 1 1 10 c_msd[4] file msd.txt
