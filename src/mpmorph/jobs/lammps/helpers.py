@@ -17,7 +17,7 @@ def trajectory_from_lammps_dump(dump_path):
     return Trajectory.from_structures(structs, constant_lattice=False)
 
 def run_lammps(structure, template_path, template_opts, lammps_bin):
-    data_filename: str = "data.lammps"
+    data_filename: str = "data.dump"
     data = LammpsData.from_structure(structure, atom_style='atomic')
     # Write the input files
     linp = LammpsTemplateGen().get_input_set(script_template=template_path,
