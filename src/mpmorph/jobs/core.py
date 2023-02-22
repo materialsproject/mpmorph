@@ -44,6 +44,7 @@ class M3GNetMDMaker(Maker):
         """
 
         calc_doc = run_m3gnet(structure, self.parameters, self.name, **kwargs)
+        
 
         return calc_doc
 
