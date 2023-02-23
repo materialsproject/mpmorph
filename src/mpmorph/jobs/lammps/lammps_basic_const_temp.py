@@ -33,7 +33,7 @@ class BasicLammpsConstantTempMaker(Maker):
             "print_every_n_step": 10,
         }
 
-        template_path = resource_filename('mpmorph', 'jobs/lammps-templates/basic_constant_temp.lammps')
+        template_path = resource_filename('mpmorph', 'jobs/lammps/templates/basic_constant_temp.lammps')
 
         run_lammps(structure, template_path, script_options, lammps_bin)
 
