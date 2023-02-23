@@ -102,8 +102,11 @@ fix data_melting all print $print_every_n_step "${eq8} ${eq9}" file temp_vs_ref_
 dump 1 all cfg 100 step*.cfg mass type xs ys zs id
 # What does this do? so the element str can be written to the cfg file
 dump_modify 1 element  $species
-dump 2 all custom 100 trajectory.lammpstrj id type x y z
-# dump all the dump files into one file
+
+dump 2 all custom 100 trajectory.lammpstrj id element x y z
+dump_modify   2 sort id element $species
+# dump all the dump files into one file trajectory.lammpstrj 
+
 # wildcard * is used to dump all the snapshots into invividual files
 dump 3 all custom  100  dump.* id type x y z
 
