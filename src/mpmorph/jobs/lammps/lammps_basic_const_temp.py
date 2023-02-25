@@ -20,12 +20,13 @@ class BasicLammpsConstantTempMaker(Maker):
     name = "LAMMPS_CALCULATION"
 
     @job(trajectory="trajectory", output_schema=LammpsCalc)
-    def make(self, temperature: int, total_steps: int, structure: Structure = None):
+    def make(self, temperature: int, ensemble:int, total_steps: int, structure: Structure = None):
         lammps_bin = os.environ.get("LAMMPS_CMD")
         m3gnet_path = os.environ.get("M3GNET_PATH")
 
         chem_sys_str = " ".join(el.symbol for el in structure.composition.elements)
         script_options = {
+            "ensemble": ensemble,
             "temperature": temperature,
             "m3gnet_path": m3gnet_path,
             "species": chem_sys_str,
