@@ -40,7 +40,7 @@ class BasicLammpsTempSweepMaker(Maker):
         }
         
 
-        template_path = resource_filename('mpmorph', 'jobs/lammps-templates/basic_temp_sweep.lammps')
+        template_path = resource_filename('mpmorph', 'jobs/lammps/templates/basic_temp_sweep.lammps')
 
         run_lammps(structure, template_path, script_options, lammps_bin)
 

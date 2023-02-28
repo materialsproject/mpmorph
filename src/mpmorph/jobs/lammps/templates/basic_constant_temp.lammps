@@ -14,7 +14,7 @@ units         metal
 boundary      p p p
 atom_style    atomic
 
-read_data     data.lammps 
+read_data     data.lammps
 
 pair_style    m3gnet $m3gnet_path
 pair_coeff    * *  MP-2021.2.8-EFS  $species
@@ -34,6 +34,6 @@ fix def1 all print $print_every_n_step "${p1} ${p2} ${p3} ${p4}" file step_temp_
 
 
 velocity      all create $temperature 12345
-fix           myEnse all npt temp $temperature $temperature 0.1 aniso 1.0 1.0 1.0
+fix           myEnse all $ensemble temp $temperature $temperature 0.1 aniso 1.0 1.0 1.0
 timestep      0.002
 run           $total_steps 
