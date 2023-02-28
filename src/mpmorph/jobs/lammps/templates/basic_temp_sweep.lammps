@@ -39,7 +39,7 @@ variable pdamp equal "v_time_step*1000" # DO NOT CHANGE
 timestep ${time_step} # DO NOT CHANGE
 
 
-# Create structure
+#Create structure
 read_data data.dump
 
 
