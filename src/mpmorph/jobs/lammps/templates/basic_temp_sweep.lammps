@@ -40,7 +40,7 @@ timestep ${time_step} # DO NOT CHANGE
 
 
 #Create structure
-read_data data.dump
+read_data data.lammps
 
 
 #Define Interatomic Potential
