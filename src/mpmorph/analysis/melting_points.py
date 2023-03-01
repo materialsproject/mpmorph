@@ -56,7 +56,7 @@ class MeltingPointEnsembleEstimator(AbstractMeltingPointEstimator):
             axs.plot([tm, tm], [np.min(vs), np.max(vs)], label=e.name)
 
         avg = self.estimate(ts, vs)
-        axs.plot([avg, avg], [np.min(vs), np.max(vs)], label="Mean Estimate")
+        axs.plot([avg , avg ], [np.min(vs), np.max(vs)], label="Mean Estimate")
         axs.set_title("Ensemble Tm Estimates")
         axs.legend()
 
@@ -138,18 +138,20 @@ class MeltingPointSlopeEstimator(AbstractMeltingPointEstimator):
         leftxs, rightxs = self._split_dset(xs, split_idx)
         leftys, rightys = self._split_dset(ys, split_idx)
 
-        left_fit_ys = self._get_linear_ys(m1, b1, leftxs)
         fig, axs = plt.subplots()
+
+        left_fit_ys = self._get_linear_ys(m1, b1, leftxs)
         axs.scatter(leftxs, leftys)
         axs.plot(leftxs, left_fit_ys)
+
+
+        right_fit_ys = self._get_linear_ys(m2, b2, rightxs)
+        axs.scatter(rightxs, rightys)
+        axs.plot(rightxs, right_fit_ys)
+
         axs.title("Volume vs Temperature (w/ best fits by Slope Method")
         axs.xlabel("Temperature (K)")
         axs.ylabel("Equil. Volume (cubic Angstroms)")
-
-        right_fit_ys = self._get_linear_ys(m2, b2, rightxs)
-
-        axs.scatter(rightxs, rightys)
-        axs.plot(rightxs, right_fit_ys)
         return fig, axs
 
     def get_best_split(self, xs, ys):
@@ -164,6 +166,12 @@ class MeltingPointSlopeEstimator(AbstractMeltingPointEstimator):
 class MeltingPointSlopeRMSEEstimator(MeltingPointSlopeEstimator):
 
     name: str = "RMSE Bisection"
+
+    def _get_fit_error(self, xs, ys):
+        slope, intercept, r_value, p_value, std_err = linregress(xs, ys)
+        y_pred = intercept + slope * np.array(xs)
+        err = mean_squared_error(y_true=ys, y_pred=y_pred, squared=False)        
+        return slope, intercept, err
 
     def _get_split_fit(self, xs, ys, split_idx):
         leftx, rightx = self._split_dset(xs, split_idx)
