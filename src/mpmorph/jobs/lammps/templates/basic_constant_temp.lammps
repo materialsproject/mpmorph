@@ -34,6 +34,6 @@ fix def1 all print $print_every_n_step "${p1} ${p2} ${p3} ${p4}" file step_temp_
 
 
 velocity      all create $temperature 12345
-fix           myEnse all $ensemble temp $temperature $temperature 0.1 aniso 1.0 1.0 1.0
+fix           myEnse all $ensemble temp $temperature $temperature 0.1 $barostat $Pstart $Pstop $Pdamp
 timestep      0.002
 run           $total_steps 
