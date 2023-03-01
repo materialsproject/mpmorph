@@ -14,7 +14,7 @@ units         metal
 boundary      p p p
 atom_style    atomic
 
-read_data     data.dump 
+read_data     data.lammps
 
 pair_style    m3gnet $m3gnet_path
 pair_coeff    * *  MP-2021.2.8-EFS  $species
