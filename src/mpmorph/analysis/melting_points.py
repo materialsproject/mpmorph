@@ -56,9 +56,10 @@ class MeltingPointEnsembleEstimator(AbstractMeltingPointEstimator):
             axs.plot([tm, tm], [np.min(vs), np.max(vs)], label=e.name)
 
         avg = self.estimate(ts, vs)
-        axs.plot([avg, avg], [np.min(vs), np.max(vs)], label="Mean Estimate")
+        axs.plot([avg , avg ], [np.min(vs), np.max(vs)], label="Mean Estimate")
         axs.set_title("Ensemble Tm Estimates")
         axs.legend()
+
 
 
 class MeltingPointClusterEstimator(AbstractMeltingPointEstimator):
@@ -101,8 +102,104 @@ class MeltingPointClusterEstimator(AbstractMeltingPointEstimator):
         cluster2 = points[np.argwhere(clustering.labels_ == 0).squeeze()].T
         return cluster1, cluster2
 
+class MeltingPointTrisectionEstimator(AbstractMeltingPointEstimator):
 
-class MeltingPointSlopeEstimator(AbstractMeltingPointEstimator):
+    def _get_fit_error_total(self, xs, ys):
+        slope, intercept, r_value, p_value, std_err = linregress(xs, ys)
+        y_pred = intercept + slope * np.array(xs)
+        err = np.sum(np.abs(y_pred - ys))        
+        return slope, intercept, err
+
+    def _unzip_pts(self, pts):
+        ts = [pt[0] for pt in pts]
+        vs = [pt[1] for pt in pts]
+        return ts, vs
+
+    def _plot_pts(self, pts):
+        ts, vs = self._unzip_pts(pts)
+        plt.scatter(ts,vs, color='grey')
+
+
+    def _split_pts(self, pts, x1, x2):
+        set1 = [pt for pt in pts if pt[0] < x1]
+        set2 = [pt for pt in pts if pt[0] > x1 and pt[0] < x2]
+        set3 = [pt for pt in pts if pt[0] > x2]
+        return set1, set2, set3
+
+    def _plot_split(self, pts, x1, x2):
+        set1, set2, set3 = self._plit_pts(pts, x1, x2)
+        self._plot_pts(set1)
+        self._plot_pts(set2)
+        self._plot_pts(set3)
+
+    def _get_linear_ys(self, m, b, xs):
+        return [m * x + b for x in xs]
+
+    def _plot_fit_line(self, m, b, xs):
+        fit_ys = self._get_linear_ys(m, b, xs)
+        plt.plot(xs, fit_ys)
+
+    def _plot_fits(self, pts, x1, x2):
+        set1, set2, set3 = self._split_pts(pts, x1, x2)
+        for dset in [set1, set2, set3]:
+            xs, ys = self._unzip_pts(dset)
+            m, b, err = self._get_fit_error_total(xs, ys)
+            self._plot_pts(dset)
+            self._plot_fit_line(m, b, xs)
+
+
+    def _find_best_trisection(self, points, min_x = None, max_x = None, min_window_size = 100, step_size = 50):
+        lowest_err = math.inf
+        
+        xs, ys = self._unzip_pts(points)
+        if min_x is None:
+            min_x = math.floor(np.min(xs))
+
+        if max_x is None:
+            max_x = math.ceil(np.max(xs))
+        
+        for pt1 in range(min_x + min_window_size, max_x - 2 * min_window_size, step_size):
+            for pt2 in range(pt1 + min_window_size, max_x - min_window_size, step_size):
+                set1, set2, set3 = self._split_pts(points, pt1, pt2)
+                errs_total = 0
+                errs = []
+                try:
+                    for dset in [set1, set2, set3]:
+                        xs, ys = self._unzip_pts(dset)
+                        m, b, err = self._get_fit_error_total(xs, ys)      
+                        errs.append(err)
+                        errs_total += err ** 2
+
+                    errs_total = math.sqrt(errs_total)
+
+                    if errs_total < lowest_err:
+                        lowest_err = errs_total
+                        best_pt1 = pt1
+                        best_pt2 = pt2
+                except:
+                    print("problem encountered")
+
+        return best_pt1, best_pt2
+
+    def _estimate_melting_pt(self, points):
+        pt1, pt2 = self._find_best_trisection(points, step_size=100)
+        # print(f'Coarse guess: {pt1, pt2}')
+        pt1, pt2 = self._find_best_trisection(points, pt1 - 150, pt2 + 150, step_size = 5)
+        # print(f'Fine guess: {pt1, pt2}')
+        return pt1, pt2, (pt2 - pt1) / 2 + pt1
+    
+    def estimate(self, temps, vols):
+        pts = list(zip(temps, vols))
+        pt1, pt2, tm = self._estimate_melting_pt(pts)
+        return tm
+    
+    def plot(self, ts, vs, plot_title=None):
+        pts = list(zip(ts, vs))
+        pt1, pt2, tm = self._estimate_melting_pt(pts)
+        self._plot_fits(pts, pt1, pt2)
+
+
+class MeltingPointBisectionEstimator(AbstractMeltingPointEstimator):
 
     def plot_best_split(self, temps, vols):
         split_idx = self.get_best_split(temps, vols)
@@ -138,18 +235,20 @@ class MeltingPointSlopeEstimator(AbstractMeltingPointEstimator):
         leftxs, rightxs = self._split_dset(xs, split_idx)
         leftys, rightys = self._split_dset(ys, split_idx)
 
-        left_fit_ys = self._get_linear_ys(m1, b1, leftxs)
         fig, axs = plt.subplots()
+
+        left_fit_ys = self._get_linear_ys(m1, b1, leftxs)
         axs.scatter(leftxs, leftys)
         axs.plot(leftxs, left_fit_ys)
+
+
+        right_fit_ys = self._get_linear_ys(m2, b2, rightxs)
+        axs.scatter(rightxs, rightys)
+        axs.plot(rightxs, right_fit_ys)
+
         axs.title("Volume vs Temperature (w/ best fits by Slope Method")
         axs.xlabel("Temperature (K)")
         axs.ylabel("Equil. Volume (cubic Angstroms)")
-
-        right_fit_ys = self._get_linear_ys(m2, b2, rightxs)
-
-        axs.scatter(rightxs, rightys)
-        axs.plot(rightxs, right_fit_ys)
         return fig, axs
 
     def get_best_split(self, xs, ys):
@@ -160,10 +259,15 @@ class MeltingPointSlopeEstimator(AbstractMeltingPointEstimator):
         return best_split_idx
 
 
-
-class MeltingPointSlopeRMSEEstimator(MeltingPointSlopeEstimator):
+class MeltingPointSlopeRMSEEstimator(MeltingPointBisectionEstimator):
 
     name: str = "RMSE Bisection"
+
+    def _get_fit_error(self, xs, ys):
+        slope, intercept, r_value, p_value, std_err = linregress(xs, ys)
+        y_pred = intercept + slope * np.array(xs)
+        err = mean_squared_error(y_true=ys, y_pred=y_pred, squared=False)        
+        return slope, intercept, err
 
     def _get_split_fit(self, xs, ys, split_idx):
         leftx, rightx = self._split_dset(xs, split_idx)
@@ -182,7 +286,7 @@ class MeltingPointSlopeRMSEEstimator(MeltingPointSlopeEstimator):
         return lslope, lintercept, rslope, rintercept, combined_err
 
 
-class MeltingPointSlopeStdErrEstimator(MeltingPointSlopeEstimator):
+class MeltingPointSlopeStdErrEstimator(MeltingPointBisectionEstimator):
 
     name: str = "StdErr Bisection"
 
