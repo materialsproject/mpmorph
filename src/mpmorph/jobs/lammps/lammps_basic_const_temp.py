@@ -20,19 +20,30 @@ class BasicLammpsConstantTempMaker(Maker):
     name = "LAMMPS_CALCULATION"
 
     @job(trajectory="trajectory", output_schema=LammpsCalc)
-    def make(self, temperature: int, ensemble:str, total_steps: int, structure: Structure = None):
+    def make(self, temperature: int, ensemble:str, total_steps: int, structure: Structure = None, 
+    barostat:str =None, Pstart:str = None, Pstop:str = None, Pdamp:str = None):
         lammps_bin = os.environ.get("LAMMPS_CMD")
         m3gnet_path = os.environ.get("M3GNET_PATH")
 
-        chem_sys_str = " ".join(el.symbol for el in structure.composition.elements)
-        script_options = {
+        chem_sys_str = " ".join(el.symbol for el in structure.composition.elements)          
+        script_options ={"temperature": temperature,
+                        "m3gnet_path": m3gnet_path,
+                        "species": chem_sys_str,
+                        "total_steps": total_steps,
+                        "print_every_n_step": 10}
+
+        if ensemble =='nvt':
+            script_options.update({
+                "ensemble": ensemble
+                })
+        elif ensemble =='npt':
+            script_options.update({ 
             "ensemble": ensemble,
-            "temperature": temperature,
-            "m3gnet_path": m3gnet_path,
-            "species": chem_sys_str,
-            "total_steps": total_steps,
-            "print_every_n_step": 10,
-        }
+            "barostat":barostat,
+            "Pstart":Pstart,
+            "Pstop":Pstop,
+            "Pdamp":Pdamp,
+        }  )
 
         template_path = resource_filename('mpmorph', 'jobs/lammps/templates/basic_constant_temp.lammps')
 
