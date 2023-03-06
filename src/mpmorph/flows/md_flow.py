@@ -1,14 +1,12 @@
 from atomate2.vasp.jobs.core import MDMaker
 from jobflow import Flow, Maker
 from mpmorph.jobs.core import M3GNetMDMaker
-from mpmorph.jobs.core import CHGNetMDMaker
 
 from mpmorph.jobs.equilibrate_volume import EquilibriumVolumeSearchMaker
 from pymatgen.core.structure import Structure
 
-from mpmorph.jobs.pv_from_calc import PVFromCalc, PVFromM3GNet, PVFromCHGNet, PVFromVasp
+from mpmorph.jobs.pv_from_calc import PVFromCalc, PVFromM3GNet, PVFromVasp
 from mpmorph.jobs.tasks.m3gnet_input import M3GNetMDInputs
-from mpmorph.jobs.tasks.chgnet_input import CHGNetMDInputs
 
 EQUILIBRATE_VOLUME_FLOW = "EQUILIBRATE_VOLUME_FLOW"
 M3GNET_MD_FLOW = "M3GNET_MD_FLOW"
@@ -28,36 +26,7 @@ def get_md_flow_m3gnet(structure, temp, steps, converge_first = True, initial_vo
         structure=structure,
         converge_first=converge_first,
         initial_vol_scale=initial_vol_scale
-    )
-
-def get_md_flow_chgnet(structure, temp, steps, converge_first = True, initial_vol_scale = 1):
-    inputs = CHGNetMDInputs(
-        temperature=temp,
-        steps=steps
-    )
-
-    chgnet_maker = CHGNetMDMaker(parameters = inputs)
-    pv_md_maker = PVFromCHGNet(parameters=inputs)
-    return _get_md_flow(
-        pv_md_maker=pv_md_maker,
-        production_md_maker=chgnet_maker,
-        structure=structure,
-        converge_first=converge_first,
-        initial_vol_scale=initial_vol_scale,
-    )    
-
-
-def get_equil_vol_flow_chgnet(structure, temp, steps):
-    inputs = CHGNetMDInputs(
-        temperature=temp,
-        steps=steps
-    )
-
-    pv_md_maker = PVFromCHGNet(parameters=inputs)
-    eq_vol_maker = EquilibriumVolumeSearchMaker(pv_md_maker=pv_md_maker)
-    equil_vol_job = eq_vol_maker.make(structure)
-    flow = Flow([equil_vol_job], output=equil_vol_job.output, name=EQUILIBRATE_VOLUME_FLOW)
-    return flow
+    ) 
 
 def get_equil_vol_flow(structure, temp, steps):
     inputs = M3GNetMDInputs(
