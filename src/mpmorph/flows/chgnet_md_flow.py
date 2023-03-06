@@ -11,10 +11,11 @@ from mpmorph.jobs.tasks.chgnet_input import CHGNetMDInputs
 EQUILIBRATE_VOLUME_FLOW = "EQUILIBRATE_VOLUME_FLOW"
 CHGNET_MD = "CHGNET_MD"
 
-def get_md_flow_chgnet(structure, temp, steps, converge_first = True, initial_vol_scale = 1):
+def get_md_flow_chgnet(structure, temp, steps, converge_first = True, initial_vol_scale = 1, use_device='cpu'):
     inputs = CHGNetMDInputs(
         temperature=temp,
-        steps=steps
+        steps=steps,
+        use_device=use_device
     )
 
     chgnet_maker = CHGNetMDMaker(parameters = inputs)
