@@ -38,6 +38,7 @@ def run_chgnet(
         temperature=inputs.temperature,
         timestep=inputs.timestep,
         pressure=inputs.pressure,
+        use_device=inputs.use_device,
         taut=taut,
         taup=inputs.taup,
         compressibility_au=inputs.compressibility_au,
