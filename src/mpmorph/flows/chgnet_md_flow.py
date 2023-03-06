@@ -11,15 +11,19 @@ from mpmorph.jobs.tasks.chgnet_input import CHGNetMDInputs
 EQUILIBRATE_VOLUME_FLOW = "EQUILIBRATE_VOLUME_FLOW"
 CHGNET_MD = "CHGNET_MD"
 
-def get_md_flow_chgnet(structure, temp, steps, converge_first = True, initial_vol_scale = 1, use_device='cpu'):
-    inputs = CHGNetMDInputs(
+def get_md_flow_chgnet(structure, temp, steps_prod, converge_first = True, initial_vol_scale = 1, use_device='cpu'):
+    inputs_prod = CHGNetMDInputs(
         temperature=temp,
-        steps=steps,
+        steps=steps_prod,
         use_device=use_device
     )
-
-    chgnet_maker = CHGNetMDMaker(parameters = inputs)
-    pv_md_maker = PVFromCHGNet(parameters=inputs)
+    inputs_pv = CHGNetMDInputs(
+        temperature=temp,
+        steps=1000,
+        use_device=use_device
+    )    
+    pv_md_maker = PVFromCHGNet(parameters=inputs_pv)
+    chgnet_maker = CHGNetMDMaker(parameters = inputs_prod)
     return _get_md_flow(
         pv_md_maker=pv_md_maker,
         production_md_maker=chgnet_maker,
