@@ -9,7 +9,7 @@ from mpmorph.jobs.pv_from_calc import PVFromCalc, PVFromCHGNet, PVFromVasp
 from mpmorph.jobs.tasks.chgnet_input import CHGNetMDInputs
 
 EQUILIBRATE_VOLUME_FLOW = "EQUILIBRATE_VOLUME_FLOW"
-CHGNET_MD_CONVERGED_VOL_FLOW = "CHGNET_MD_CONVERGED_VOL_FLOW"
+CHGNET_MD = "CHGNET_MD"
 
 def get_md_flow_chgnet(structure, temp, steps, converge_first = True, initial_vol_scale = 1):
     inputs = CHGNetMDInputs(
@@ -39,7 +39,7 @@ def get_equil_vol_flow_chgnet(structure, temp, steps):
     equil_vol_job = eq_vol_maker.make(structure)
     flow = Flow([equil_vol_job], output=equil_vol_job.output, name=EQUILIBRATE_VOLUME_FLOW)
     return flow
-    
+
 
 def _get_md_flow(pv_md_maker, production_md_maker, structure, converge_first, 
 initial_vol_scale):
@@ -60,6 +60,6 @@ def _get_converge_flow(structure: Structure, pv_md_maker: PVFromCalc, production
 
     final_md_job = production_run_maker.make(equil_vol_job.output)
 
-    flow = Flow([equil_vol_job, final_md_job], output=final_md_job.output, name=CHGNET_MD_CONVERGED_VOL_FLOW)
+    flow = Flow([equil_vol_job, final_md_job], output=final_md_job.output, name=CHGNET_MD)
 
     return flow
