@@ -26,6 +26,6 @@ class CHGNetMDInputs:
     append_trajectory: bool = False
     steps: int = 1000
     save_files: bool = True    
-    use_device = 'cpu' # use 'cuda' for faster MD
+    use_device: str =  'cpu' # use 'cuda' for faster MD
 
 
