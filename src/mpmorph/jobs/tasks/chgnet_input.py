@@ -13,7 +13,6 @@ def one_atmosphere():
 class CHGNetMDInputs:
 
     ensemble: str = "nvt"
-    use_device = 'cpu' # use 'cuda' for faster MD
     temperature: float = 2000.0
     pressure: float = 1.01325 * units.bar
     timestep: float = 1.0
@@ -27,4 +26,6 @@ class CHGNetMDInputs:
     append_trajectory: bool = False
     steps: int = 1000
     save_files: bool = True    
+    use_device = 'cpu' # use 'cuda' for faster MD
+
 
