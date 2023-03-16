@@ -10,7 +10,7 @@ from mpmorph.jobs.tasks.m3gnet_input import M3GNetMDInputs
 
 EQUILIBRATE_VOLUME_FLOW = "EQUILIBRATE_VOLUME_FLOW"
 M3GNET_MD_FLOW = "M3GNET_MD_FLOW"
-M3GNET_MD_CONVERGED_VOL_FLOW = "M3GNET_MD_CONVERGED_VOL_FLOW"
+M3GNET_MD_CONVERGED_VOL_FLOW = "M3GNET_MD"
 
 def get_md_flow_m3gnet(structure, temp, steps_prod, steps_pv, converge_first = True, initial_vol_scale = 1):
     inputs_prod = M3GNetMDInputs(
