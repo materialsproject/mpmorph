@@ -15,7 +15,7 @@ class M3GNetMDInputs:
     ensemble: str = "nvt"
     temperature: float = 2000.0
     pressure: float = 1.01325 * units.bar
-    timestep: float = 1.0
+    timestep: float = 2.0
     potential: str = None
     taut: Optional[float] = None
     taup: Optional[float] = None

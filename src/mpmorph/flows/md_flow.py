@@ -12,14 +12,18 @@ EQUILIBRATE_VOLUME_FLOW = "EQUILIBRATE_VOLUME_FLOW"
 M3GNET_MD_FLOW = "M3GNET_MD_FLOW"
 M3GNET_MD_CONVERGED_VOL_FLOW = "M3GNET_MD_CONVERGED_VOL_FLOW"
 
-def get_md_flow_m3gnet(structure, temp, steps, converge_first = True, initial_vol_scale = 1):
-    inputs = M3GNetMDInputs(
+def get_md_flow_m3gnet(structure, temp, steps_prod, steps_pv, converge_first = True, initial_vol_scale = 1):
+    inputs_prod = M3GNetMDInputs(
         temperature=temp,
-        steps=steps
+        steps=steps_prod
     )
+    inputs_pv = M3GNetMDInputs(
+        temperature=temp,
+        steps=steps_pv
+    )    
 
-    m3gnet_maker = M3GNetMDMaker(parameters = inputs)
-    pv_md_maker = PVFromM3GNet(parameters=inputs)
+    pv_md_maker = PVFromM3GNet(parameters=inputs_pv)
+    m3gnet_maker = M3GNetMDMaker(parameters = inputs_prod)
     return _get_md_flow(
         pv_md_maker=pv_md_maker,
         production_md_maker=m3gnet_maker,
