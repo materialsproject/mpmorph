@@ -29,7 +29,6 @@ class EquilibriumVolumeSearchMaker(Maker):
     def make(
         self, original_structure: Structure, md_pv_data_docs: List[MDPVDataDoc] = None
     ):
-
         if md_pv_data_docs is not None and len(md_pv_data_docs) > MAX_MD_JOBS:
             raise RuntimeError(
                 "Maximum number of jobs for equilibrium volume search exceeded"
@@ -49,8 +48,11 @@ class EquilibriumVolumeSearchMaker(Maker):
             max_explored_volume = max(volumes)
             min_explored_volume = min(volumes)
 
-            params = rescale_volume.fit_BirchMurnaghanPV_EOS(pv_pairs)
-            equil_volume = params[0]
+            try:
+                params = rescale_volume.fit_BirchMurnaghanPV_EOS(pv_pairs)
+                equil_volume = params[0]
+            except ValueError:
+                return MDPVDataDoc()
             if (
                 equil_volume < max_explored_volume
                 and equil_volume > min_explored_volume

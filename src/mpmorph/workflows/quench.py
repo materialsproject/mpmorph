@@ -33,7 +33,7 @@ def get_quench_wf(
     hold_args = kwargs.get("hold_args", {"md_params": {"nsteps": 500}})
     quench_args = kwargs.get("quench_args", {})
 
-    for (i, structure) in enumerate(structures):
+    for i, structure in enumerate(structures):
         _fw_list = []
         if quench_type == "slow_quench":
             for temp in np.arange(

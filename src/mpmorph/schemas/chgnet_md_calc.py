@@ -10,10 +10,10 @@ from pymatgen.io.ase import AseAtomsAdaptor
 from mpmorph.utils import datetime_str
 
 
-class M3GNetMDCalculation(BaseModel):
+class CHGNetMDCalculation(BaseModel):
     task_label: str = Field(None, description="The name of the task.")
     dir_name: str = Field(
-        None, description="The directory where the M3GNet calculation was run"
+        None, description="The directory where the CHGNet calculation was run"
     )
     last_updated: str = Field(
         default_factory=datetime_str,
@@ -47,9 +47,10 @@ class M3GNetMDCalculation(BaseModel):
         ),
         **kwargs,
     ):
+
         """
-        Create a M3GnetCalculation document from a directory containing output files of
-        a M3GNet MD run.
+        Create a CHGNetCalculation document from a directory containing output files of
+        a CHGNET MD run.
         """
         dir_name = Path(dir_name)
 
@@ -76,11 +77,11 @@ class M3GNetMDCalculation(BaseModel):
         **kwargs,
     ):
         """
-        Create a M3GnetCalculation document from an ASE trajectory object.
+        Create a CHGNetCalculation document from an ASE trajectory object.
 
         Args:
             trajectory: the ASE trajectory file loaded from the out.traj file
-            **kwargs: Additional keyword arguments to pass to the M3GNetCalculation
+            **kwargs: Additional keyword arguments to pass to the CHGNetCalculation
                 constructor.
         """
         structures = []
