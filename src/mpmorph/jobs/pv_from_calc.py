@@ -30,10 +30,15 @@ class PVFromCalc(Maker):
 
         return Response(output=pv_doc)
 
+    def run_md(self, structure: Structure, **kwargs):
+        pass
+
+    def build_doc(self, calc_doc):
+        pass
+
 
 @dataclass
 class PVFromM3GNet(PVFromCalc):
-
     name: str = "PV_FROM_M3GNET"
     parameters: M3GNetMDInputs = None
 
@@ -47,9 +52,9 @@ class PVFromM3GNet(PVFromCalc):
         p_data = m3gnet_calc_to_pressure(m3gnet_calc)
         return MDPVDataDoc(volume=v_data, pressure=p_data)
 
+
 @dataclass
 class PVFromCHGNet(PVFromCalc):
-
     name: str = "PV_FROM_CHGNET"
     parameters: CHGNetMDInputs = None
 
@@ -100,7 +105,9 @@ class PVFromVasp(PVFromCalc):
         # in atomate2 (e.g. TransmuterMaker), so hopefully it will do for now
         return self.md_maker.make.original(self, structure)
 
-    def build_doc(self, task_document: M3GNetMDCalculation): # Hui is confused that the class name is VASP while task_document is M3GNetMDCalculation
+    def build_doc(
+        self, task_document: TaskDocument
+    ):  # Hui is confused that the class name is VASP while task_document is M3GNetMDCalculation
         v_data = task_doc_to_volume(task_document)
         p_data = task_doc_to_pressure(task_document)
         return MDPVDataDoc(volume=v_data, pressure=p_data)
