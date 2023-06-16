@@ -13,20 +13,28 @@ LAMMPS_VOL_FLOW = "LAMMPS_VOL_FLOW"
 
 
 def get_md_flow(
-    pv_md_maker, production_md_maker, structure, converge_first, initial_vol_scale
+    pv_md_maker,
+    production_md_maker,
+    structure,
+    converge_first,
+    initial_vol_scale,
+    flow_name = "MD Flow"
 ):
     struct = structure.copy()
     if initial_vol_scale is not None:
         struct.scale_lattice(struct.volume * initial_vol_scale)
 
     if converge_first:
-        return get_converge_flow(struct, pv_md_maker, production_md_maker)
+        return get_converge_flow(struct, pv_md_maker, production_md_maker, flow_name=flow_name)
     else:
-        return Flow([production_md_maker.make(struct)], name="flow")
+        return Flow([production_md_maker.make(struct)], name=flow_name)
 
 
 def get_converge_flow(
-    structure: Structure, pv_md_maker: PVFromCalc, production_run_maker: Maker
+    structure: Structure,
+    pv_md_maker: PVFromCalc,
+    production_run_maker: Maker,
+    flow_name: str
 ):
     eq_vol_maker = EquilibriumVolumeSearchMaker(pv_md_maker=pv_md_maker)
 
@@ -37,7 +45,7 @@ def get_converge_flow(
     flow = Flow(
         [equil_vol_job, final_md_job],
         output=final_md_job.output,
-        name=M3GNET_MD_CONVERGED_VOL_FLOW,
+        name=flow_name,
     )
 
     return flow

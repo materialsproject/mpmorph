@@ -5,11 +5,7 @@ from mpmorph.jobs.pv_from_calc import PVFromVasp
 
 from .utils import get_md_flow
 
-EQUILIBRATE_VOLUME_FLOW = "EQUILIBRATE_VOLUME_FLOW"
-M3GNET_MD_FLOW = "M3GNET_MD_FLOW"
-M3GNET_MD_CONVERGED_VOL_FLOW = "M3GNET_MD_CONVERGED_VOL_FLOW"
-LAMMPS_VOL_FLOW = "LAMMPS_VOL_FLOW"
-
+VASP_MD_CONVERGE_FLOW = "VASP_MD_CONVERGE_FLOW"
 
 def get_md_flow_vasp(
     structure: Structure,
@@ -47,6 +43,7 @@ def get_md_flow_vasp(
         structure=structure,
         converge_first=converge_first,
         initial_vol_scale=initial_vol_scale,
+        flow_name=VASP_MD_CONVERGE_FLOW
     )
 
 
