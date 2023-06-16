@@ -53,6 +53,8 @@ class EquilibriumVolumeSearchMaker(Maker):
                 equil_volume = params[0]
             except ValueError:
                 return MDPVDataDoc()
+            
+            
             if (
                 equil_volume < max_explored_volume
                 and equil_volume > min_explored_volume

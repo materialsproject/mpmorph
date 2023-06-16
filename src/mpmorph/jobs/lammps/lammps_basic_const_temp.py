@@ -43,7 +43,7 @@ class BasicLammpsConstantTempMaker(Maker):
             "Pstart":Pstart,
             "Pstop":Pstop,
             "Pdamp":Pdamp,
-        }  )
+        })
 
         template_path = resource_filename('mpmorph', 'jobs/lammps/templates/basic_constant_temp.lammps')
 
