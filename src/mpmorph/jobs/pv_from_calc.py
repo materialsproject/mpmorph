@@ -118,7 +118,7 @@ class PVFromVasp(PVFromCalc):
         # code smell - if you have to take the code out of the @job to reuse it,
         # it never should have been in the @job, but this is taken from examples
         # in atomate2 (e.g. TransmuterMaker), so hopefully it will do for now
-        return self.md_maker.make.original(self, structure)
+        return self.md_maker.make.original(self.md_maker, structure)
 
     def build_doc(
         self, task_document: TaskDoc
