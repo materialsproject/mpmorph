@@ -2,10 +2,12 @@ from dataclasses import dataclass
 from typing import List, Tuple
 import numpy as np
 
+from atomate2.vasp.jobs.core import MDMaker
+
 from pymatgen.core.structure import Structure
 from jobflow import Maker, job, Flow, Response
 
-from .pv_from_calc import PVFromVasp
+from .pv_from_calc import PVFromVasp, PVExtractor
 from ..schemas.pv_data_doc import MDPVDataDoc
 from ..runners import rescale_volume
 
@@ -22,27 +24,28 @@ class EquilibriumVolumeSearchMaker(Maker):
     """
 
     name: str = "EQUIL_VOL_SEARCH"
-    pv_md_maker: Maker = PVFromVasp()
+    md_maker: Maker = MDMaker()
+    pv_extractor: PVExtractor = PVFromVasp()
     initial_scale_factors: Tuple[float] = (0.8, 1, 1.2)
 
     @job
     def make(
-        self, original_structure: Structure, md_pv_data_docs: List[MDPVDataDoc] = None
+        self, original_structure: Structure, md_calc_outputs: List[MDPVDataDoc] = None
     ):
-        if md_pv_data_docs is not None and len(md_pv_data_docs) > MAX_MD_JOBS:
+        if md_calc_outputs is not None and len(md_calc_outputs) > MAX_MD_JOBS:
             raise RuntimeError(
                 "Maximum number of jobs for equilibrium volume search exceeded"
             )
 
-        if md_pv_data_docs is None:
+        if md_calc_outputs is None:
             new_jobs = [
-                self.pv_md_maker.make(original_structure, scale_factor=factor)
+                self.md_maker.make(original_structure, scale_factor=factor)
                 for factor in self.initial_scale_factors
             ]
-            md_pv_data_docs = [job.output for job in new_jobs]
+            md_calc_outputs = [job.output for job in new_jobs]
         else:
-            volumes = [doc.volume for doc in md_pv_data_docs]
-            pressures = [doc.pressure for doc in md_pv_data_docs]
+            volumes = [self.pv_extractor.get_volume(doc) for doc in md_calc_outputs]
+            pressures = [self.pv_extractor.get_pressure(doc) for doc in md_calc_outputs]
             pv_pairs = np.array(list(zip(pressures, volumes)))
 
             max_explored_volume = max(volumes)
@@ -54,7 +57,7 @@ class EquilibriumVolumeSearchMaker(Maker):
             except ValueError:
                 return MDPVDataDoc()
             
-            
+
             if (
                 equil_volume < max_explored_volume
                 and equil_volume > min_explored_volume
@@ -70,13 +73,13 @@ class EquilibriumVolumeSearchMaker(Maker):
                 new_vol_scale = get_new_min_volume(equil_volume, original_structure)
 
             # This is specific to the type of MD run you're doing
-            new_job = self.pv_md_maker.make(original_structure, new_vol_scale)
+            new_job = self.md_maker.make(original_structure, new_vol_scale)
             new_jobs = [new_job]
-            md_pv_data_docs.append(new_job.output)
+            md_calc_outputs.append(new_job.output)
 
         expanded_search_job = EquilibriumVolumeSearchMaker(
-            pv_md_maker=self.pv_md_maker,
-        ).make(original_structure, md_pv_data_docs)
+            md_maker=self.md_maker,
+        ).make(original_structure, md_calc_outputs)
 
         flow = Flow([*new_jobs, expanded_search_job])
 
