@@ -30,7 +30,12 @@ def get_md_flow(
         struct.scale_lattice(struct.volume * initial_vol_scale)
 
     if converge_first:
-        return get_converge_flow(struct, pv_md_maker, pv_extractor, production_md_maker)
+        return get_converge_flow(
+            structure = struct,
+            pv_md_maker = pv_md_maker,
+            pv_extractor = pv_extractor,
+            production_md_maker = production_md_maker
+        )
     else:
         return Flow([production_md_maker.make(struct)], name="flow")
 

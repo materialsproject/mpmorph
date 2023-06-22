@@ -28,8 +28,8 @@ class EquilibriumVolumeSearchMaker(Maker):
     """
 
     name: str = "EQUIL_VOL_SEARCH"
-    md_maker: Maker = MDMaker()
-    pv_extractor: PVExtractor = PVFromVasp()
+    md_maker: Maker = None
+    pv_extractor: PVExtractor = None
     initial_scale_factors: Tuple[float] = (0.8, 1, 1.2)
 
     @job
@@ -53,7 +53,7 @@ class EquilibriumVolumeSearchMaker(Maker):
                 self.md_maker.make(struct)
                 for struct in scaled_structs
             ]
-            
+
             md_calc_outputs = [job.output for job in new_jobs]
         else:
             volumes = [self.pv_extractor.get_volume(doc) for doc in md_calc_outputs]
