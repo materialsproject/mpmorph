@@ -83,6 +83,6 @@ def task_doc_to_volume(task_doc: TaskDoc) -> float:
 def task_doc_to_pressure(task_doc: TaskDoc) -> float:  # TODO
     traj_dict = task_doc.vasp_objects["trajectory"]
     traj = Trajectory.from_dict(traj_dict)    
-    stress_tensor = traj.frame_properties[-1]['structure'].stress
+    stress_tensor = traj.frame_properties[-1]['stress']
     pressure = 1 / 3 * np.trace(stress_tensor)
     return pressure
