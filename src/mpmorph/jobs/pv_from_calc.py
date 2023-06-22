@@ -8,8 +8,9 @@ from ..schemas.chgnet_md_calc import CHGNetMDCalculation
 import numpy as np
 
 from abc import ABC, abstractmethod
+from monty.json import MSONable
 
-class PVExtractor(ABC):
+class PVExtractor(ABC, MSONable):
 
     @abstractmethod
     def get_pressure(self, md_output):
