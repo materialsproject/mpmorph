@@ -1,14 +1,9 @@
-from atomate2.vasp.jobs.core import MDMaker
-from atomate2.vasp.sets.core import MDSetGenerator
-from jobflow import Flow, Maker
-from mpmorph.jobs.core import M3GNetMDMaker
+from jobflow import Flow
 
-from mpmorph.jobs.equilibrate_volume import EquilibriumVolumeSearchMaker
 from mpmorph.jobs.lammps.lammps_basic_const_temp import BasicLammpsConstantTempMaker
 from pymatgen.core.structure import Structure
 
-from mpmorph.jobs.pv_from_calc import PVFromCalc, PVFromM3GNet, PVFromVasp
-from mpmorph.jobs.tasks.m3gnet_input import M3GNetMDInputs
+from .utils import collect_vt_results
 
 LAMMPS_VOL_FLOW = "LAMMPS_VOL_FLOW"
 
@@ -26,4 +21,32 @@ def get_equil_vol_flow_lammps(structure: Structure,
     return flow
 
 
+def get_vt_sweep_flow_lammps(
+    structure,
+    lower_bound=100,
+    upper_bound=1100,
+    temp_step=100,
+    output_name="vt.out",
+    steps=2000,
+    mp_id=None,
+):
+    v_outputs = []
+    volume_jobs = []
+    temps = list(range(lower_bound, upper_bound, temp_step))
 
+    for temp in temps:
+        job = get_equil_vol_flow_lammps(
+            structure=structure,
+            temp=temp,
+            steps=steps,
+        )
+        volume_jobs.append(job)
+        v_outputs.append(job.output.output)
+
+    collect_job = collect_vt_results(v_outputs, temps, structure, output_name, mp_id)
+
+    flow_name = f"{structure.composition.reduced_formula}-Melting Point"
+    new_flow = Flow(
+        [*volume_jobs, collect_job], output=collect_job.output, name=flow_name
+    )
+    return new_flow

@@ -10,17 +10,17 @@ VASP_MD_CONVERGE_FLOW = "VASP_MD_CONVERGE_FLOW"
 def get_md_flow_vasp(
     structure: Structure,
     temperature: int,
-    production_steps: int,
-    equilibration_steps: int,
-    converge_first=True,
-    initial_vol_scale=1,
+    steps_prod: int,
+    steps_pv: int,
+    converge_first: bool = True,
+    initial_vol_scale: int = 1,
 ):
     production_vasp_maker = MDMaker(
         input_set_generator=MDSetGenerator(
             ensemble="nvt",
             start_temp=temperature,
             end_temp=temperature,
-            nsteps=production_steps,
+            nsteps=steps_prod,
             time_step=2,
         )
     )
@@ -30,20 +30,18 @@ def get_md_flow_vasp(
             ensemble="nvt",
             start_temp=temperature,
             end_temp=temperature,
-            nsteps=equilibration_steps,
+            nsteps=steps_pv,
             time_step=2,
         )
     )
 
-    pv_md_maker = PVFromVasp(md_maker=pv_vasp_maker)
+    pv_extractor = PVFromVasp()
 
     return get_md_flow(
-        pv_md_maker=pv_md_maker,
+        pv_md_maker=pv_vasp_maker,
+        pv_extractor=pv_extractor,
         production_md_maker=production_vasp_maker,
         structure=structure,
         converge_first=converge_first,
         initial_vol_scale=initial_vol_scale,
-        flow_name=VASP_MD_CONVERGE_FLOW
     )
-
-
