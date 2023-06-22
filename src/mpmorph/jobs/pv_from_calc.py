@@ -10,6 +10,9 @@ import numpy as np
 from abc import ABC, abstractmethod
 from monty.json import MSONable
 
+from pymatgen.core.trajectory import Trajectory
+
+
 class PVExtractor(ABC, MSONable):
 
     @abstractmethod
@@ -71,11 +74,15 @@ class PVFromVasp(PVExtractor):
 
 
 def task_doc_to_volume(task_doc: TaskDoc) -> float:
-    volume = task_doc.vasp_objects["trajectory"].frame_properties[-1]['structure'].lattice.volume
+    traj_dict = task_doc.vasp_objects["trajectory"]
+    traj = Trajectory.from_dict(traj_dict)
+    volume = traj.frame_properties[-1]['structure'].lattice.volume
     return volume
 
 
 def task_doc_to_pressure(task_doc: TaskDoc) -> float:  # TODO
-    stress_tensor = task_doc.vasp_objects["trajectory"].frame_properties[-1]['structure'].stress
+    traj_dict = task_doc.vasp_objects["trajectory"]
+    traj = Trajectory.from_dict(traj_dict)    
+    stress_tensor = traj.frame_properties[-1]['structure'].stress
     pressure = 1 / 3 * np.trace(stress_tensor)
     return pressure
