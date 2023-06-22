@@ -15,6 +15,10 @@ from ..runners import rescale_volume
 MAX_MD_JOBS = 5  # if you can't converge with five additional calcs you're doing something wrong...
 OFFSET = 0.1  # gives it enough room to slosh back
 
+def get_scaled_structure(struct: Structure, scale_factor: float):
+    copy: Structure = struct.copy()
+    copy.scale_lattice(copy.volume * scale_factor)
+    return copy
 
 @dataclass
 class EquilibriumVolumeSearchMaker(Maker):
@@ -30,7 +34,9 @@ class EquilibriumVolumeSearchMaker(Maker):
 
     @job
     def make(
-        self, original_structure: Structure, md_calc_outputs: List[MDPVDataDoc] = None
+        self,
+        original_structure: Structure,
+        md_calc_outputs: List[MDPVDataDoc] = None
     ):
         if md_calc_outputs is not None and len(md_calc_outputs) > MAX_MD_JOBS:
             raise RuntimeError(
@@ -38,10 +44,16 @@ class EquilibriumVolumeSearchMaker(Maker):
             )
 
         if md_calc_outputs is None:
-            new_jobs = [
-                self.md_maker.make(original_structure, scale_factor=factor)
+            scaled_structs = [
+                get_scaled_structure(original_structure, factor)
                 for factor in self.initial_scale_factors
             ]
+
+            new_jobs = [
+                self.md_maker.make(struct)
+                for struct in scaled_structs
+            ]
+            
             md_calc_outputs = [job.output for job in new_jobs]
         else:
             volumes = [self.pv_extractor.get_volume(doc) for doc in md_calc_outputs]
