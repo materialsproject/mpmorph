@@ -46,7 +46,10 @@ def get_converge_flow(
     pv_extractor: PVExtractor,
     production_run_maker: Maker
 ):
-    eq_vol_maker = EquilibriumVolumeSearchMaker(md_maker=pv_md_maker, pv_extractor=pv_extractor)
+    eq_vol_maker = EquilibriumVolumeSearchMaker(
+        md_maker=pv_md_maker,
+        pv_extractor=pv_extractor
+    )
 
     equil_vol_job = eq_vol_maker.make(structure)
 

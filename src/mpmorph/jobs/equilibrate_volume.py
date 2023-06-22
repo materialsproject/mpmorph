@@ -91,6 +91,7 @@ class EquilibriumVolumeSearchMaker(Maker):
 
         expanded_search_job = EquilibriumVolumeSearchMaker(
             md_maker=self.md_maker,
+            pv_extractor=self.pv_extractor
         ).make(original_structure, md_calc_outputs)
 
         flow = Flow([*new_jobs, expanded_search_job])
