@@ -71,11 +71,11 @@ class PVFromVasp(PVExtractor):
 
 
 def task_doc_to_volume(task_doc: TaskDoc) -> float:
-    volume = task_doc.vasp_objects["trajectory"][-1].structure.lattice.volume
+    volume = task_doc.vasp_objects["trajectory"].frame_properties[-1]['structure'].lattice.volume
     return volume
 
 
 def task_doc_to_pressure(task_doc: TaskDoc) -> float:  # TODO
-    stress_tensor = task_doc.vasp_objects["trajectory"][-1].stress
+    stress_tensor = task_doc.vasp_objects["trajectory"].frame_properties[-1]['structure'].stress
     pressure = 1 / 3 * np.trace(stress_tensor)
     return pressure
