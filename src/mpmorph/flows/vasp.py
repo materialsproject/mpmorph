@@ -35,7 +35,12 @@ def get_md_flow_vasp(
                 "LPLANE": False # LPLANE is recommended to be False on Cray machines (https://www.vasp.at/wiki/index.php/LPLANE)
             },
             user_kpoints_settings=my_kpoints
-        )
+        ),
+        run_vasp_kwargs={
+            "vasp_job_kwargs": {
+                "auto_npar": True
+            }
+        }
     )
 
     pv_vasp_maker = MDMaker(
@@ -54,7 +59,12 @@ def get_md_flow_vasp(
                 "LPLANE": False # LPLANE is recommended to be False on Cray machines (https://www.vasp.at/wiki/index.php/LPLANE)
             },
             user_kpoints_settings=my_kpoints
-        )
+        ),
+        run_vasp_kwargs={
+            "vasp_job_kwargs": {
+                "auto_npar": True
+            }
+        }
     )
 
     pv_extractor = PVFromVasp()
