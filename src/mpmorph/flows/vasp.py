@@ -4,6 +4,7 @@ from pymatgen.core.structure import Structure
 from mpmorph.jobs.pv_from_calc import PVFromVasp
 
 from .utils import get_md_flow
+from pymatgen.io.vasp.inputs import Kpoints
 
 VASP_MD_CONVERGE_FLOW = "VASP_MD_CONVERGE_FLOW"
 
@@ -15,6 +16,8 @@ def get_md_flow_vasp(
     converge_first: bool = True,
     initial_vol_scale: int = 1
 ):
+    my_kpoints = Kpoints()
+
     flow_name = f'MD_FLOW_{structure.composition.to_pretty_string()}'
     production_vasp_maker = MDMaker(
         input_set_generator=MDSetGenerator(
@@ -24,8 +27,14 @@ def get_md_flow_vasp(
             nsteps=steps_prod,
             time_step=2,
             user_incar_settings={
-                "ISPIN": 1
-            }
+                "ISPIN": 1, # Do not consider magnetism in AIMD simulations
+                "LREAL": True, # Peform calculation in real space for AIMD due to large unit cell size
+                "LAECHG": False, # Don't need AECCAR for AIMD
+                "EDIFFG": None, # Does not apply to MD simulations, see: https://www.vasp.at/wiki/index.php/EDIFFG
+                "GGA": None, # Just let VASP decide based on POTCAR - the default, PS yields the error below
+                "LPLANE": False # LPLANE is recommended to be False on Cray machines (https://www.vasp.at/wiki/index.php/LPLANE)
+            },
+            user_kpoints_settings=my_kpoints
         )
     )
 
@@ -37,8 +46,14 @@ def get_md_flow_vasp(
             nsteps=steps_pv,
             time_step=2,
             user_incar_settings={
-                "ISPIN": 1
-            }
+                "ISPIN": 1, # Do not consider magnetism in AIMD simulations
+                "LREAL": True, # Peform calculation in real space for AIMD due to large unit cell size
+                "LAECHG": False, # Don't need AECCAR for AIMD
+                "EDIFFG": None, # Does not apply to MD simulations, see: https://www.vasp.at/wiki/index.php/EDIFFG
+                "GGA": None, # Just let VASP decide based on POTCAR - the default, PS yields the error below
+                "LPLANE": False # LPLANE is recommended to be False on Cray machines (https://www.vasp.at/wiki/index.php/LPLANE)
+            },
+            user_kpoints_settings=my_kpoints
         )
     )
 
