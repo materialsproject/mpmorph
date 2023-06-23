@@ -23,6 +23,9 @@ def get_md_flow_vasp(
             end_temp=temperature,
             nsteps=steps_prod,
             time_step=2,
+            user_incar_settings={
+                "ISPIN": 1
+            }
         )
     )
 
@@ -33,6 +36,9 @@ def get_md_flow_vasp(
             end_temp=temperature,
             nsteps=steps_pv,
             time_step=2,
+            user_incar_settings={
+                "ISPIN": 1
+            }
         )
     )
 
