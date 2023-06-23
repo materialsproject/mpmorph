@@ -13,8 +13,9 @@ def get_md_flow_vasp(
     steps_prod: int,
     steps_pv: int,
     converge_first: bool = True,
-    initial_vol_scale: int = 1,
+    initial_vol_scale: int = 1
 ):
+    flow_name = f'MD_FLOW_{structure.composition.to_pretty_string()}'
     production_vasp_maker = MDMaker(
         input_set_generator=MDSetGenerator(
             ensemble="nvt",
@@ -44,4 +45,5 @@ def get_md_flow_vasp(
         structure=structure,
         converge_first=converge_first,
         initial_vol_scale=initial_vol_scale,
+        flow_name=flow_name
     )

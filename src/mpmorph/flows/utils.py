@@ -23,7 +23,8 @@ def get_md_flow(
     production_md_maker: Maker,
     structure,
     converge_first,
-    initial_vol_scale
+    initial_vol_scale,
+    flow_name: str = "MD_FLOW",
 ):
     struct = structure.copy()
     if initial_vol_scale is not None:
@@ -34,17 +35,19 @@ def get_md_flow(
             structure = struct,
             pv_md_maker = pv_md_maker,
             pv_extractor = pv_extractor,
-            production_run_maker = production_md_maker
+            production_run_maker = production_md_maker,
+            flow_name=flow_name
         )
     else:
-        return Flow([production_md_maker.make(struct)], name="flow")
+        return Flow([production_md_maker.make(struct)], name=flow_name)
 
 
 def get_converge_flow(
     structure: Structure,
     pv_md_maker: Maker,
     pv_extractor: PVExtractor,
-    production_run_maker: Maker
+    production_run_maker: Maker,
+    flow_name: str = M3GNET_MD_CONVERGED_VOL_FLOW
 ):
     eq_vol_maker = EquilibriumVolumeSearchMaker(
         md_maker=pv_md_maker,
@@ -58,7 +61,7 @@ def get_converge_flow(
     flow = Flow(
         [equil_vol_job, final_md_job],
         output=final_md_job.output,
-        name=M3GNET_MD_CONVERGED_VOL_FLOW,
+        name=flow_name,
     )
 
     return flow
