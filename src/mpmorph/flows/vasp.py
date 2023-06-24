@@ -31,7 +31,7 @@ def get_md_flow_vasp(
                 "LREAL": True, # Peform calculation in real space for AIMD due to large unit cell size
                 "LAECHG": False, # Don't need AECCAR for AIMD
                 "EDIFFG": None, # Does not apply to MD simulations, see: https://www.vasp.at/wiki/index.php/EDIFFG
-                "GGA": None, # Just let VASP decide based on POTCAR - the default, PS yields the error below
+                "GGA": "PS", # Just let VASP decide based on POTCAR - the default, PS yields the error below
                 "LPLANE": False # LPLANE is recommended to be False on Cray machines (https://www.vasp.at/wiki/index.php/LPLANE)
             },
             user_kpoints_settings=my_kpoints
@@ -56,7 +56,7 @@ def get_md_flow_vasp(
                 "LREAL": True, # Peform calculation in real space for AIMD due to large unit cell size
                 "LAECHG": False, # Don't need AECCAR for AIMD
                 "EDIFFG": None, # Does not apply to MD simulations, see: https://www.vasp.at/wiki/index.php/EDIFFG
-                "GGA": None, # Just let VASP decide based on POTCAR - the default, PS yields the error below
+                "GGA": "PS", # Just let VASP decide based on POTCAR - the default, PS yields the error below
                 "LPLANE": False # LPLANE is recommended to be False on Cray machines (https://www.vasp.at/wiki/index.php/LPLANE)
             },
             user_kpoints_settings=my_kpoints
