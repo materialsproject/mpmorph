@@ -16,7 +16,17 @@ def get_md_flow_vasp(
     converge_first: bool = True,
     initial_vol_scale: int = 1
 ):
-    my_kpoints = Kpoints()
+    gamma_point = Kpoints()
+
+    incar_settings = {
+        "ISPIN": 1, # Do not consider magnetism in AIMD simulations
+        "LREAL": True, # Peform calculation in real space for AIMD due to large unit cell size
+        "LAECHG": False, # Don't need AECCAR for AIMD
+        "EDIFFG": None, # Does not apply to MD simulations, see: https://www.vasp.at/wiki/index.php/EDIFFG
+        "GGA": "PS", # Just let VASP decide based on POTCAR - the default, PS yields the error below
+        "LPLANE": False, # LPLANE is recommended to be False on Cray machines (https://www.vasp.at/wiki/index.php/LPLANE)
+        "LDAUPRINT": 0,
+    }
 
     flow_name = f'MD_FLOW_{structure.composition.to_pretty_string()}'
     production_vasp_maker = MDMaker(
@@ -26,22 +36,9 @@ def get_md_flow_vasp(
             end_temp=temperature,
             nsteps=steps_prod,
             time_step=2,
-            user_incar_settings={
-                "ISPIN": 1, # Do not consider magnetism in AIMD simulations
-                "LREAL": True, # Peform calculation in real space for AIMD due to large unit cell size
-                "LAECHG": False, # Don't need AECCAR for AIMD
-                "EDIFFG": None, # Does not apply to MD simulations, see: https://www.vasp.at/wiki/index.php/EDIFFG
-                "GGA": "PS", # Just let VASP decide based on POTCAR - the default, PS yields the error below
-                "LPLANE": False # LPLANE is recommended to be False on Cray machines (https://www.vasp.at/wiki/index.php/LPLANE)
-            },
-            user_kpoints_settings=my_kpoints
+            user_incar_settings=incar_settings,
+            user_kpoints_settings=gamma_point
         ),
-        # This is recommended by VASP, but defaults to false in atomate2...
-        # run_vasp_kwargs={
-        #     "vasp_job_kwargs": {
-        #         "auto_npar": True
-        #     }
-        # }
     )
 
     pv_vasp_maker = MDMaker(
@@ -51,15 +48,8 @@ def get_md_flow_vasp(
             end_temp=temperature,
             nsteps=steps_pv,
             time_step=2,
-            user_incar_settings={
-                "ISPIN": 1, # Do not consider magnetism in AIMD simulations
-                "LREAL": True, # Peform calculation in real space for AIMD due to large unit cell size
-                "LAECHG": False, # Don't need AECCAR for AIMD
-                "EDIFFG": None, # Does not apply to MD simulations, see: https://www.vasp.at/wiki/index.php/EDIFFG
-                "GGA": "PS", # Just let VASP decide based on POTCAR - the default, PS yields the error below
-                "LPLANE": False # LPLANE is recommended to be False on Cray machines (https://www.vasp.at/wiki/index.php/LPLANE)
-            },
-            user_kpoints_settings=my_kpoints
+            user_incar_settings=incar_settings,
+            user_kpoints_settings=gamma_point
         )
     )
 
