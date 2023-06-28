@@ -69,6 +69,7 @@ class PVFromVasp(PVExtractor):
 
     def get_volume(self, task_document: TaskDoc):
         print(type(task_document))
+        print(task_document.vasp_objects["trajectory"])
         dumpfn(task_document, "task_doc.json")
         return task_doc_to_volume(task_document)
 
