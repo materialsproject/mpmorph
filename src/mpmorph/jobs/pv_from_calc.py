@@ -9,6 +9,7 @@ import numpy as np
 
 from abc import ABC, abstractmethod
 from monty.json import MSONable
+from monty.serialization import dumpfn
 
 from pymatgen.core.trajectory import Trajectory
 
@@ -67,6 +68,8 @@ def chgnet_calc_to_pressure(chgnet_calc: CHGNetMDCalculation):
 class PVFromVasp(PVExtractor):
 
     def get_volume(self, task_document: TaskDoc):
+        print(type(task_document))
+        dumpfn(task_document, "task_doc.json")
         return task_doc_to_volume(task_document)
 
     def get_pressure(self, task_document: TaskDoc):
