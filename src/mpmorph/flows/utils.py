@@ -6,6 +6,7 @@ from jobflow import Flow, Maker, job
 
 from mpmorph.jobs.equilibrate_volume import EquilibriumVolumeSearchMaker
 from pymatgen.core.structure import Structure
+from pymatgen.core.trajectory import Trajectory
 
 from mpmorph.jobs.pv_from_calc import PVExtractor
 
@@ -16,6 +17,10 @@ M3GNET_MD_CONVERGED_VOL_FLOW = "M3GNET_MD_CONVERGED_VOL_FLOW"
 LAMMPS_VOL_FLOW = "LAMMPS_VOL_FLOW"
 VOLUME_TEMPERATURE_SWEEP = "VOLUME_TEMPERATURE_SWEEP"
 
+def get_frames_from_trajectory(trajectory: Trajectory, step_separation = 300, num_steps = 5):
+    earliest_step = step_separation * num_steps
+    steps = trajectory[-1:-earliest_step:-step_separation]
+    return steps
 
 def get_md_flow(
     pv_md_maker: Maker,
