@@ -21,10 +21,10 @@ def get_amorphous_limit_flow(comp, aimd_temp = 5000, aimd_steps_pv = 3000, aimd_
     )
 
 
-    fast_quenches =  make_quench_flow(md_flow.output)
+    fast_quenches = make_quench_flow(md_flow.output)
 
     return Flow(
-        [get_md_flow_vasp, fast_quenches],
+        [md_flow, fast_quenches],
         name=f'Amorphous Limit Flow: {comp}'
     )
 
