@@ -12,8 +12,14 @@ def get_fast_quench_flow(struct: Structure):
         user_kpoints_settings=Kpoints(),
         user_incar_settings={
             "LREAL": "Auto",
-            "NSW": 500,
-            "LDAUPRINT": 0
+            "NSW": 1000,
+            "LDAUPRINT": 0,
+            "SIGMA": 0.05, # Per VASP docs for ISMEAR, which should be 0 for large cells
+            "LAECHG": False,
+            "EDIFFG": None, # Per old MPRelax
+            "EDIFF": 1e-4, # Reset to VASP default here
+            "ENAUG": None, # Per old MPRelax
+            "LVTOT": False,
         }
     )
     
