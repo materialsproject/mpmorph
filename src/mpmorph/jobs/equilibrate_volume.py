@@ -63,31 +63,35 @@ class EquilibriumVolumeSearchMaker(Maker):
             max_explored_volume = max(volumes)
             min_explored_volume = min(volumes)
 
+            new_job_vol_scales = []
             try:
                 params = rescale_volume.fit_BirchMurnaghanPV_EOS(pv_pairs)
                 equil_volume = params[0]
+                if (
+                    equil_volume < max_explored_volume
+                    and equil_volume > min_explored_volume
+                ):
+                    final_structure = original_structure.copy()
+                    final_structure.scale_lattice(equil_volume)
+                    return final_structure
+                elif equil_volume > max_explored_volume:
+                    new_job_vol_scales.append(get_new_max_volume(equil_volume, original_structure))
+
+                elif equil_volume < min_explored_volume:
+                    new_job_vol_scales.append(get_new_min_volume(equil_volume, original_structure))
             except ValueError:
-                return MDPVDataDoc()
-            
-
-            if (
-                equil_volume < max_explored_volume
-                and equil_volume > min_explored_volume
-            ):
-                final_structure = original_structure.copy()
-                final_structure.scale_lattice(equil_volume)
-                return final_structure
-
-            elif equil_volume > max_explored_volume:
-                new_vol_scale = get_new_max_volume(equil_volume, original_structure)
-
-            elif equil_volume < min_explored_volume:
-                new_vol_scale = get_new_min_volume(equil_volume, original_structure)
-
+                print("Unable to converge EoS fit for volume optimization, expanding search range")
+                new_job_max = expand_upper_bound(max_explored_volume, original_structure)
+                new_job_min = expand_lower_bound(max_explored_volume, original_structure)
+                new_job_vol_scales.append(new_job_max)
+                new_job_vol_scales.append(new_job_min)
+                equil_volume = None
+        
             # This is specific to the type of MD run you're doing
-            new_job = self.md_maker.make(original_structure, new_vol_scale)
-            new_jobs = [new_job]
-            md_calc_outputs.append(new_job.output)
+            new_jobs = [self.md_maker.make(original_structure, scale) for scale in new_job_vol_scales]
+
+            for new_job in new_jobs:
+                md_calc_outputs.append(new_job.output)
 
         expanded_search_job = EquilibriumVolumeSearchMaker(
             md_maker=self.md_maker,
@@ -102,6 +106,11 @@ class EquilibriumVolumeSearchMaker(Maker):
 def get_new_max_volume(equil_guess, original_structure):
     return equil_guess / original_structure.volume + OFFSET
 
+def expand_upper_bound(old_max_vol, original_structure):
+    return old_max_vol / original_structure.volume + 0.2
 
 def get_new_min_volume(equil_guess, original_structure):
     return equil_guess / original_structure.volume - OFFSET
+
+def expand_lower_bound(old_max_vol, original_structure):
+    return old_max_vol / original_structure.volume - 0.2
