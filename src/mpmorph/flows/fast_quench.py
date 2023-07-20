@@ -19,7 +19,7 @@ def get_fast_quench_flow(struct: Structure):
             "EDIFFG": None, # Per old MPRelax
             "EDIFF": 1e-4, # Reset to VASP default here
             "ENAUG": None, # Per old MPRelax
-            "LVTOT": False,
+            "LVTOT": False, # per old MPRelax
         }
     )
     

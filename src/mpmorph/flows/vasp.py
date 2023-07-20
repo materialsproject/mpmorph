@@ -10,13 +10,14 @@ VASP_MD_CONVERGE_FLOW = "VASP_MD_CONVERGE_FLOW"
 
 def get_md_flow_vasp(
     structure: Structure,
-    temperature: int,
-    steps_prod: int,
-    steps_pv: int,
     converge_first: bool = True,
-    initial_vol_scale: int = 1
+    temperature: int = None,
+    steps_prod: int = None,
+    steps_pv: int = None,
+    initial_vol_scale: int = 1,
+    production_md_set_generator: MDSetGenerator = None,
+    pv_md_set_generator: MDSetGenerator = None
 ):
-    gamma_point = Kpoints()
 
     incar_settings = {
         "ISPIN": 1, # Do not consider magnetism in AIMD simulations
@@ -28,9 +29,10 @@ def get_md_flow_vasp(
         "LDAUPRINT": 0,
     }
 
-    flow_name = f'MD_FLOW_{structure.composition.to_pretty_string()}'
-    production_vasp_maker = MDMaker(
-        input_set_generator=MDSetGenerator(
+    gamma_point = Kpoints()
+
+    if production_md_set_generator is None:
+        production_md_set_generator = MDSetGenerator(
             ensemble="nvt",
             start_temp=temperature,
             end_temp=temperature,
@@ -38,11 +40,10 @@ def get_md_flow_vasp(
             time_step=2,
             user_incar_settings=incar_settings,
             user_kpoints_settings=gamma_point
-        ),
-    )
+        )
 
-    pv_vasp_maker = MDMaker(
-        input_set_generator=MDSetGenerator(
+    if pv_md_set_generator is None:
+        pv_md_set_generator = MDSetGenerator(
             ensemble="nvt",
             start_temp=temperature,
             end_temp=temperature,
@@ -51,6 +52,15 @@ def get_md_flow_vasp(
             user_incar_settings=incar_settings,
             user_kpoints_settings=gamma_point
         )
+
+
+    flow_name = f'MD_FLOW_{structure.composition.to_pretty_string()}'
+    production_vasp_maker = MDMaker(
+        input_set_generator=production_md_set_generator
+    )
+
+    pv_vasp_maker = MDMaker(
+        input_set_generator=pv_md_set_generator
     )
 
     pv_extractor = PVFromVasp()
