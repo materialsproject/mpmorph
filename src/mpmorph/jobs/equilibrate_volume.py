@@ -97,7 +97,7 @@ class EquilibriumVolumeSearchMaker(Maker):
         print("INPUT TYPES FOR NEXT JOB")
         print(type(original_structure))
         for output in md_calc_outputs:
-            print(type(md_calc_outputs))
+            print(type(output))
 
         expanded_search_job = self.make(original_structure, md_calc_outputs)
 
