@@ -74,7 +74,6 @@ class EquilibriumVolumeSearchMaker(Maker):
                     return final_structure
                 elif equil_volume > max_explored_volume:
                     new_job_vol_scales.append(get_new_max_volume(equil_volume, original_structure))
-
                 elif equil_volume < min_explored_volume:
                     new_job_vol_scales.append(get_new_min_volume(equil_volume, original_structure))
             except ValueError:
@@ -83,13 +82,22 @@ class EquilibriumVolumeSearchMaker(Maker):
                 new_job_min = expand_lower_bound(max_explored_volume, original_structure)
                 new_job_vol_scales.append(new_job_max)
                 new_job_vol_scales.append(new_job_min)
-                equil_volume = None
         
             # This is specific to the type of MD run you're doing
-            new_jobs = [self.md_maker.make(original_structure, scale) for scale in new_job_vol_scales]
+            scaled_structs = [
+                get_scaled_structure(original_structure, factor)
+                for factor in new_job_vol_scales
+            ]
+
+            new_jobs = [self.md_maker.make(struct) for struct in scaled_structs]
 
             for new_job in new_jobs:
                 md_calc_outputs.append(new_job.output)
+
+        print("INPUT TYPES FOR NEXT JOB")
+        print(type(original_structure))
+        for output in md_calc_outputs:
+            print(type(md_calc_outputs))
 
         expanded_search_job = self.make(original_structure, md_calc_outputs)
 
