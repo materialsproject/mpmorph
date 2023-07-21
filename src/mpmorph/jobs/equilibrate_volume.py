@@ -1,14 +1,12 @@
 from dataclasses import dataclass
 from typing import List, Tuple
 import numpy as np
-
-from atomate2.vasp.jobs.core import MDMaker
+from emmet.core.tasks import TaskDoc
 
 from pymatgen.core.structure import Structure
 from jobflow import Maker, job, Flow, Response
 
-from .pv_from_calc import PVFromVasp, PVExtractor
-from ..schemas.pv_data_doc import MDPVDataDoc
+from .pv_from_calc import PVExtractor
 from ..runners import rescale_volume
 
 
@@ -36,7 +34,7 @@ class EquilibriumVolumeSearchMaker(Maker):
     def make(
         self,
         original_structure: Structure,
-        md_calc_outputs: List[MDPVDataDoc] = None
+        md_calc_outputs: List[TaskDoc] = None
     ):
         if md_calc_outputs is not None and len(md_calc_outputs) > MAX_MD_JOBS:
             raise RuntimeError(
@@ -93,10 +91,7 @@ class EquilibriumVolumeSearchMaker(Maker):
             for new_job in new_jobs:
                 md_calc_outputs.append(new_job.output)
 
-        expanded_search_job = EquilibriumVolumeSearchMaker(
-            md_maker=self.md_maker,
-            pv_extractor=self.pv_extractor
-        ).make(original_structure, md_calc_outputs)
+        expanded_search_job = self.make(original_structure, md_calc_outputs)
 
         flow = Flow([*new_jobs, expanded_search_job])
 
