@@ -24,7 +24,7 @@ relax_settings = {
 def get_original_relax_flow(struct: Structure):
     relax_input_generator = RelaxSetGenerator(
         user_incar_settings=relax_settings,
-        user_kpoints_settings=Kpoints.monkhorst_automatic(2, 2, 2)
+        user_kpoints_settings=Kpoints.monkhorst_automatic()
     )
     
     relax_maker = RelaxMaker(input_set_generator=relax_input_generator, name="Original Structure Relaxation")
@@ -43,7 +43,7 @@ def get_original_relax_flow(struct: Structure):
 def get_fast_quench_flow(struct: Structure):
     relax_input_generator = RelaxSetGenerator(
         user_incar_settings=relax_settings,
-        user_kpoints_settings=Kpoints.monkhorst_automatic(2, 2, 2)
+        user_kpoints_settings=Kpoints.monkhorst_automatic()
     )
     
     relax_maker_1 = RelaxMaker(input_set_generator=relax_input_generator)
