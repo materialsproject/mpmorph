@@ -89,15 +89,10 @@ class EquilibriumVolumeSearchMaker(Maker):
                 for factor in new_job_vol_scales
             ]
 
-            new_jobs = [self.md_maker.make(struct) for struct in scaled_structs]
+            new_jobs =  [self.md_maker.make(struct) for struct in scaled_structs]
 
             for new_job in new_jobs:
                 md_calc_outputs.append(new_job.output)
-
-        print("INPUT TYPES FOR NEXT JOB")
-        print(type(original_structure))
-        for output in md_calc_outputs:
-            print(type(output))
 
         expanded_search_job = self.make(original_structure, md_calc_outputs)
 
