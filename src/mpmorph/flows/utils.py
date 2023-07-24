@@ -9,6 +9,7 @@ from pymatgen.core.structure import Structure
 from pymatgen.core.trajectory import Trajectory
 
 from mpmorph.jobs.pv_from_calc import PVExtractor
+from ..jobs.equilibrate_volume import PVFromMDFlowMaker, GetPVDocFromMDMaker
 
 
 EQUILIBRATE_VOLUME_FLOW = "EQUILIBRATE_VOLUME_FLOW"
@@ -56,7 +57,12 @@ def get_converge_flow(
 ):
     eq_vol_maker = EquilibriumVolumeSearchMaker(
         md_maker=pv_md_maker,
-        pv_extractor=pv_extractor
+        pv_from_md_maker=PVFromMDFlowMaker(
+            md_maker=pv_md_maker,
+            extract_maker=GetPVDocFromMDMaker(
+                pv_extractor=pv_extractor
+            )
+        )
     )
 
     equil_vol_job = eq_vol_maker.make(structure)

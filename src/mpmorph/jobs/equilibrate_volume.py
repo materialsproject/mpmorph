@@ -7,6 +7,7 @@ from pymatgen.core.structure import Structure
 from jobflow import Maker, job, Flow, Response
 
 from .pv_from_calc import PVExtractor
+from ..schemas.pv_data_doc import MDPVDataDoc
 from ..runners import rescale_volume
 
 
@@ -19,6 +20,33 @@ def get_scaled_structure(struct: Structure, scale_factor: float):
     return copy
 
 @dataclass
+class GetPVDocFromMDMaker(Maker):
+
+    name: str = "PV_DOC_FROM_MD_DOC"
+    pv_extractor: PVExtractor = None
+
+    @job
+    def make(self, md_calc_output):
+        return MDPVDataDoc(
+            pressure=self.pv_extractor.get_pressure(md_calc_output),
+            volume=self.pv_extractor.get_volume(md_calc_output)
+        )
+
+@dataclass
+class PVFromMDFlowMaker(Maker):
+
+    name: str = "MD_TO_PV"
+    md_maker: Maker = None
+    extract_maker: GetPVDocFromMDMaker = None
+
+    def make(self, structure):
+        md_job = self.md_maker.make(structure)
+        extract_job = self.extract_maker.make(md_job.output)
+
+        return Flow([md_job, extract_job], output=extract_job.output)
+
+
+@dataclass
 class EquilibriumVolumeSearchMaker(Maker):
     """Iteratively identifies the equilibrium volume
     of a structure at a particular temperature by fitting a growing
@@ -26,22 +54,21 @@ class EquilibriumVolumeSearchMaker(Maker):
     """
 
     name: str = "EQUIL_VOL_SEARCH"
-    md_maker: Maker = None
-    pv_extractor: PVExtractor = None
+    pv_from_md_maker: PVFromMDFlowMaker = None
     initial_scale_factors: Tuple[float] = (0.8, 1, 1.2)
 
     @job
     def make(
         self,
         original_structure: Structure,
-        md_calc_outputs: List[TaskDoc] = None
+        pv_data_docs: List[MDPVDataDoc] = None
     ):
-        if md_calc_outputs is not None and len(md_calc_outputs) > MAX_MD_JOBS:
+        if pv_data_docs is not None and len(pv_data_docs) > MAX_MD_JOBS:
             raise RuntimeError(
-                "Maximum number of jobs for equilibrium volume search exceeded"
+                "Maximum number of MD runs for equilibrium volume search exceeded"
             )
 
-        if md_calc_outputs is None:
+        if pv_data_docs is None:
             scaled_structs = [
                 get_scaled_structure(original_structure, factor)
                 for factor in self.initial_scale_factors
@@ -52,10 +79,10 @@ class EquilibriumVolumeSearchMaker(Maker):
                 for struct in scaled_structs
             ]
 
-            md_calc_outputs = [job.output for job in new_jobs]
+            pv_data_docs = [job.output for job in new_jobs]
         else:
-            volumes = [self.pv_extractor.get_volume(doc) for doc in md_calc_outputs]
-            pressures = [self.pv_extractor.get_pressure(doc) for doc in md_calc_outputs]
+            volumes = [doc.volume for doc in pv_data_docs]
+            pressures = [doc.pressure for doc in pv_data_docs]
             pv_pairs = np.array(list(zip(pressures, volumes)))
 
             max_explored_volume = max(volumes)
@@ -89,12 +116,12 @@ class EquilibriumVolumeSearchMaker(Maker):
                 for factor in new_job_vol_scales
             ]
 
-            new_jobs =  [self.md_maker.make(struct) for struct in scaled_structs]
+            new_jobs =  [self.pv_from_md_maker.make(struct) for struct in scaled_structs]
 
             for new_job in new_jobs:
-                md_calc_outputs.append(new_job.output)
+                pv_data_docs.append(new_job.output)
 
-        expanded_search_job = self.make(original_structure, md_calc_outputs)
+        expanded_search_job = self.make(original_structure, pv_data_docs)
 
         flow = Flow([*new_jobs, expanded_search_job])
 

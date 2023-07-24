@@ -3,6 +3,7 @@ from atomate2.vasp.sets.core import MDSetGenerator
 from pymatgen.core.structure import Structure
 from mpmorph.jobs.pv_from_calc import PVFromVasp
 
+
 from .utils import get_md_flow
 from pymatgen.io.vasp.inputs import Kpoints
 
