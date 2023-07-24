@@ -56,7 +56,6 @@ def get_converge_flow(
     flow_name: str = M3GNET_MD_CONVERGED_VOL_FLOW
 ):
     eq_vol_maker = EquilibriumVolumeSearchMaker(
-        md_maker=pv_md_maker,
         pv_from_md_maker=PVFromMDFlowMaker(
             md_maker=pv_md_maker,
             extract_maker=GetPVDocFromMDMaker(
