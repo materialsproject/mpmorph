@@ -75,7 +75,7 @@ class EquilibriumVolumeSearchMaker(Maker):
             ]
 
             new_jobs = [
-                self.md_maker.make(struct)
+                self.pv_from_md_maker.make(struct)
                 for struct in scaled_structs
             ]
 
