@@ -18,10 +18,20 @@ M3GNET_MD_CONVERGED_VOL_FLOW = "M3GNET_MD_CONVERGED_VOL_FLOW"
 LAMMPS_VOL_FLOW = "LAMMPS_VOL_FLOW"
 VOLUME_TEMPERATURE_SWEEP = "VOLUME_TEMPERATURE_SWEEP"
 
-def get_frames_from_trajectory(trajectory: Trajectory, step_separation = 300, num_steps = 5):
-    earliest_step = step_separation * num_steps
-    steps = trajectory[-1:-earliest_step:-step_separation]
-    return steps
+def get_frames_from_trajectory(trajectory: Trajectory, step_size = 300, num_frames = 5, buffer = 100):
+
+    interval_starts = range(-1, (num_frames) * -step_size, -step_size)
+
+    chosen_frames = []
+    for i in interval_starts:
+        buffered_interval_low = i - buffer
+        buffered_interval_high = i - 2*buffer
+        interval_frames = trajectory[buffered_interval_low:buffered_interval_high:-1]
+        frames_energies = [f['e_0_energy'] for f in interval_frames.frame_properties]
+        min_energy_frame = min(zip(interval_frames, frames_energies), key=lambda pair: pair[1])
+        chosen_frames.append(min_energy_frame[0])
+
+    return chosen_frames
 
 def get_md_flow(
     pv_md_maker: Maker,
