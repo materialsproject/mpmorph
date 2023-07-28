@@ -11,7 +11,7 @@ from ..schemas.pv_data_doc import MDPVDataDoc
 from ..runners import rescale_volume
 
 
-MAX_MD_JOBS = 5  # if you can't converge with five additional calcs you're doing something wrong...
+MAX_MD_JOBS = 9  # if you can't converge with five additional calcs you're doing something wrong...
 OFFSET = 0.1  # gives it enough room to slosh back
 
 def get_scaled_structure(struct: Structure, scale_factor: float):
