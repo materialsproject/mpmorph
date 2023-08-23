@@ -1,10 +1,10 @@
-from mpmorph.firetasks.dbtasks import TrajectoryDBTask, VaspMDToDb
-from mpmorph.firetasks.glue_tasks import (
+from ..firetasks.dbtasks import TrajectoryDBTask, VaspMDToDb
+from ..firetasks.glue_tasks import (
     PassPVTask,
     PreviousStructureTask,
     SaveStructureTask,
 )
-from mpmorph.firetasks.mdtasks import (
+from ..firetasks.mdtasks import (
     ConvergeTask,
     DiffusionTask,
     PVRescaleTask,

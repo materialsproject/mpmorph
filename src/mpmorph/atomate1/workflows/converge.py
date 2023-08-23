@@ -3,8 +3,8 @@ from copy import deepcopy
 
 from fireworks import Workflow
 
-from mpmorph.fireworks import powerups
-from mpmorph.fireworks.core import MDFW
+from ..fireworks import powerups
+from ..fireworks.core import MDFW
 from mpmorph.utils import recursive_update
 
 

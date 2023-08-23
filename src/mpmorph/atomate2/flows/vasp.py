@@ -1,7 +1,7 @@
 from atomate2.vasp.jobs.core import MDMaker
 from atomate2.vasp.sets.core import MDSetGenerator
 from pymatgen.core.structure import Structure
-from mpmorph.jobs.pv_from_calc import PVFromVasp
+from ..jobs.pv_from_calc import PVFromVasp
 
 
 from .utils import get_md_flow
@@ -16,6 +16,7 @@ def get_md_flow_vasp(
     steps_prod: int = None,
     steps_pv: int = None,
     initial_vol_scale: int = 1,
+    scale_factor_increment: float = 0.2,
     production_md_set_generator: MDSetGenerator = None,
     pv_md_set_generator: MDSetGenerator = None
 ):
@@ -73,5 +74,6 @@ def get_md_flow_vasp(
         structure=structure,
         converge_first=converge_first,
         initial_vol_scale=initial_vol_scale,
+        scale_factor_increment=scale_factor_increment,
         flow_name=flow_name
     )

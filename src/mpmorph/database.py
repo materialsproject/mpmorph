@@ -1,10 +1,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import json
-import zlib
 from collections import defaultdict
 
-import gridfs
 import numpy as np
 from atomate.utils.utils import get_logger
 from atomate.vasp.database import VaspCalcDb

@@ -1,8 +1,7 @@
 import numpy as np
 from fireworks import Workflow
 
-from mpmorph.fireworks import powerups
-from mpmorph.fireworks.core import MDFW, OptimizeFW, StaticFW
+from ..fireworks.core import MDFW, OptimizeFW, StaticFW
 from mpmorph.utils import recursive_update
 
 

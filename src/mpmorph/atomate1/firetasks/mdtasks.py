@@ -3,7 +3,6 @@ from typing import List
 
 import numpy as np
 from fireworks import FireTaskBase, FWAction, Workflow, explicit_serialize
-from pymatgen.core import Structure
 from pymatgen.io.vasp import Poscar
 from pymatgen.io.vasp.outputs import Vasprun
 from scipy import stats

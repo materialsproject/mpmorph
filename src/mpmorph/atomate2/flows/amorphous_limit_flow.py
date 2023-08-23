@@ -9,7 +9,7 @@ from pymatgen.core.composition import Composition
 from .vasp import get_md_flow_vasp
 from .fast_quench import get_fast_quench_flow, get_original_relax_flow
 from .utils import get_frames_from_trajectory
-from ..runners.amorphous_maker import get_random_packed
+from ...runners.amorphous_maker import get_random_packed
 from monty.json import MontyDecoder
 
 from typing import Union

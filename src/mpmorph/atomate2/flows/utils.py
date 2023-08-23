@@ -4,11 +4,11 @@ import pandas as pd
 
 from jobflow import Flow, Maker, job
 
-from mpmorph.jobs.equilibrate_volume import EquilibriumVolumeSearchMaker
+from ..jobs.equilibrate_volume import EquilibriumVolumeSearchMaker
 from pymatgen.core.structure import Structure
 from pymatgen.core.trajectory import Trajectory
 
-from mpmorph.jobs.pv_from_calc import PVExtractor
+from ..jobs.pv_from_calc import PVExtractor
 from ..jobs.equilibrate_volume import PVFromMDFlowMaker, GetPVDocFromMDMaker
 
 
@@ -40,6 +40,7 @@ def get_md_flow(
     structure,
     converge_first,
     initial_vol_scale,
+    scale_factor_increment: float = 0.2,
     flow_name: str = "MD_FLOW",
 ):
     struct = structure.copy()
@@ -52,7 +53,8 @@ def get_md_flow(
             pv_md_maker = pv_md_maker,
             pv_extractor = pv_extractor,
             production_run_maker = production_md_maker,
-            flow_name=flow_name
+            flow_name=flow_name,
+            scale_factor_increment=scale_factor_increment
         )
     else:
         return Flow([production_md_maker.make(struct)], name=flow_name)
@@ -63,6 +65,7 @@ def get_converge_flow(
     pv_md_maker: Maker,
     pv_extractor: PVExtractor,
     production_run_maker: Maker,
+    scale_factor_increment: float = 0.2,
     flow_name: str = M3GNET_MD_CONVERGED_VOL_FLOW
 ):
     eq_vol_maker = EquilibriumVolumeSearchMaker(
@@ -71,7 +74,8 @@ def get_converge_flow(
             extract_maker=GetPVDocFromMDMaker(
                 pv_extractor=pv_extractor
             )
-        )
+        ),
+        scale_factor_increment=scale_factor_increment
     )
 
     equil_vol_job = eq_vol_maker.make(structure)

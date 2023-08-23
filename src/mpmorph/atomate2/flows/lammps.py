@@ -1,6 +1,6 @@
 from jobflow import Flow
 
-from mpmorph.jobs.lammps.lammps_basic_const_temp import BasicLammpsConstantTempMaker
+from ..jobs.lammps.lammps_basic_const_temp import BasicLammpsConstantTempMaker
 from pymatgen.core.structure import Structure
 
 from .utils import collect_vt_results

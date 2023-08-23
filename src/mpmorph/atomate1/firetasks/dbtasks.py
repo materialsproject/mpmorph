@@ -2,7 +2,6 @@ import json
 import os
 import re
 import zlib
-from collections import defaultdict
 from typing import List
 
 import gridfs

@@ -7,8 +7,8 @@ from atomate.vasp.fireworks.core import StaticFW
 from fireworks import Firework
 from pymatgen.io.vasp.sets import MPMDSet, MPRelaxSet, MPStaticSet
 
-from mpmorph.firetasks.dbtasks import VaspMDToDb
-from mpmorph.firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask
+from ..firetasks.dbtasks import VaspMDToDb
+from ..firetasks.glue_tasks import PreviousStructureTask, SaveStructureTask
 
 """
 These fireworks were adapted from atomate.vasp.fireworks.core specifically for this 

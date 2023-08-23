@@ -1,18 +1,17 @@
 from dataclasses import dataclass
 from typing import List, Tuple
 import numpy as np
-from emmet.core.tasks import TaskDoc
 
 from pymatgen.core.structure import Structure
 from jobflow import Maker, job, Flow, Response
 
 from .pv_from_calc import PVExtractor
 from ..schemas.pv_data_doc import MDPVDataDoc
-from ..runners import rescale_volume
+from ...runners import rescale_volume
 
 
-MAX_MD_JOBS = 9  # if you can't converge with five additional calcs you're doing something wrong...
-OFFSET = 0.1  # gives it enough room to slosh back
+MAX_MD_JOBS = 9  # if you can't converge with 6 additional calcs you're doing something wrong...
+BUFFER = 0.1  # gives it enough room to slosh back
 
 def get_scaled_structure(struct: Structure, scale_factor: float):
     copy: Structure = struct.copy()
@@ -55,7 +54,7 @@ class EquilibriumVolumeSearchMaker(Maker):
 
     name: str = "EQUIL_VOL_SEARCH"
     pv_from_md_maker: PVFromMDFlowMaker = None
-    initial_scale_factors: Tuple[float] = (0.8, 1, 1.2)
+    scale_factor_increment: float = 0.2
 
     @job
     def make(
@@ -69,9 +68,11 @@ class EquilibriumVolumeSearchMaker(Maker):
             )
 
         if pv_data_docs is None:
+            initial_scale_factors = [1 - self.scale_factor_increment, 1, 1 + self.scale_factor_increment]
+
             scaled_structs = [
                 get_scaled_structure(original_structure, factor)
-                for factor in self.initial_scale_factors
+                for factor in initial_scale_factors
             ]
 
             new_jobs = [
@@ -129,13 +130,13 @@ class EquilibriumVolumeSearchMaker(Maker):
 
 
 def get_new_max_volume(equil_guess, original_structure):
-    return equil_guess / original_structure.volume + OFFSET
+    return equil_guess / original_structure.volume + BUFFER
 
 def expand_upper_bound(old_max_vol, original_structure):
     return old_max_vol / original_structure.volume + 0.2
 
 def get_new_min_volume(equil_guess, original_structure):
-    return equil_guess / original_structure.volume - OFFSET
+    return equil_guess / original_structure.volume - BUFFER
 
 def expand_lower_bound(old_max_vol, original_structure):
     return old_max_vol / original_structure.volume - 0.2

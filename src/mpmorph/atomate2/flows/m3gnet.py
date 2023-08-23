@@ -1,11 +1,11 @@
 from jobflow import Flow
-from mpmorph.jobs.core import M3GNetMDMaker
+from ..jobs.core import M3GNetMDMaker
 
-from mpmorph.jobs.equilibrate_volume import EquilibriumVolumeSearchMaker
+from ..jobs.equilibrate_volume import EquilibriumVolumeSearchMaker
 from pymatgen.core.structure import Structure
 
-from mpmorph.jobs.pv_from_calc import PVFromM3GNet
-from mpmorph.jobs.tasks.m3gnet_input import M3GNetMDInputs
+from ..jobs.pv_from_calc import PVFromM3GNet
+from ..jobs.tasks.m3gnet_input import M3GNetMDInputs
 from .utils import get_md_flow, collect_vt_results, VOLUME_TEMPERATURE_SWEEP
 
 EQUILIBRATE_VOLUME_FLOW = "EQUILIBRATE_VOLUME_FLOW"
