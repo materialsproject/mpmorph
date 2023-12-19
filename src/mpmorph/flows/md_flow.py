@@ -43,7 +43,7 @@ def get_equil_vol_flow(structure, temp, steps):
 def get_md_flow_vasp(structure, temperature, steps, converge_first = True, initial_vol_scale = 1):
     # TODO: Fix all of this (e.g. steps default)
     production_vasp_maker = MDMaker()
-    pv_md_maker = PVFromVasp(maker=production_vasp_maker)
+    pv_md_maker = PVFromVasp(md_maker=production_vasp_maker)
     production_vasp_maker.input_set_generator.user_incar_settings["NSW"] = steps
 
     return _get_md_flow(
