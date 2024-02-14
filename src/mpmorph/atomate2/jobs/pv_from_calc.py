@@ -9,7 +9,6 @@ import numpy as np
 
 from abc import ABC, abstractmethod
 from monty.json import MSONable
-from monty.serialization import dumpfn
 
 from pymatgen.core.trajectory import Trajectory
 
