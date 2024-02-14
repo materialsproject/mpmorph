@@ -18,7 +18,11 @@ M3GNET_MD_CONVERGED_VOL_FLOW = "M3GNET_MD_CONVERGED_VOL_FLOW"
 LAMMPS_VOL_FLOW = "LAMMPS_VOL_FLOW"
 VOLUME_TEMPERATURE_SWEEP = "VOLUME_TEMPERATURE_SWEEP"
 
-def get_frames_from_trajectory(trajectory: Trajectory, step_size = 300, num_frames = 5, buffer = 100):
+def get_frames_from_trajectory(trajectory: Trajectory):
+    num_frames = 5
+    traj_len = len(trajectory)
+    step_size = int(0.1 * traj_len)
+    buffer = int(0.3 * step_size)
 
     interval_starts = range(-1, (num_frames) * -step_size, -step_size)
 
