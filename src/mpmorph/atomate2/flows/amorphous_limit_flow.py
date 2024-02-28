@@ -15,7 +15,13 @@ from monty.json import MontyDecoder
 from typing import Union
 
 
-def get_amorphous_limit_flow(comp: Union[str, Composition] = None, structure: Structure = None, aimd_temp = 5000, aimd_steps_pv = 3000, aimd_steps_prod = 3000):
+def get_amorphous_limit_flow(comp: Union[str, Composition] = None,
+                             structure: Structure = None, 
+                             aimd_temp = 5000, 
+                             aimd_steps_pv = 3000, 
+                             aimd_steps_prod = 3000,
+                             pv_user_incar_settings = None,
+                             prod_user_incar_settings = None):
 
     if structure is not None:
         comp = structure.composition
@@ -27,6 +33,8 @@ def get_amorphous_limit_flow(comp: Union[str, Composition] = None, structure: St
         temperature = aimd_temp,
         steps_prod=aimd_steps_prod,
         steps_pv=aimd_steps_pv,
+        production_md_user_incar_settings=prod_user_incar_settings,
+        pv_user_incar_settings=pv_user_incar_settings
     )
 
     fast_quenches = make_quench_flow(md_flow.output)

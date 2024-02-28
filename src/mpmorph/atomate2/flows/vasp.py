@@ -1,4 +1,4 @@
-from atomate2.vasp.jobs.core import MDMaker
+from atomate2.vasp.jobs.md import MDMaker
 from atomate2.vasp.sets.core import MDSetGenerator
 from pymatgen.core.structure import Structure
 from ..jobs.pv_from_calc import PVFromVasp
@@ -6,6 +6,8 @@ from ..jobs.pv_from_calc import PVFromVasp
 
 from .utils import get_md_flow
 from pymatgen.io.vasp.inputs import Kpoints
+
+from typing import Dict
 
 VASP_MD_CONVERGE_FLOW = "VASP_MD_CONVERGE_FLOW"
 
@@ -17,8 +19,8 @@ def get_md_flow_vasp(
     steps_pv: int = None,
     initial_vol_scale: int = 1,
     scale_factor_increment: float = 0.2,
-    production_md_set_generator: MDSetGenerator = None,
-    pv_md_set_generator: MDSetGenerator = None
+    production_md_user_incar_settings: Dict = None,
+    pv_user_incar_settings: Dict = None
 ):
 
     incar_settings = {
@@ -33,27 +35,35 @@ def get_md_flow_vasp(
 
     gamma_point = Kpoints()
 
-    if production_md_set_generator is None:
-        production_md_set_generator = MDSetGenerator(
-            ensemble="nvt",
-            start_temp=temperature,
-            end_temp=temperature,
-            nsteps=steps_prod,
-            time_step=2,
-            user_incar_settings=incar_settings,
-            user_kpoints_settings=gamma_point
-        )
+    if production_md_user_incar_settings is None:
+        production_md_user_incar_settings = {}
 
-    if pv_md_set_generator is None:
-        pv_md_set_generator = MDSetGenerator(
-            ensemble="nvt",
-            start_temp=temperature,
-            end_temp=temperature,
-            nsteps=steps_pv,
-            time_step=2,
-            user_incar_settings=incar_settings,
-            user_kpoints_settings=gamma_point
-        )
+    production_md_user_incar_settings = { **incar_settings, **production_md_user_incar_settings }
+
+    production_md_set_generator = MDSetGenerator(
+        ensemble="nvt",
+        start_temp=temperature,
+        end_temp=temperature,
+        nsteps=steps_prod,
+        time_step=2,
+        user_incar_settings=production_md_user_incar_settings,
+        user_kpoints_settings=gamma_point
+    )
+
+    if pv_user_incar_settings is None:
+        pv_user_incar_settings = {}
+
+    pv_user_incar_settings = { **incar_settings, **pv_user_incar_settings }
+
+    pv_md_set_generator = MDSetGenerator(
+        ensemble="nvt",
+        start_temp=temperature,
+        end_temp=temperature,
+        nsteps=steps_pv,
+        time_step=2,
+        user_incar_settings=pv_user_incar_settings,
+        user_kpoints_settings=gamma_point
+    )
 
 
     flow_name = f'MD_FLOW_{structure.composition.to_pretty_string()}'
